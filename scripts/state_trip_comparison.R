@@ -30,14 +30,14 @@ state_rr <- fread(fn_rr) %>%
 fn_clust <- paste0("results/",scenario,"/df_state_clusters.tsv")
 df_state_cluster <- fread(fn_clust)
 
-df_travel <- data.table::fread("../data/interstate_travel_dot.csv") %>%
+df_travel <- data.table::fread("data/interstate_travel_dot.csv") %>%
   rename(x = Origin) %>%
   rename(y = Destination) %>% 
   rename(mode = "Pivot Field Names") %>%
   rename(trips_dir = "Pivot Field Values") %>% #Directional trips
   mutate(trips_dir = as.numeric(trips_dir)) #Switch from into to num since it will confuse the math later
 
-df_travel_air <- data.table::fread("../data/interstate_air_travel_dot.csv") %>%
+df_travel_air <- data.table::fread("data/interstate_air_travel_dot.csv") %>%
   rename(x = Origin) %>%
   rename(y = Destination) %>% 
   rename(trips_dir = "Pivot Field Values") %>% #Directional trips
@@ -175,7 +175,7 @@ plot_travel_seq_out <- ggplot(data = df_travel_out) +
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(1))) + 
+                     limits = c(10^(-0.5),10^(0.5))) + 
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -203,7 +203,7 @@ plot_travel_seq_air <- ggplot(data = df_travel_air) +
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(1))) + 
+                     limits = c(10^(-0.5),10^(0.5))) + 
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),

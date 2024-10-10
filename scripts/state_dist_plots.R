@@ -167,7 +167,7 @@ state_nb_dist_plot <- state_rr %>%
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(1.2)) +
+                     limits = c(10^(-0.5),10^(1.2))) +
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
