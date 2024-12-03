@@ -6,6 +6,8 @@
 library(argparse)
 library(dplyr)
 library(data.table)
+library(dbplyr)
+library(duckdb)
 
 collect_args <- function(){
   parser <- ArgumentParser()
@@ -13,35 +15,86 @@ collect_args <- function(){
   return(parser$parse_args())
 }
 
+#To clean age function
+clean_age <- function(a){
+  UB <- 125 #Maximum age, oldest documented humans in history are between 117-122 in age
+  a <- as.numeric(a) #Force age to be a number
+  return(ifelse(!is.na(a) & a >= 0 & a < UB,a,NA))
+}
+
+#Aggregate the ages for the RR analysis, note that age should be cleaned prior
+aggregate_age <- function(a){
+  # Alternate age structure
+  if(scenario == 'USA'){ #Divide by every 3 years
+    return(case_when(is.na(as.numeric(a)) ~ 'NA', #Just for safety checking
+                     a <= 2 ~ '00-02y', 
+                     a <= 5 ~ '03-05y',
+                     a <= 8 ~ '06-08y', 
+                     a <= 11 ~ '09-11y',
+                     a <= 14 ~ '12-14y', 
+                     a <= 17 ~ '15-17y',
+                     a <= 20 ~ '18-20y',
+                     a <= 23 ~ '21-23y',
+                     a <= 26 ~ '24-26y',
+                     a <= 29 ~ '27-29y',
+                     a <= 32 ~ '30-32y',
+                     a <= 35 ~ '33-35y',
+                     a <= 38 ~ '36-38y',
+                     a <= 41 ~ '39-41y',
+                     a <= 44 ~ '42-44y',
+                     a <= 47 ~ '45-47y',
+                     a <= 50 ~ '48-50y',
+                     a <= 53 ~ '51-53y',
+                     a <= 56 ~ '54-56y',
+                     a <= 59 ~ '57-59y',
+                     a <= 62 ~ '60-62y',
+                     a <= 65 ~ '63-65y',
+                     a <= 68 ~ '66-68y',
+                     a <= 71 ~ '69-71y',
+                     a <= 74 ~ '72-74y',
+                     a <= 77 ~ '75-77y',
+                     a <= 80 ~ '78-80y',
+                     a <= 83 ~ '80-83y',
+                     a <= 86 ~ '84-86y',
+                     a <= 89 ~ '86-89y',
+                     TRUE ~ '90y+'))
+  }else{
+    return(case_when(is.na(as.numeric(a)) ~ 'NA', #Just for safety checking
+                     a <= 4 ~ '00-04y', 
+                     a <= 9 ~ '05-09y',
+                     a <= 14 ~ '10-14y',
+                     a <= 19 ~ '15-19y',
+                     a <= 24 ~ '20-24y',
+                     a <= 29 ~ '25-29y',
+                     a <= 34 ~ '30-34y',
+                     a <= 39 ~ '34-39y',
+                     a <= 44 ~ '40-44y',
+                     a <= 49 ~ '45-49y',
+                     a <= 54 ~ '50-54y',
+                     a <= 59 ~ '55-59y',
+                     a <= 64 ~ '60-64y',
+                     a <= 69 ~ '65-69y',
+                     a <= 74 ~ '70-74y',
+                     a <= 79 ~ '75-79y',
+                     a <= 84 ~ '80-84y',
+                     a <= 89 ~ '85-89y',
+                     TRUE ~ '90y+'))
+  }
+}
+
+
 args <- collect_args()
 scenario <- args$scenario
 
 dir.create(paste0("results/",scenario)) #Make a directory in case it doesn't already exist
 
-fn_meta <- paste0("./data/",scenario,"/metadata/metadata_",scenario,".tsv")
-fn_cluster <- paste0("./data/",scenario,"/distance_aggregated/combined_df_cluster_alloc_",scenario,".tsv")
-fn_pairs <- paste0('./data/',scenario,"/distance_aggregated/combined_df_identical_pairs_",scenario,".tsv") 
+fn_db <- paste0("db_files/db_",scenario,".duckdb")
+con <- DBI::dbConnect(duckdb(),fn_db)
+df_meta <- tbl(con,"metadata")
+total_seq_n <- df_meta |> summarize(n()) |> collect()
+print(paste0("Total number of sequences initially: ",total_seq_n))
 
-df_meta <- fread(fn_meta)
-print(paste0("Total number of sequences initially:",nrow(df_meta)))
-
-if(scenario=="USA"){ #For the full USA scenario, cluster allocation code is not working, will bypass the allocation since we are not using for now
-  df_cluster_full <- df_meta #Just assign it to be the metadata without the clusters
-} else{ #All other scenarios, goal is to have these steps included into the full set at a later date
-  df_cluster_alloc <- fread(fn_cluster)
-
-  #Make a unique cluster ID to simplify analysis
-  df_cluster_alloc <- df_cluster_alloc %>% mutate(cluster_pango_id = paste(Nextclade_pango,cluster_id,sep = "_")) %>%
-    select(strain,cluster_pango_id)
-
-  #Combine the tables and do some other filtering/cleaning of the metadata
-  df_cluster_full <- left_join(df_meta,df_cluster_alloc,by = "strain") 
-}
-
-
-df_cluster_full <- df_cluster_full %>%
-  mutate(strain_1 = strain) %>% #Need to create dummy columns for tsv-utils join to the pairs in bind_pairs_exp
-  mutate(strain_2 = strain) %>%
+df_meta <- df_meta %>%
   filter(host=="Human") %>% #Limit to human cases only
   filter(coverage >= 0.9) %>% #90% or higher coverage
   mutate(division = case_when(
@@ -74,21 +127,36 @@ df_cluster_full <- df_cluster_full %>%
     TRUE ~ census_div
     )
   ) %>%
-  filter(census_reg %in% c("West","Midwest","South","Northeast","Hawaii","Alaska")) %>%
-  filter(!is.na(division))
+  filter(census_reg %in% c("West","Midwest","South","Northeast","Hawaii","Alaska")) %>% #Limits to 50 States + US
+  filter(!is.na(division))  %>%
+  collect() %>%
+  mutate(age_adj = clean_age(age)) %>%
+  mutate(age_class = aggregate_age(age_adj))
 
-print(paste0("Number of sequences post-filtering:",nrow(df_cluster_full)))
 
-fn_output <- paste0("./results/",scenario,"/df_meta_clust.tsv")
-readr::write_tsv(df_cluster_full,fn_output)
+dbWriteTable(conn = con,
+        value = df_meta,
+        name = "metadata",
+        overwrite=TRUE
+)
 
-STRAIN_LIST <- df_cluster_full$strain 
-df_pairs <- fread(fn_pairs)
-print(paste0("Number of pairs pre-filtering: ",nrow(df_pairs)))
+filtered_seq_n <- df_meta |> summarize(n()) 
+print(paste0("Number of sequences post-filtering: ",filtered_seq_n))
 
-#Filter the pairs to only include pairs where both sequences are inclcuded in the metadata strain list
-df_pairs_clean <- df_pairs %>% filter(strain_1 %in% STRAIN_LIST & strain_2 %in% STRAIN_LIST)
-print(paste0("Number of pairs post-filtering: ",nrow(df_pairs_clean)))
 
-fn_pairs_out <- paste0("./results/",scenario,"/df_pairs_clean.tsv")
-readr::write_tsv(df_pairs_clean,fn_pairs_out)
+#Prune pairs to only use strains that were included in the final metadata list
+#Manually writing SQL for this step as the dbplyr grammar struggles with cross table comparisons
+df_pairs <- sql("
+SELECT * FROM pairs
+  WHERE strain_1 IN (SELECT strain FROM metadata)
+  AND strain_2 IN (SELECT strain FROM metadata)
+") %>% dbGetQuery(con,.)
+
+  
+dbWriteTable(conn = con,
+               value = df_pairs,
+               name = "pairs",
+               overwrite=TRUE
+)
+    
+DBI::dbDisconnect(con, shutdown=TRUE)

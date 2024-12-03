@@ -135,7 +135,7 @@ rho_travel_air.p <- cor.test(df_travel_air$RR_seq,df_travel_air$RR_trips,method 
 
 plot_travel_seq_all <- ggplot(data = df_travel) +
   geom_point(aes(x=RR_trips,y=RR_seq,color=same_state),alpha=0.4) +
-  geom_smooth(aes(x=RR_trips,y=RR_seq),color='firebrick',fill='firebrick',method='glm') +
+  geom_smooth(aes(x=RR_trips,y=RR_seq),color='firebrick',fill='firebrick',method='gam') +
   scale_x_continuous(transform ='log',
                      name=expression(RR["travel"]),
                      breaks = c(1E-5,1E-3, 1E-1, 1E0, 1E1, 1E3),
@@ -143,10 +143,9 @@ plot_travel_seq_all <- ggplot(data = df_travel) +
                      expand = expansion(mult = c(0.18, 0.13))) +
   scale_y_continuous(transform ='log',
                      name=expression(RR["identical sequences"]),
-                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
-                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
+                     breaks = c(0.75,1,5,10,20),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-1),10^(1.5))) + 
+                     limits = c(10^(-0.15),10^(1.5))) + 
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -160,11 +159,11 @@ plot_travel_seq_all <- ggplot(data = df_travel) +
        subtitle = paste0("Spearman's rho: ",round(rho_travel,2)),
        color = "Within Same State")
 fn_travel_seq_all <- paste0("figs/",scenario,"/travel_seq_all.jpg")
-ggsave(fn_travel_seq_all,plot_travel_seq_all,width = 7,height=5,dpi = 600)
+ggsave(fn_travel_seq_all,plot_travel_seq_all,width = 6,height = 6,dpi = 600)
 
 plot_travel_seq_out <- ggplot(data = df_travel_out) +
   geom_point(aes(x=RR_trips,y=RR_seq,color=same_hclust),alpha=0.4) +
-  geom_smooth(aes(x=RR_trips,y=RR_seq),color='firebrick',fill='firebrick',method='glm') +
+  geom_smooth(aes(x=RR_trips,y=RR_seq),color='firebrick',fill='firebrick',method='gam') +
   scale_x_continuous(transform ='log',
                      name=expression(RR["travel"]),
                      breaks = c(1E-5,1E-3, 1E-1, 1E0, 1E1, 1E3),
@@ -172,10 +171,9 @@ plot_travel_seq_out <- ggplot(data = df_travel_out) +
                      expand = expansion(mult = c(0.18, 0.13))) +
   scale_y_continuous(transform ='log',
                      name=expression(RR["identical sequences"]),
-                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
-                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
+                     breaks = c(0.75,1,1.5,2),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(0.5))) + 
+                     limits = c(10^(-0.15),10^(0.35))) + 
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -188,11 +186,11 @@ plot_travel_seq_out <- ggplot(data = df_travel_out) +
        subtitle = paste0("Spearman's rho: ",round(rho_travel_out,2)),
        color="Within Same Cluster")
 fn_travel_seq_out <- paste0("figs/",scenario,"/travel_seq_out.jpg")
-ggsave(fn_travel_seq_out,plot_travel_seq_out,width = 7,height=5,dpi = 600)
+ggsave(fn_travel_seq_out,plot_travel_seq_out,width = 6,height=6,dpi = 600)
 
 plot_travel_seq_air <- ggplot(data = df_travel_air) +
   geom_point(aes(x=RR_trips,y=RR_seq,color=same_hclust),alpha=0.4) +
-  geom_smooth(aes(x=RR_trips,y=RR_seq),color='firebrick',fill='firebrick',method='glm') +
+  geom_smooth(aes(x=RR_trips,y=RR_seq),color='firebrick',fill='firebrick',method='gam') +
   scale_x_continuous(transform ='log',
                      name=expression(RR["travel"]),
                      breaks = c(1E-2, 1E-1, 1E0, 1E1, 1E2),
@@ -200,10 +198,9 @@ plot_travel_seq_air <- ggplot(data = df_travel_air) +
                      expand = expansion(mult = c(0.18, 0.13))) +
   scale_y_continuous(transform ='log',
                      name=expression(RR["identical sequences"]),
-                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
-                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
+                     breaks = c(0.75,1,1.5,2),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(0.5))) + 
+                     limits = c(10^(-0.15),10^(0.35))) + 
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -216,7 +213,7 @@ plot_travel_seq_air <- ggplot(data = df_travel_air) +
        subtitle = paste0("Spearman's rho: ",round(rho_travel_air,2)),
        color="Within Same Cluster")
 fn_travel_seq_air <- paste0("figs/",scenario,"/travel_seq_air.jpg")
-ggsave(fn_travel_seq_air,plot_travel_seq_air,width = 7,height=5,dpi = 600)
+ggsave(fn_travel_seq_air,plot_travel_seq_air,width = 6,height=6,dpi = 600)
 
 #Diagnostic plots, nothing interesting to make into figures
 plot_travel_cluster_air <- ggplot(data = df_travel_air) +

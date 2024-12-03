@@ -67,7 +67,7 @@ state_adj_plot <- state_rr%>%
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-1.001),10^(1.2))) +
+                     limits = c(10^(-1.001),10^(1.5))) +
   coord_flip() +
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -79,18 +79,20 @@ ggsave(fn_state_adj_plot,
        plot=state_adj_plot,
        device = "jpeg",
        dpi = 600,
-       width = 7,
-       height = 4
+       width = 6,
+       height = 6
 )
 
 #Note since spearman is rank-order correlation, log transformation does not matter
 rho_euclid <- cor(state_rr$euclid_dist,state_rr$RR,method = "spearman")
 rho_nbdist <- cor(state_rr$nb_dist,state_rr$RR,method = "spearman",use = "complete.obs") #Ignore NAs
 
+
 fn_state_euclid_dist_plot <- paste0("figs/",scenario,"/state_euclid_dist_plot.jpg") 
 state_euclid_dist_plot <- state_rr %>%
   ggplot() +
   geom_point(aes(x=euclid_dist,y=RR),alpha=0.1,size=1,fill='black') +
+  geom_linerange(aes(x=euclid_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
   geom_smooth(aes(x=euclid_dist,y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name="State Centroid Distance (km)",
                      breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
@@ -100,7 +102,7 @@ state_euclid_dist_plot <- state_rr %>%
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(1.2))) +
+                     limits = c(10^(-0.15),10^(1.5))) +
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -115,14 +117,15 @@ ggsave(fn_state_euclid_dist_plot,
        plot=state_euclid_dist_plot,
        device = "jpeg",
        dpi = 600,
-       width = 7,
-       height = 4
+       width = 6,
+       height = 6
 )
 
 fn_state_euclid_logdist_plot <- paste0("figs/",scenario,"/state_euclid_logdist_plot.jpg") 
 state_euclid_logdist_plot <- state_rr %>%
   ggplot() +
   geom_point(aes(x=log10(euclid_dist+1),y=RR),alpha=0.1,size=1,fill='black') +
+  geom_linerange(aes(x=euclid_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
   geom_smooth(aes(x=log10(euclid_dist+1),y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name=expression(log["10"]("Centroid Distance")),
                      breaks = c(0,1,2,3,4,5),
@@ -133,7 +136,7 @@ state_euclid_logdist_plot <- state_rr %>%
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(1.2))) +
+                     limits = c(10^(-0.15),10^(1.5))) +
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -148,14 +151,20 @@ ggsave(fn_state_euclid_logdist_plot,
        plot=state_euclid_logdist_plot,
        device = "jpeg",
        dpi = 600,
-       width = 7,
-       height = 4
+       width = 6,
+       height = 6
 )
 
-fn_state_nb_dist_plot <- paste0("figs/",scenario,"/state_nb_dist_plot.jpg") 
+fn_state_nb_dist_plot <- paste0("figs/",scenario,"/state_nb_dist_plot.jpg")
+nb_jitter <- position_jitter(width=0.2,height=0)
 state_nb_dist_plot <- state_rr %>%
   ggplot() +
-  geom_jitter(aes(x=nb_dist,y=RR),alpha=0.1,fill='black', size=1, width=0.2, height = 0) +
+  #geom_linerange(aes(x=nb_dist,y=RR,ymin = ci_lb, ymax = ci_ub),
+   #               position = nb_jitter,
+    #              alpha = 0.1,color='black') +
+  geom_point(aes(x=nb_dist,y=RR),
+             position = nb_jitter,
+             alpha = 0.1,fill='black',size=1) +
   geom_smooth(aes(x=nb_dist,y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name = "Neighbor Order (Queen-Adjacency)",
                      breaks = 0:11,
@@ -167,7 +176,7 @@ state_nb_dist_plot <- state_rr %>%
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.5),10^(1.2))) +
+                     limits = c(10^(-0.15),10^(1.5))) +
   geom_hline(yintercept = 1) + #Reference point
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
@@ -182,6 +191,6 @@ ggsave(fn_state_nb_dist_plot,
        plot=state_nb_dist_plot,
        device = "jpeg",
        dpi = 600,
-       width = 7,
-       height = 4
+       width = 6,
+       height = 6
 )

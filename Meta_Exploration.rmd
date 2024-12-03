@@ -1,0 +1,240 @@
+---
+title: "Metadata Exploration"
+author: "Amin Bemanian"
+date: "2024-07-17"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+set.seed(17)
+knitr::opts_chunk$set(echo = TRUE)
+library(data.table)
+library(dplyr)
+library(ggplot2)
+library(lubridate)
+
+#Frequency Table
+freq_table <- function(data, colname) {
+  # Create the frequency table using dplyr
+  ft <- data %>%
+    group_by({{colname}}) %>%
+    summarise(count = n()) #%>%
+    #arrange(colname)
+  return(ft)
+}
+
+#State population file, also acts as a filter on divisions
+state_pop <- fread(input = "./data/state_pop.tsv")
+
+#Variant of Interest Files
+pango_voi <- fread(input = "./data/pango_voi.tsv")
+clade_voi <- fread(input = "./data/clade_voi.tsv")
+
+#GISAID loading
+meta_us <- fread(input = "./data/metadata_USA.tsv")
+meta_us <- meta_us %>% 
+  mutate(age_num = as.numeric(age)) %>%
+  mutate(date_orig = date) %>% #Keep this for reference to see what the NA variables look like
+  mutate(date = as.Date(date)) %>%
+  mutate(division = ifelse(division == "Washington DC","District of Columbia",division)) %>% #Switch name to make analysis results be more readable
+  filter(division %in% state_pop$state)
+```
+
+This notebook is an exploratory analysis of the metadata for the US SARS-CoV-2 datasets. The data used was pulled from the NextStrain S3 bucket on the morning of 7/16/24.
+
+## Demographic and Geographic Data
+In total, there are 5,162,203 sequences whose country was listed as "USA" in the GISAID set. Of the metadata attributes we have available the most significant are geographic variables and basic demographics with age and sex. In terms of age, 46.2% have no numeric age value listed and 53.7% likely plausible age values (0-99 years old). The last 0.1% is a mix of people with negative values (n=22), centenarians (100-119 year olds, n=1012), and then individuals with impossibly high age values (120-962 years old, 284). Of note the oldest confirmed living individual in the US is 117 years old. A histogram of the feasible age range (0-119 years old) is included below.       
+
+```{r age, echo=FALSE}
+# freq_table(meta_us,age_num)
+# 
+# print(paste("Number of NaN Age Values:",
+#             sum(is.na(meta_us$age_num))))
+# print(paste("Number of negative age values:",
+#             sum(meta_us$age_num < 0,na.rm=TRUE)))
+# print(paste("Number of likely plausible age values (0-99):",
+#             sum(meta_us$age_num >= 0 & meta_us$age_num < 100,na.rm = TRUE)))
+# print(paste("Number of feasible centarians (100-120):",
+#             sum(meta_us$age_num >= 100 & meta_us$age_num < 120,na.rm = TRUE)))
+# print(paste("Number of impossibly aged individuals (12):",
+#             sum(meta_us$age_num >= 120,na.rm = TRUE)))
+ggplot(filter(meta_us,age_num >= 0 & age_num < 120),aes(x=age_num)) +
+  geom_histogram(binwidth=5, fill="lightblue",color="black") +
+  labs(x="Age",y="Count")
+```
+
+Below is just a quick sanity test to make sure the date metadata all looks correct. The range of reported dates is correct (Weeks: 2019-12-29 to 2024-07-07). There are 51,883 entries with date entries with at least some missing data. Of these, 27,459 have both the year and  24,388 only have the year included, and 36 have no date at all.  
+```{r freq, echo=FALSE, message=FALSE, warning=FALSE}
+
+#print(paste("Number of missing date values:",sum(is.na(meta_us$date))))
+
+week_table <- meta_us %>%
+  mutate(week = floor_date(date, "week")) %>%
+  group_by(week,clade_nextstrain) %>%
+  summarise(count = n())
+
+month_table <- meta_us %>%
+  mutate(month = floor_date(date, "month")) %>%
+  group_by(month,clade_nextstrain) %>%
+  summarise(count = n())
+
+week_pango_state <- meta_us %>%
+  mutate(week = floor_date(date, "week")) %>%
+  group_by(week,Nextclade_pango,division) %>%
+  summarise(count = n())
+
+#Graph out variant of interest in 10 most populous states
+LARGE_STATES  <- c("California","Texas","Florida","New York", "Pennsylvania",
+                   "Illinois","Ohio","Georgia","North Carolina","Michigan")
+
+ggplot(week_table,aes(x=week,y=count,fill = clade_nextstrain)) +
+  geom_col() + labs(x="Date",y="Count")
+
+df_variant_div <- tibble()
+
+plot_voi <- list()
+for(i in 1:nrow(pango_voi)){
+  voi <- pango_voi$pango[i]
+  voi_name <- pango_voi$name[i] 
+  
+  df_voi <- week_pango_state %>%
+    group_by(week,division) %>%
+    summarise(perc_voi = 100*weighted.mean(Nextclade_pango==voi,count)) %>%
+    mutate(variant = voi) %>%
+    mutate(var_name = voi_name) #Easier legibility for maps
+  
+  df_variant_div <- rbind(df_variant_div,df_voi)
+    
+  plot_voi[[i]] <- df_voi %>% filter(division %in% LARGE_STATES) %>%
+    ggplot(aes(x=week,y=perc_voi,color=division)) +
+    geom_line() +
+    labs(x="Date",y=paste("Percent of Isolates of",voi)) +
+    facet_wrap(~division, nrow = 5)
+}
+
+plot_voi
+
+df_variant_div %>% 
+  filter(variant == "B.1.1.7") %>%
+  ggplot(aes(x=week,y=perc_voi,color=division)) +
+  geom_line() +
+  labs(x="Date",y=paste("Percent of Isolates of"))
+
+save(df_variant_div,file="./data/df_variant_div.Rdata")
+
+# df_variant_div %>%
+#   filter(week == "2021-05-23") %>%
+#   filter(variant == "B.1.1.7") %>%
+#   mutate(state = division) %>% #To work with USMaps package
+#   select(state,perc_voi) %>%
+#   map_with_data(values = "perc_voi")
+
+
+# week_ns_state <- meta_us %>%
+#   mutate(week = floor_date(date, "week")) %>%
+#   group_by(week,clade_nextstrain,division) %>%
+#   summarise(count = n())
+# nextstrain_interest <- "21J"
+# week_ns_state %>%
+#   filter(division %in% LARGE_STATES) %>%
+#   group_by(week,division) %>%
+#   summarise(perc_voi = 100*mean(clade_nextstrain==nextstrain_interest)) %>%
+#   ggplot(aes(x=week,y=perc_voi,color=division)) +
+#   geom_line() +
+#   labs(x="Date",y=paste("Percent of Isolates of",nextstrain_interest)) +
+#   facet_wrap(~division, nrow = 5)
+
+```
+
+Looking at gender/sex, much of the data is either missing or poorly labeled. There are 45.4% missing/unknown/mislabeled individuals. This includes a number of clearly incorrectly entered entries with either an age or the specimen type (e.g. "nasopharyngeal swab"). There are 29.2% Female and 25.4% Male individuals with a very small number of non-binary individuals (maybe 9 total?). 
+
+```{r sex, echo=FALSE}
+# freq_table(meta_us,sex)
+SEX_REF_LIST <- c("Ambiguous","F/M","Female","Male","Oth","Other") #List of strings from sex that seem to be correctly collected (i.e. not an age or other variable), please note these values are from existing datasets  
+```
+
+Finally, in terms of geography there are 4 variables included. Region and country which are both self-explanatory. All sequences from this dataset are from the United States. The country of exposure is included as well and there are 57 individuals whose country of exposure differs. The next level is division. For the most part, this seems to be consistently the state or territory. There are a 9945 entries that are just "USA", 33 from cruise liners, and 2 entries with municipality names without the state. There is also a division exposure variable and 105 entries where the exposure division is different from the main division variable. The last level of geography included is the location. This variable does not have any specific meaning. The majority of entries are empty (72.9%). The rest are a mix of counties, municipalities, and ZIP codes. There are 34 entries that have the same division value as location value. 
+
+A bar plot of the number of sequences for each division is shown below, stratified by whether or not the sub-division location data is included. California, New York, and Texas have the highest number of samples and have relatively large proportions of sub-state locations included (blue color). The percentage of sequences with sub-division location data is shown in the second bar plot. This shows that there is a high amount of variability by state if there is higher resolution location data available.
+
+```{r geo, echo=FALSE, fig.height=9, fig.width=8}
+# freq_table(meta_us,division) #Seems to mostly be state-level
+freq_table(meta_us,location) #Mix of county, ZIP, and city level
+# freq_table(meta_us,country) #Sanity check
+# freq_table(meta_us,division_exposure)
+# print(paste("Number of individuals with discordant division and exposure division:",
+#       sum(meta_us$division_exposure != meta_us$division)))
+# print(paste("Number of individuals with foreign exposures:",
+#       sum(meta_us$country_exposure != "USA")))
+# print(paste("Number of individuals with same location and division:",
+#       sum(meta_us$location == meta_us$division)))
+# freq_table(meta_us,country_exposure)
+
+
+#Bar plot of division counts
+seqcount_state <- meta_us %>%
+  mutate(loc_incl = (location != "")) %>%
+  group_by(division) %>%
+  count(loc_incl) %>%
+  left_join(state_pop, by = c("division" = "state")) %>%
+  mutate(seq_effort = n/pop*1E5)
+   
+  
+ggplot(seqcount_state,aes(reorder(division,n),y=n,fill=loc_incl)) +
+  geom_col() + labs(x = "Division", y = "Absolute Sequence Count")  + coord_flip()
+
+ggplot(seqcount_state,aes(reorder(division,seq_effort),y=seq_effort)) +
+  geom_col() + labs(x = "Division", y = "Sequences per 100,000 People")  + coord_flip()
+
+#Bar plot showing the percentage of location entries by division
+meta_us %>%
+  mutate(loc_incl = (location != "")) %>%
+  group_by(division) %>%
+  summarize(perc_loc=mean(loc_incl)*100) %>%
+  ggplot(aes(reorder(division,perc_loc),y=perc_loc)) +
+  geom_col() + labs (x = "Division", y = "Percent of Sequences with Sub-Division Location Data") + coord_flip()
+
+#Bar plot for percentage of sequences with a valid age
+meta_us %>%
+  mutate(valid_age = (!is.na(age_num) & age_num >= 0 & age_num < 120)) %>%
+  group_by(division) %>%
+  summarize(perc_valid_age=mean(valid_age)*100) %>%
+  ggplot(aes(reorder(division,perc_valid_age),y=perc_valid_age)) +
+  geom_col() + labs (x = "Division", y = "Percent of Sequences with Valid Age (0-119)") + coord_flip()
+
+meta_us %>%
+  mutate(valid_sex= sex %in% SEX_REF_LIST) %>%
+  group_by(division) %>%
+  summarize(perc_valid_sex=mean(valid_sex)*100) %>%
+  ggplot(aes(reorder(division,perc_valid_sex),y=perc_valid_sex)) +
+  geom_col() + labs (x = "Division", y = "Percent of Sequences with Non-Missing Sex") + coord_flip()
+
+```
+
+
+## Sequencing Quality Control Attributes
+Below is a curve of the proportion of the samples that have a coverage value equal to or better than the X-axis (i.e. a reverse CDF.) 88.7% of sequences had >95% coverage and 73.1% of sequences had >98% coverage. Also below is a boxplot of coverage (with outliers removed for readability). All states had a median coverage greater than 95%, and the vast majority of IQRs remained above 90% (with the sole exception of DC).
+
+The metadata also has some quality control rating variables which are rated as "good","mediocre", and "bad". These include "missing data", "mixed sites", "rare mutations", "SNP clusters", "frame shifts", "stop codons", and are aggregated to an overall score and rating. The overall rating table is included below. 7.8% of sequences were rated as "bad"and 13.0% were rated as mediocre.    
+
+```{r coverage, echo=FALSE}
+cov_prop <- ecdf(meta_us$coverage)
+covX <- (7.5E4:1E5/1E5)
+plot(covX,1-cov_prop(covX),
+     type = "s",
+     main = "Coverage Performance",
+     xlab = "Coverage",
+     ylab = "Proportion of Samples",
+     ylim = c(0.75,1.0),
+     xaxs="i", yaxs="i")
+grid(nx=5)
+
+ggplot(meta_us) + aes(x = division, y = coverage) +
+  geom_boxplot(outliers = FALSE) + 
+  labs(x = "Division", y = "Coverage") + coord_flip()
+
+freq_table(meta_us,QC_overall_status)
+```
+

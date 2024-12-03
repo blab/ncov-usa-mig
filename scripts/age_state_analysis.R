@@ -12,93 +12,119 @@ library(argparse)
 library(dplyr)
 library(data.table)
 library(ggplot2)
-library(doParallel)
-library(foreach)
+library(duckdb)
+library(dbplyr)
 
-source('./scripts/bind_pairs_exp.R')
-source("./scripts/calculate_rr_matrix.R")
+source("scripts/calculate_rr_matrix.R")
+source("scripts/bind_pairs_exp.R")
 
-STATE_DISTANCES <- fread("../data/nb_dist_states.tsv")
+STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
 
 
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = "USA", help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--threads', type = 'integer', default = 1, help = "How many threads for parallelization")
+  parser$add_argument('--ci', type = 'logical', default = TRUE, help = "Whether to calculate CIs, default is TRUE")
   return(parser$parse_args())
 }
 
+
 args <- collect_args()
-
+ci_flag <- args$ci
 scenario <- args$scenario
-threads <- args$threads
-N_SAMP <- 20 #Ideally do 1000 in final
 
-registerDoParallel(cores = threads)
+fn_db <- paste0("db_files/db_",scenario,".duckdb")
+con <- DBI::dbConnect(duckdb(),fn_db)
 
+pairs_state <- con %>% 
+  bind_pairs_exp("division") %>%
+  rename(state.x = x) %>%
+  rename(state.y = y) %>%
+  mutate(sameState = (state.x == state.y))
 
-#x and y refer to state/division in pairs
-get_adj_status <- function(x,y){
-  d_nb <- STATE_DISTANCES[state_x == x & state_y == y, nb_dist]
-  case_when(
-    d_nb == 0 ~ "Within",
-    d_nb == 1 ~ "Adjacent",
-    TRUE ~ "Non-adjacent"
-  )
-}
+pairs_age <- con %>%
+  bind_pairs_exp("age_class") 
 
-tryCatch(
-  {
-    df_pairs_with_age <- fread(paste0("results/",scenario,"/df_pairs_with_age.tsv"))
-    df_pairs_with_state  <- fread(paste0("results/",scenario,"/df_pairs_with_state.tsv"))
-    df_pairs_age_state <- left_join(df_pairs_with_age,df_pairs_with_state)
-  },
-  error = function(e){
-    print("Missing pair datasets joined with age and state. Run those analyses prior.")
-    stop()
-  }
-)
+pairs_state_age <- inner_join(pairs_state,pairs_age)
 
-#Assign adjacency status
-df_pairs_age_state$adj_status <- ""
-LIST_STATES <- union(unique(df_pairs_age_state$X_division),unique(df_pairs_age_state$Y_division))
-#Far quicker instead of iterating over each pair and running get_adj_status
-for(x in LIST_STATES){
-  for(y in LIST_STATES){
-    adj <- get_adj_status(x,y)
-    df_pairs_age_state[X_division == x & Y_division == y]$adj_status <- adj
-  }
-}
+#Need for CI subsampling
+meta_age <- con %>%
+  tbl("metadata") %>%
+  filter(!is.na(age_class)) %>%
+  filter(age_class != 'NA')
 
-#First make an analysis within each state for Within state pairs
-df_age_RRs_by_state <- tibble()
+#This analysis needs a unique CI calculation since it's being stratified over 2 add'l variables(state and sameState)
+#pair_list - full list, will be pairs_state_age
+#meta_tbl - Metadata table to subset sequences from
+#specific_state - name of a specific state to stratify
 
-for (state in LIST_STATES) {
-  df_p_age <- df_pairs_age_state[X_division == state & adj_status == 'Within',]
-  tryCatch(
-    {
-      ages_rr <- calculate_rr_matrix(df_p_age,"age_class",return_ci = TRUE,n_subsample=N_SAMP) %>%
-        mutate(state_name = state)
-      df_age_RRs_by_state <- rbind(df_age_RRs_by_state,ages_rr)
-    },
-    error = function(e){
-      print(paste0("Failed to do age RR analysis on: ",state))
+calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,interval_width=0.95){
+  RR_dist_same <- matrix()
+  RR_dist_diff <- matrix()
+  for(x in 1:k){
+    pairs_state_samp <- con %>% 
+      bind_pairs_exp("division") %>%
+      rename(state.x = x) %>%
+      rename(state.y = y) %>%
+      mutate(sameState = (state.x == state.y))
+    if(!is.null(specific_state)){
+      pairs_state_samp <- pairs_state_samp %>% filter(state.x == specific_state | state.y == specific_state)
     }
-  )
+    pairs_age_samp <- con %>%
+      bind_pairs_exp("age_class",sub_samp = TRUE,samp_cov) 
+    pairs_combo_samp <- inner_join(pairs_state_samp,pairs_age_samp)
+    
+    RR_samp_same <- pairs_combo_samp %>%
+      filter(sameState) %>%
+      calculate_rr_matrix() %>%
+      collect()
+    RR_samp_diff <- pairs_combo_samp %>%
+      filter(!sameState) %>%
+      calculate_rr_matrix() %>%
+      collect()
+    
+    if(x == 1){
+      CI_keys <- RR_samp_same %>% select(c(x,y))
+      RR_dist_same <- RR_samp_same$RR
+      RR_dist_diff <- RR_samp_diff$RR
+    }else{
+      RR_dist_same <- cbind(RR_dist_same,RR_samp_same$RR)
+      RR_dist_diff <- cbind(RR_dist_diff,RR_samp_diff$RR)
+    }
+  }
+  ci_lb <- apply(RR_dist_same,1,quantile,probs=(1-interval_width)/2)
+  ci_ub <- apply(RR_dist_same,1,quantile,probs=(1+interval_width)/2)
+  CI_same <- cbind(CI_keys,ci_lb,ci_ub)
+  ci_lb <- apply(RR_dist_diff,1,quantile,probs=(1-interval_width)/2)
+  ci_ub <- apply(RR_dist_diff,1,quantile,probs=(1+interval_width)/2)
+  CI_diff <- cbind(CI_keys,ci_lb,ci_ub)
+
+  return(list(CI_same,CI_diff))
 }
 
-fn_age_RRs_by_state <- paste0("results/",scenario,"/df_RR_by_age_state.tsv")
-readr::write_tsv(df_age_RRs_by_state,file = fn_age_RRs_by_state)
 
+ages_rr_same <- pairs_state_age %>%
+  filter(sameState) %>%
+  calculate_rr_matrix() %>%
+  collect() %>%
+  mutate(sameState=TRUE)
 
-df_age_RRs_by_adj <- tibble()
-for(status in c("Within","Adjacent","Non-adjacent")){
-  ages_rr <- df_pairs_age_state %>% 
-    filter(adj_status == status) %>%
-    calculate_rr_matrix(exp_var="age_class",return_ci = TRUE) %>%
-    mutate(adj_status = status)
-  df_age_RRs_by_adj <- rbind(df_age_RRs_by_adj,ages_rr)
+ages_rr_diff <- pairs_state_age %>%
+  filter(!sameState) %>%
+  calculate_rr_matrix() %>%
+  collect() %>%
+  mutate(sameState=FALSE) 
+
+if(ci_flag){
+  ci_list <- calculate_rr_ci(con,meta_age,samp_cov=0.8)
+  ages_rr_same <- inner_join(ages_rr_same,ci_list[[1]],by=join_by(x,y))
+  ages_rr_diff <- inner_join(ages_rr_diff,ci_list[[2]],by=join_by(x,y))
 }
 
-fn_age_RRs_by_adj <- paste0("results/",scenario,"/df_RR_by_age_adj.tsv")
-readr::write_tsv(df_age_RRs_by_adj,file = fn_age_RRs_by_adj)
+#Combine different and same state RRs
+age_state_rr <- rbind(ages_rr_same,ages_rr_diff) 
+fn_rr <- paste("results/",scenario,"/df_RR_by_age_state.tsv",sep="")
+readr::write_tsv(age_state_rr,file=fn_rr)
+DBI::dbDisconnect(con,shutdown=TRUE)
+print("Successfully finished state analysis!")
+
