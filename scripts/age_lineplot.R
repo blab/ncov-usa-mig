@@ -1,6 +1,6 @@
 #File: age_lineplot.R
 #Author(s): Amin Bemanian
-#Date: 10/7/24
+#Date: 11/12/24
 #Description: Makes a lineplot of the relative risk for each age group vs other age groups
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
@@ -25,8 +25,8 @@ dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't 
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_age_class.tsv",sep="")
 age_rr <- fread(fn_rr)
-fn_rr_adj <- paste("results/",scenario,"/df_RR_by_age_adj.tsv",sep="")
-age_rr_adj <- fread(fn_rr_adj)
+fn_age_state_rr <- paste("results/",scenario,"/df_RR_by_age_state.tsv",sep="")
+age_state_rr <- fread(fn_age_state_rr)
 
 my_pal_age <- viridis_pal(option = 'D', direction = -1)(
   length(unique(age_rr$x)) #Pass the length
@@ -38,9 +38,9 @@ age_plot_all <- age_rr %>%
   ggplot(aes(x = x, colour = as.factor(y))) +
   geom_point(aes(y = RR)) +
   geom_line(aes(y = RR, group = y)) +
-  #geom_linerange(aes(ymin = ci_lb, ymax = ci_ub)) +
+  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub)) +
   geom_hline(yintercept = 1) +
-  facet_wrap(. ~ y, ncol = 4, scales = 'free_y') +
+  facet_wrap(. ~ y, ncol = 3, scales = 'free_y') +
   scale_x_discrete(name = 'Age Group') +
   scale_y_continuous(name = expression(RR["identical sequences"])) +
   scale_colour_manual(values = my_pal_age) + 
@@ -61,22 +61,22 @@ ggsave(fn_age_plot_all,
        device = "jpeg",
        dpi = 600,
        width = 24,
-       height = 24
+       height = 32
 )
 
 #Do RRs stratified by adjacency plot (single plot)
-age_plot_by_adj <- age_rr_adj %>% 
-  ggplot(aes(x = x, colour = as.factor(adj_status))) +
+age_plot_by_state <- age_state_rr  %>% 
+  ggplot(aes(x = x, colour = sameState)) +
   geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = adj_status)) +
-  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub)) +
+  geom_line(aes(y = RR, group = sameState)) +
+  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub,group = sameState)) +
   geom_hline(yintercept = 1) +
-  facet_wrap(. ~ y, ncol = 2, scales = 'free_y') +
+  facet_wrap(. ~ y, ncol = 3, scales = 'free_y') +
   scale_x_discrete(name = 'Age Group') +
   scale_y_continuous(name = expression(RR["identical sequences"])) +
-  scale_color_brewer(type="qual", name = "State Adjacency",palette = "Paired") + 
+  scale_color_brewer(type="qual", name = "Within State",palette = "Paired") + 
   theme_classic() +
-  ggtitle(paste0("Age-wise RR for ",scenario," - By Adjacency")) +
+  ggtitle(paste0("Age-wise RR for ",scenario)) +
   theme(axis.title.x = element_text(size = 12),
         axis.title.y = element_text(size = 13),
         axis.text = element_text(size = 12),
@@ -85,102 +85,46 @@ age_plot_by_adj <- age_rr_adj %>%
         strip.background = element_rect(colour = 'white'),
         plot.title=element_text(hjust=0.5)) 
   
-fn_age_plot_by_adj <- paste0("figs/",scenario,"/age_lineplot_by_adj.jpg") 
-ggsave(fn_age_plot_by_adj,
-       plot=age_plot_by_adj,
+fn_age_state_plot <- paste0("figs/",scenario,"/age_lineplot_by_state.jpg") 
+ggsave(fn_age_state_plot,
+       plot=age_plot_by_state,
+       device = "jpeg",
+       dpi = 600,
+       width = 24,
+       height = 36
+)
+
+##Do a single plot only looking at same age group RR 
+age_same_plot_by_state  <- age_state_rr  %>%
+  filter(x==y) %>% #Only look at RR within the same 
+  ggplot(aes(x = x, colour = sameState)) +
+  geom_point(aes(y = RR)) +
+  geom_line(aes(y = RR, group = sameState)) +
+  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub,group = sameState)) +
+  geom_hline(yintercept = 1) +
+  scale_x_discrete(name = 'Age Group') +
+  scale_y_continuous(transform ='log',
+                     name=expression(RR["identical sequences"]),
+                     breaks = c(1E-1, 8E-1, 1, 5, 2, 1E1, 1E2),
+                     labels = c(0.1,0.8,1,5,2,10,100),
+                     expand = expansion(mult = c(0.18, 0.13)),
+                     limits = c(10^(-0.05),10^(1.2))) +
+  scale_color_brewer(type="qual", name = "Within State",palette = "Paired") + 
+  theme_classic() +
+  ggtitle(paste0("Same Age RR for ",scenario)) +
+  theme(axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 13),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle = 45, hjust = 1.),
+        strip.text = element_text(size = 12),
+        strip.background = element_rect(colour = 'white'),
+        plot.title=element_text(hjust=0.5))
+
+fn_age_same_state_plot <- paste0("figs/",scenario,"/age_same_lineplot_by_state.jpg") 
+ggsave(fn_age_same_state_plot,
+       plot=age_same_plot_by_state,
        device = "jpeg",
        dpi = 600,
        width = 8,
-       height = 10
-)
-
-#Now breakdown adjacency stratified RRs into 3 plots
-age_plot_within <- age_rr_adj %>% filter(adj_status == "Within") %>% 
-  ggplot(aes(x = x, colour = as.factor(y))) +
-  geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = y)) +
-  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub)) +
-  geom_hline(yintercept = 1) +
-  facet_wrap(. ~ y, ncol = 2, scales = 'free_y') +
-  scale_x_discrete(name = 'Age Group') +
-  scale_y_continuous(name = expression(RR["identical sequences"])) +
-  scale_colour_manual(values = my_pal_age) + 
-  theme_classic() +
-  ggtitle(paste0("Age-wise RR for ",scenario," - Within Same State")) +
-  theme(axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 13),
-        axis.text = element_text(size = 12),
-        axis.text.x = element_text(angle = 45, hjust = 1.),
-        strip.text = element_text(size = 12),
-        strip.background = element_rect(colour = 'white'),
-        legend.position = 'none',
-        plot.title=element_text(hjust=0.5))
-
-fn_age_plot_within <- paste0("figs/",scenario,"/age_lineplot_within.jpg") 
-ggsave(fn_age_plot_within,
-       plot=age_plot_within,
-       device = "jpeg",
-       dpi = 600,
-       width = 7,
-       height = 10
-)
-
-age_plot_adjacent <- age_rr_adj %>% filter(adj_status == "Adjacent") %>% 
-  ggplot(aes(x = x, colour = as.factor(y))) +
-  geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = y)) +
-  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub)) +
-  geom_hline(yintercept = 1) +
-  facet_wrap(. ~ y, ncol = 2, scales = 'free_y') +
-  scale_x_discrete(name = 'Age Group') +
-  scale_y_continuous(name = expression(RR["identical sequences"])) +
-  scale_colour_manual(values = my_pal_age) + 
-  theme_classic() +
-  ggtitle(paste0("Age-wise RR for ",scenario," - Adjacent States")) +
-  theme(axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 13),
-        axis.text = element_text(size = 12),
-        axis.text.x = element_text(angle = 45, hjust = 1.),
-        strip.text = element_text(size = 12),
-        strip.background = element_rect(colour = 'white'),
-        legend.position = 'none',
-        plot.title=element_text(hjust=0.5))
-
-fn_age_plot_adjacent <- paste0("figs/",scenario,"/age_lineplot_adjacent.jpg") 
-ggsave(fn_age_plot_adjacent,
-       plot=age_plot_adjacent,
-       device = "jpeg",
-       dpi = 600,
-       width = 7,
-       height = 10
-)
-
-age_plot_nonadj <- age_rr_adj %>% filter(adj_status == "Non-adjacent") %>% 
-  ggplot(aes(x = x, colour = as.factor(y))) +
-  geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = y)) +
-  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub)) +
-  geom_hline(yintercept = 1) +
-  facet_wrap(. ~ y, ncol = 2, scales = 'free_y') +
-  scale_x_discrete(name = 'Age Group') +
-  scale_y_continuous(name = expression(RR["identical sequences"])) +
-  scale_colour_manual(values = my_pal_age) + 
-  theme_classic() +
-  ggtitle(paste0("Age-wise RR for ",scenario," - Non-adjacent States")) +
-  theme(axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 13),
-        axis.text = element_text(size = 12),
-        axis.text.x = element_text(angle = 45, hjust = 1.),
-        strip.text = element_text(size = 12),
-        strip.background = element_rect(colour = 'white'),
-        legend.position = 'none',
-        plot.title=element_text(hjust=0.5))
-
-fn_age_plot_nonadj <- paste0("figs/",scenario,"/age_lineplot_nonadj.jpg") 
-ggsave(fn_age_plot_nonadj,
-       plot=age_plot_nonadj,
-       device = "jpeg",
-       dpi = 600,
-       width = 7,
-       height = 10
+       height = 6
 )

@@ -1,6 +1,6 @@
 #File: age_heatmap.R
 #Author(s): Amin Bemanian
-#Date: 8/15/24
+#Date: 11/12/24
 #Description: Makes a heatmap from age RR matrix
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
