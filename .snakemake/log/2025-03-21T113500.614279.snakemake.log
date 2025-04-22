@@ -1,0 +1,44 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cluster nodes: 50
+Job stats:
+job                count    min threads    max threads
+---------------  -------  -------------  -------------
+age_analysis_RR        1              1              1
+age_heatmap            1              1              1
+age_lineplot           1              1              1
+age_state_RR           1              1              1
+all                    1              1              1
+total                  5              1              1
+
+Select jobs to execute...
+[Fri Mar 21 11:35:01 2025]
+
+group job duckdb_acc (jobs in lexicogr. order):
+
+    [Fri Mar 21 11:35:01 2025]
+    rule age_analysis_RR:
+        input: results/USA/data_cleaned.txt
+        output: results/USA/df_RR_by_age_class.tsv
+        jobid: 2
+        reason: Missing output files: results/USA/df_RR_by_age_class.tsv
+        wildcards: scenario=USA
+        resources: mem_mb=64000, disk_mb=16000, tmpdir=<TBD>, threads=16
+
+    
+        Rscript ./scripts/age_analysis.R --scenario USA --ci True
+        
+
+    [Fri Mar 21 11:35:01 2025]
+    rule age_state_RR:
+        input: results/USA/df_RR_by_age_class.tsv, results/USA/df_RR_by_state.tsv
+        output: results/USA/df_RR_by_age_state.tsv
+        jobid: 5
+        reason: Missing output files: results/USA/df_RR_by_age_state.tsv; Input files updated by another job: results/USA/df_RR_by_age_class.tsv
+        wildcards: scenario=USA
+        resources: mem_mb=64000, disk_mb=16000, tmpdir=<TBD>, threads=16
+
+    
+        Rscript ./scripts/age_state_analysis.R --scenario USA --ci True
+        
+Submitted group job 02342f32-9324-5a9d-bb4c-ac38de894025 with external jobid 'Submitted batch job 15669647'.

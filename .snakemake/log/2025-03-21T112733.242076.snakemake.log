@@ -1,0 +1,5 @@
+Building DAG of jobs...
+MissingInputException in rule all  in line 14 of /home/abemania/proj/ncov-usa-mig/Snakefile:
+Missing input files for rule all:
+    affected files:
+        results/USA/census_div_analysis_done.txt

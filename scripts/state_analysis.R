@@ -18,7 +18,7 @@ source("scripts/calculate_rr_matrix.R")
 source("scripts/bind_pairs_exp.R")
 source("scripts/calculate_rr_ci.R")
 
-STATE_DISTANCES <- fread("./data/nb_dist_states.tsv")
+STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
 
 collect_args <- function(){
   parser <- ArgumentParser()
@@ -30,6 +30,9 @@ collect_args <- function(){
 args <- collect_args()
 scenario <- args$scenario
 ci_flag <- args$ci
+
+scenario <- "USA"
+ci_flag <- FALSE
 
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db)

@@ -48,11 +48,12 @@ fill_bound <- function(x){
 age_heatmap <- age_rr %>% rowwise %>% mutate(fill_RR = fill_bound(RR)) %>% 
   ggplot(aes(x=x,y=y,fill=fill_RR)) +
   geom_tile() +
-  scale_fill_gradientn(name="RR",
-    colors = brewer.pal(11, 'RdBu'),
-    limits=c(log10(LB),log10(UB)),
-    breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
-    labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
+  scale_fill_gradient2(name="RR",
+                       high = "#D67C34",
+                       low = "#4C90C0",
+                       limits=c(log10(LB),log10(UB)),
+                       breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
+                       labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
   theme_minimal() + theme(plot.title=element_text(hjust=0.5)) + 
   geom_text_repel(aes(label=round(RR,digits=2)),color = "black",
                   size=RR_SIZE,
@@ -68,6 +69,6 @@ ggsave(fn_age_plot,
        plot=age_heatmap,
        device = "jpeg",
        dpi = 600,
-       width = 7,
-       height = 6
+       width = 25,
+       height = 20
 )

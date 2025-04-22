@@ -1,0 +1,120 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cluster nodes: 50
+Job stats:
+job                    count    min threads    max threads
+-------------------  -------  -------------  -------------
+age_analysis               1              1              1
+age_state_analysis         1              1              1
+all                        1              1              1
+census_div_analysis        1              1              1
+clean_data                 1              1              1
+database                   1              1              1
+state_analysis             1              1              1
+total                      7              1              1
+
+Select jobs to execute...
+
+[Tue Mar 18 09:27:31 2025]
+rule database:
+    output: results/USA/db_built.txt
+    jobid: 5
+    reason: Missing output files: results/USA/db_built.txt
+    wildcards: scenario=USA
+    resources: mem_mb=1000, disk_mb=1000, tmpdir=<TBD>, threads=16
+
+
+        ./scripts/init_db.sh -s USA
+        
+Submitted job 5 with external jobid 'Submitted batch job 15023413'.
+[Tue Mar 18 10:22:35 2025]
+Finished job 5.
+1 of 7 steps (14%) done
+Select jobs to execute...
+
+[Tue Mar 18 10:22:35 2025]
+rule clean_data:
+    input: results/USA/db_built.txt
+    output: results/USA/data_cleaned.txt
+    jobid: 4
+    reason: Missing output files: results/USA/data_cleaned.txt; Input files updated by another job: results/USA/db_built.txt
+    wildcards: scenario=USA
+    resources: mem_mb=1000, disk_mb=1000, tmpdir=<TBD>, threads=16
+
+
+        Rscript ./scripts/clean_data.R --scenario USA
+        
+Submitted job 4 with external jobid 'Submitted batch job 15028975'.
+[Tue Mar 18 11:05:07 2025]
+Error in rule clean_data:
+    jobid: 4
+    input: results/USA/db_built.txt
+    output: results/USA/data_cleaned.txt
+    shell:
+        
+        Rscript ./scripts/clean_data.R --scenario USA
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: Submitted batch job 15028975
+
+Error executing rule clean_data on cluster (jobid: 4, external: Submitted batch job 15028975, jobscript: /home/abemania/proj/ncov-usa-mig/.snakemake/tmp.ng1n8m7x/snakejob.clean_data.4.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 4.
+Select jobs to execute...
+
+[Tue Mar 18 11:05:07 2025]
+rule clean_data:
+    input: results/USA/db_built.txt
+    output: results/USA/data_cleaned.txt
+    jobid: 4
+    reason: Missing output files: results/USA/data_cleaned.txt; Input files updated by another job: results/USA/db_built.txt
+    wildcards: scenario=USA
+    resources: mem_mb=1000, disk_mb=1000, tmpdir=<TBD>, threads=16
+
+
+        Rscript ./scripts/clean_data.R --scenario USA
+        
+Submitted job 4 with external jobid 'Submitted batch job 15041095'.
+[Tue Mar 18 11:06:47 2025]
+Error in rule clean_data:
+    jobid: 4
+    input: results/USA/db_built.txt
+    output: results/USA/data_cleaned.txt
+    shell:
+        
+        Rscript ./scripts/clean_data.R --scenario USA
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: Submitted batch job 15041095
+
+Error executing rule clean_data on cluster (jobid: 4, external: Submitted batch job 15041095, jobscript: /home/abemania/proj/ncov-usa-mig/.snakemake/tmp.ng1n8m7x/snakejob.clean_data.4.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 4.
+Select jobs to execute...
+
+[Tue Mar 18 11:06:47 2025]
+rule clean_data:
+    input: results/USA/db_built.txt
+    output: results/USA/data_cleaned.txt
+    jobid: 4
+    reason: Missing output files: results/USA/data_cleaned.txt; Input files updated by another job: results/USA/db_built.txt
+    wildcards: scenario=USA
+    resources: mem_mb=1000, disk_mb=1000, tmpdir=<TBD>, threads=16
+
+
+        Rscript ./scripts/clean_data.R --scenario USA
+        
+Submitted job 4 with external jobid 'Submitted batch job 15041155'.
+[Tue Mar 18 11:13:28 2025]
+Error in rule clean_data:
+    jobid: 4
+    input: results/USA/db_built.txt
+    output: results/USA/data_cleaned.txt
+    shell:
+        
+        Rscript ./scripts/clean_data.R --scenario USA
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: Submitted batch job 15041155
+
+Error executing rule clean_data on cluster (jobid: 4, external: Submitted batch job 15041155, jobscript: /home/abemania/proj/ncov-usa-mig/.snakemake/tmp.ng1n8m7x/snakejob.clean_data.4.sh). For error details see the cluster log and the log files of the involved rule(s).
+Exiting because a job execution failed. Look above for error message
+Complete log: .snakemake/log/2025-03-18T092731.163008.snakemake.log

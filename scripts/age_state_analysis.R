@@ -126,5 +126,5 @@ age_state_rr <- rbind(ages_rr_same,ages_rr_diff)
 fn_rr <- paste("results/",scenario,"/df_RR_by_age_state.tsv",sep="")
 readr::write_tsv(age_state_rr,file=fn_rr)
 DBI::dbDisconnect(con,shutdown=TRUE)
-print("Successfully finished state analysis!")
+print("Successfully finished age/state stratified analysis!")
 

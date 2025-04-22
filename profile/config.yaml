@@ -1,0 +1,21 @@
+# profile/config.yaml
+cluster: "sbatch --job-name={rule} \
+                 --cpus-per-task={threads} \
+                 --time=7-0:0:0 \
+                 --mail-type=END,FAIL \
+                 --mail-user=abemania@fredhutch.org \
+                 --output=logs/{rule}_%j.out \
+                 --error=logs/{rule}_%j.err"
+jobs: 50
+latency-wait: 60
+
+default-resources:
+    - threads=16
+    - mem_mb=64000
+    - disk_mb=16000
+
+restart-times: 2
+keep-going: true
+printshellcmds: true
+
+#snakemake --profile ./profile --cores 32 --group-components duckdb_acc=1

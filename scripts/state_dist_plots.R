@@ -1,7 +1,7 @@
 #File: state_dist_plot.R
 #Author(s): Amin Bemanian
 #Date: 8/20/24
-#Description: Makes a heatmap from state RR matrix
+#Description: Makes a distance plots from state RR matrix
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
 
@@ -192,5 +192,6 @@ ggsave(fn_state_nb_dist_plot,
        device = "jpeg",
        dpi = 600,
        width = 6,
-       height = 6
+       height = 6,
+       create.dir = TRUE
 )

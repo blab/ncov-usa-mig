@@ -1,0 +1,7 @@
+Building DAG of jobs...
+MissingInputException in rule age_state_analysis  in line 63 of /home/abemania/proj/ncov-usa-mig/Snakefile:
+Missing input files for rule age_state_analysis:
+    output: results/USA/age_state_analysis_done.txt
+    wildcards: scenario=USA
+    affected files:
+        results/USA/age_analysis_done.txt

@@ -10,6 +10,9 @@ idseq-flow/*
 results/*
 test-snake/*
 tsv-utils/*
+tmp/*
+logs/*
+scripts/nondb_versions/*
 
 .DS_Store
 .DS_Store?

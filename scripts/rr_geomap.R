@@ -24,6 +24,7 @@ collect_args <- function(){
 args <- collect_args()
 scenario <- args$scenario
 scale <- args$scale #For now county will not be implemented
+scenario <- "USA"
 
 dir.create(paste("figs/",scenario,"/maps",sep=""))
 
@@ -45,11 +46,12 @@ for(g in geo_list){
     rowwise %>% mutate(values = fill_bound(RR))
   fn_map <- paste0("figs/",scenario,"/maps/rr_map_",g,".jpg")
   rr_map <- plot_usmap(regions = scale,data=g_mat) +
-    scale_fill_gradientn(name="RR",
-                         colors = brewer.pal(11, 'RdBu'),
+    scale_fill_gradient2(name="RR",
+                         high = "#D67C34",
+                         low = "#4C90C0",
                          limits=c(log10(LB),log10(UB)),
                          breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
-                         labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
+                         labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB))+
     theme(plot.title=element_text(hjust=0.5)) +
     labs(title = g)
   ggsave(fn_map,

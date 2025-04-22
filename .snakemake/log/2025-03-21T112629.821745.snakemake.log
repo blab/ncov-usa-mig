@@ -1,0 +1,4 @@
+Building DAG of jobs...
+WildcardError in line 96 of /home/abemania/proj/ncov-usa-mig/Snakefile:
+Wildcards in input files cannot be determined from output files:
+'scenario'

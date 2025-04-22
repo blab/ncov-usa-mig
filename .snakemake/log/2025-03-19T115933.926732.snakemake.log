@@ -1,0 +1,74 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cluster nodes: 50
+Job stats:
+job                    count    min threads    max threads
+-------------------  -------  -------------  -------------
+age_analysis               1              1              1
+age_state_analysis         1              1              1
+all                        1              1              1
+census_div_analysis        1              1              1
+state_analysis             1              1              1
+total                      5              1              1
+
+Select jobs to execute...
+[Wed Mar 19 11:59:35 2025]
+
+group job duckdb_acc (jobs in lexicogr. order):
+
+    [Wed Mar 19 11:59:35 2025]
+    rule age_analysis:
+        input: results/USA/data_cleaned.txt
+        output: results/USA/age_analysis_done.txt
+        jobid: 3
+        reason: Missing output files: results/USA/age_analysis_done.txt
+        wildcards: scenario=USA
+        resources: mem_mb=64000, disk_mb=16000, tmpdir=<TBD>, threads=16
+
+    
+        Rscript ./scripts/age_analysis.R --scenario USA --ci True
+        Rscript ./scripts/age_heatmap.R --scenario USA
+        
+
+    [Wed Mar 19 11:59:35 2025]
+    rule age_state_analysis:
+        input: results/USA/age_analysis_done.txt, results/USA/state_analysis_done.txt
+        output: results/USA/age_state_analysis_done.txt
+        jobid: 2
+        reason: Missing output files: results/USA/age_state_analysis_done.txt; Input files updated by another job: results/USA/state_analysis_done.txt, results/USA/age_analysis_done.txt
+        wildcards: scenario=USA
+        resources: mem_mb=64000, disk_mb=16000, tmpdir=<TBD>, threads=16
+
+    
+        Rscript ./scripts/age_state_analysis.R --scenario USA --ci True
+        
+
+    [Wed Mar 19 11:59:35 2025]
+    rule census_div_analysis:
+        input: results/USA/age_state_analysis_done.txt
+        output: results/USA/census_div_analysis_done.txt
+        jobid: 1
+        reason: Missing output files: results/USA/census_div_analysis_done.txt; Input files updated by another job: results/USA/age_state_analysis_done.txt
+        wildcards: scenario=USA
+        resources: mem_mb=64000, disk_mb=16000, tmpdir=<TBD>, threads=16
+
+    
+        Rscript ./scripts/census_div_analysis.R --scenario USA --ci True
+        Rscript ./scripts/census_div_heatmap.R --scenario USA
+        
+
+    [Wed Mar 19 11:59:35 2025]
+    rule state_analysis:
+        input: results/USA/data_cleaned.txt
+        output: results/USA/state_analysis_done.txt
+        jobid: 6
+        reason: Missing output files: results/USA/state_analysis_done.txt
+        wildcards: scenario=USA
+        resources: mem_mb=64000, disk_mb=16000, tmpdir=<TBD>, threads=16
+
+    
+        Rscript ./scripts/state_analysis.R --scenario USA --ci True
+        Rscript ./scripts/state_heatmap.R --scenario USA
+        Rscript ./scripts/state_dist_plots.R --scenario USA
+        
+Submitted group job 01c75a03-9720-51c1-9722-5245e0323bfc with external jobid 'Submitted batch job 15246018'.
