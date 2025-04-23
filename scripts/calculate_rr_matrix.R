@@ -14,15 +14,15 @@ calculate_rr_matrix <- function(df_p){
 #  rename(x = x_future)
 
 #  Old version entirely in DuckDB
-#  df_rr <- df_p_symmetric %>% 
-#    union_all(df_p) %>% 
-#    group_by(x,y) %>% 
-#    summarise(n_pairs = as.numeric(n())) %>% 
-#    group_by(x) %>% 
-#    mutate(n_pairs_x = sum(n_pairs)) %>% 
-#    group_by(y) %>% 
-#    mutate(n_pairs_y = sum(n_pairs)) %>% 
-#    ungroup() %>% 
+#  df_rr <- df_p_symmetric %>%
+#    union_all(df_p) %>%
+#    group_by(x,y) %>%
+#    summarise(n_pairs = as.numeric(n())) %>%
+#    group_by(x) %>%
+#    mutate(n_pairs_x = sum(n_pairs)) %>%
+#    group_by(y) %>%
+#    mutate(n_pairs_y = sum(n_pairs)) %>%
+#    ungroup() %>%
 #    mutate(n_pairs_total = sum(n_pairs),
 #           RR = (n_pairs * n_pairs_total + 1) / n_pairs_x / n_pairs_y) %>%
 #    arrange(x,y)
