@@ -65,4 +65,6 @@ dbWriteTable(con, "df_pairs", test_pairs, overwrite = TRUE)
 df_p <- tbl(con,"df_pairs")
 
 rr <- calculate_rr_matrix(df_p) %>% collect()
+print(rr)
+
 dbDisconnect(con)
