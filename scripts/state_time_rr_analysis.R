@@ -10,6 +10,7 @@ source("scripts/calculate_rr_matrix.R")
 source("scripts/bind_pairs_exp.R")
 source("scripts/calculate_rr_ci.R")
 
+select <- dplyr::select
 STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
 SCENARIO <- "USA_mini"
 
@@ -90,11 +91,8 @@ ggplot(data = filter(strain_counts,Nextstrain_clade == "21K (Omicron)"),aes(x = 
   labs(title="Clade 21K (Early Omicron)") +
   theme_bw() 
 
-HYPER_CUTOFF_ALL <- 100
-HYPER_CUTOFF_NO_21K <- 20
-HYPER_CUTOFF_21K <- 600
 
-hCut <- HYPER_CUTOFF_NO_21K
+hCut <- 500
 
 keep_strains <- strain_counts %>% 
   filter(n < hCut) %>% 
@@ -104,9 +102,6 @@ keep_strains <- strain_counts %>%
 #Duplicate DB for testing purposes
 #WILL DELETE AFTER THIS TESTING ON APR-17 IS DONE
 #I AM NOT PROUD BUT THIS IS WHAT IT IS
-DBI::dbDisconnect(con)
-file.copy("db_files/db_USA_mini.duckdb", "db_files/db_USA_mini_copy.duckdb", overwrite = TRUE)
-con <- DBI::dbConnect(duckdb(),"db_files/db_USA_mini_copy.duckdb")
 df_meta <- tbl(con,"metadata")
 df_pairs <- tbl(con,"pairs_time")
 filtered_pairs <- df_pairs %>% collect %>%
@@ -231,13 +226,13 @@ for(i in 1:length(lb_vector)){
       bind_pairs_exp("division",time_bounds = c(lb_vector[i],ub_vector[i])) %>%
       calculate_rr_matrix() %>%
       collect() %>%
-      mutate(date = ub_vector[i])
+      mutate(date = mean(c(ub_vector[i],lb_vector[i])))
   } else{
     rr_series <- con %>% 
       bind_pairs_exp("division",time_bounds = c(lb_vector[i],ub_vector[i])) %>%
       calculate_rr_matrix() %>%
       collect() %>%
-      mutate(date = ub_vector[i])
+      mutate(date = mean(c(ub_vector[i],lb_vector[i])))
     state_rr_series <- bind_rows(state_rr_series,rr_series)
   } 
 }
@@ -247,96 +242,105 @@ ggplot(data=(state_rr_series |> filter(x==y)),
        aes(x=date,y=RR,color=x)) +
   geom_line() +
   geom_point(aes(fill=x)) +
-  geom_line(y=0,lty=2,width=1,color="black") +
-  facet_grid(vars(x)) + 
-  scale_x_date(date_breaks = "3 months") +
-  scale_y_log10() +
+  geom_line(y=0,lty=2,size=1,color="black") +
+  facet_wrap(vars(x),ncol=3) + 
+  scale_x_date(date_breaks = "6 months") +
+  scale_y_log10(
+    breaks = scales::trans_breaks("log10", function(x) 10^x),
+    labels = scales::trans_format("log10", scales::math_format(10^.x))
+  ) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
   theme(axis.text.y = element_text(size=11)) +
   labs(x = "Calendar Date", y = "RR",title="Monthly Same State Enrichment") +
   theme(axis.title.x = element_text(size=14)) +
-  theme(axis.title.y = element_text(size=14))
+  theme(axis.title.y = element_text(size=14)) +
+  theme(legend.position = "none")
 
-ggplot(data=(state_rr_series |> 
-               filter(x %in% c("Washington","Oregon") & y %in% c("Washington","Oregon"))),
-       aes(x=date,y=RR,color=x)) +
-  geom_line() +
-  geom_point(aes(fill=x)) +
-  geom_line(y=0,lty=2,width=1,color="black") +
-  facet_grid(rows=vars(x),cols=vars(y)) + 
-  scale_x_date(date_breaks = "6 months") +
-  scale_y_log10() +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-  theme(axis.text.y = element_text(size=11)) +
-  labs(x = "Calendar Date", y = "RR",title="Monthly Enrichment - Washington & Oregon") +
-  theme(axis.title.x = element_text(size=14)) +
-  theme(axis.title.y = element_text(size=14))
+#Function that makes a 2x2 set of plots looking at self-enrichment vs pair-enrichment
+#s1 and s2 are state names to be compared
+state_pair_plot <- function(s1,s2){
+  plot <- ggplot(data=(state_rr_series |> 
+                         filter(x %in% c(s1,s2) & y %in% c(s1,s2))),
+                 aes(x=date,y=RR,color=x)) +
+    geom_line() +
+    geom_point(aes(fill=x)) +
+    geom_line(y=0,lty=2,size=1,color="black") +
+    facet_grid(rows=vars(x),cols=vars(y)) + 
+    scale_x_date(date_breaks = "6 months") +
+    scale_y_log10(
+      breaks = scales::trans_breaks("log10", function(x) 10^x),
+      labels = scales::trans_format("log10", scales::math_format(10^.x))
+    ) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
+    theme(axis.text.y = element_text(size=11)) +
+    labs(x = "Calendar Date", y = "RR",
+         title=paste0("Monthly Enrichment - ",s1," & ",s2)) +
+    theme(axis.title.x = element_text(size=14)) +
+    theme(axis.title.y = element_text(size=14)) +
+    theme(legend.position = "none")
+  return(plot)
+}
 
-ggplot(data=(state_rr_series |> 
-               filter(x %in% c("Idaho","Montana") & y %in% c("Idaho","Montana"))),
-       aes(x=date,y=RR,color=x)) +
-  geom_line() +
-  geom_point(aes(fill=x)) +
-  geom_line(y=0,lty=2,width=1,color="black") +
-  facet_grid(rows=vars(x),cols=vars(y)) + 
-  scale_x_date(date_breaks = "6 months") +
-  scale_y_log10() +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-  theme(axis.text.y = element_text(size=11)) +
-  labs(x = "Calendar Date", y = "RR",title="Monthly Enrichment - Idaho & Montana") +
-  theme(axis.title.x = element_text(size=14)) +
-  theme(axis.title.y = element_text(size=14))
+state_pair_plot("Montana", "Wyoming")
 
-all_combinations <- expand.grid(
-  x = unique(state_rr_series$x),
-  y = unique(state_rr_series$y),
-  date = unique(state_rr_series$date)
-)
+# Early Normalization Code - Will Put on Hiatus While Cécile works on it
+# all_combinations <- expand.grid(
+#   x = unique(state_rr_series$x),
+#   y = unique(state_rr_series$y),
+#   date = unique(state_rr_series$date)
+# )
+# 
+# state_rr_series <- full_join(all_combinations, state_rr_series, by = c("x", "y", "date"))
+# 
+# RR_WA_WA <- state_rr_series |> filter(x=="Washington",y=="Washington") 
+# RR_OR_OR <- state_rr_series |> filter(x=="Oregon",y=="Oregon") 
+# RR_WA_OR <- state_rr_series |> filter(x=="Washington",y=="Oregon")
+# 
+# nRR_WA_OR <- data_frame(
+#   date = RR_WA_OR$date,
+#   RR = RR_WA_OR$RR/sqrt(RR_WA_WA$RR*RR_OR_OR$RR) 
+# )
+# 
+# ggplot(data=(nRR_WA_OR),
+#        aes(x=date,y=RR)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_x_date(date_breaks = "6 months") +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
+#   theme(axis.text.y = element_text(size=11)) +
+#   labs(x = "Calendar Date", y = "Normalzied RR",title="Monthly Enrichment - Washington & Oregon") +
+#   theme(axis.title.x = element_text(size=14)) +
+#   theme(axis.title.y = element_text(size=14))
+# 
+# RR_ID_ID <- state_rr_series |> filter(x=="Idaho",y=="Idaho") 
+# RR_MT_MT <- state_rr_series |> filter(x=="Montana",y=="Montana") 
+# RR_ID_MT <- state_rr_series |> filter(x=="Idaho",y=="Montana")
+# 
+# nRR_ID_MT <- data_frame(
+#   date = RR_ID_MT$date,
+#   RR = RR_ID_MT$RR/sqrt(RR_ID_ID$RR*RR_MT_MT$RR) 
+# )
+# 
+# 
+# ggplot(data=(nRR_ID_MT),
+#        aes(x=date,y=RR)) +
+#   geom_line() +
+#   geom_point() +
+#   scale_x_date(date_breaks = "6 months") +
+#   theme_bw() +
+#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
+#   theme(axis.text.y = element_text(size=11)) +
+#   labs(x = "Calendar Date", y = "Normalzied RR",title="Monthly Enrichment - Idaho & Montana") +
+#   theme(axis.title.x = element_text(size=14)) +
+#   theme(axis.title.y = element_text(size=14))
 
-state_rr_series <- full_join(all_combinations, state_rr_series, by = c("x", "y", "date"))
+fn_out_path <- paste0("results/",SCENARIO,"/time_state/")
+dir.create(file.path(fn_out_path),showWarnings = FALSE)
+write_tsv(state_rr_all,file=paste0(fn_out_path,"df_state_rr_all.tsv"))
+write_tsv(state_rr_series,file=paste0(fn_out_path,"df_state_rr_series.tsv"))
+write_tsv(state_rr_year,file=paste0(fn_out_path,"df_state_rr_snap.tsv"))
 
-RR_WA_WA <- state_rr_series |> filter(x=="Washington",y=="Washington") 
-RR_OR_OR <- state_rr_series |> filter(x=="Oregon",y=="Oregon") 
-RR_WA_OR <- state_rr_series |> filter(x=="Washington",y=="Oregon")
-
-nRR_WA_OR <- data_frame(
-  date = RR_WA_OR$date,
-  RR = RR_WA_OR$RR/sqrt(RR_WA_WA$RR*RR_OR_OR$RR) 
-)
-
-ggplot(data=(nRR_WA_OR),
-       aes(x=date,y=RR)) +
-  geom_line() +
-  geom_point() +
-  scale_x_date(date_breaks = "6 months") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-  theme(axis.text.y = element_text(size=11)) +
-  labs(x = "Calendar Date", y = "Normalzied RR",title="Monthly Enrichment - Washington & Oregon") +
-  theme(axis.title.x = element_text(size=14)) +
-  theme(axis.title.y = element_text(size=14))
-
-RR_ID_ID <- state_rr_series |> filter(x=="Idaho",y=="Idaho") 
-RR_MT_MT <- state_rr_series |> filter(x=="Montana",y=="Montana") 
-RR_ID_MT <- state_rr_series |> filter(x=="Idaho",y=="Montana")
-
-nRR_ID_MT <- data_frame(
-  date = RR_ID_MT$date,
-  RR = RR_ID_MT$RR/sqrt(RR_ID_ID$RR*RR_MT_MT$RR) 
-)
-
-
-ggplot(data=(nRR_ID_MT),
-       aes(x=date,y=RR)) +
-  geom_line() +
-  geom_point() +
-  scale_x_date(date_breaks = "6 months") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-  theme(axis.text.y = element_text(size=11)) +
-  labs(x = "Calendar Date", y = "Normalzied RR",title="Monthly Enrichment - Idaho & Montana") +
-  theme(axis.title.x = element_text(size=14)) +
-  theme(axis.title.y = element_text(size=14))
+dbDisconnect(con)

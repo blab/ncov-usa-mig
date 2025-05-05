@@ -31,8 +31,9 @@ args <- collect_args()
 scenario <- args$scenario
 ci_flag <- args$ci
 
-scenario <- "USA"
-ci_flag <- FALSE
+#Debugging shortcuts
+#scenario <- "USA"
+#ci_flag <- FALSE
 
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db)
