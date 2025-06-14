@@ -1,3 +1,4 @@
+*.gif
 *.zst
 *.e
 *.o
@@ -9,6 +10,7 @@ db_files/*
 idseq-flow/*
 results/*
 test-snake/*
+test_data/*
 tsv-utils/*
 tmp/*
 logs/*
