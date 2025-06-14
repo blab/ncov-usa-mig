@@ -16,6 +16,8 @@ tmp/*
 logs/*
 scripts/nondb_versions/*
 
+.Rdata
+.Rhistory
 .DS_Store
 .DS_Store?
 ._*
