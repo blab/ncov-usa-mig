@@ -25,7 +25,7 @@ clean_age <- function(a){
 
 #Aggregate the ages for the RR analysis, note that age should be cleaned prior
 aggregate_age <- function(a, BIN_SIZE = 5){
-  if (scenario == 'USA') {  #For USA will use individual age bins
+  if (scenario == 'USA' | grepl("CAM",scenario,fixed=TRUE)) {  #For USA or CAM will use individual age bins
     return(case_when(
       is.na(a) ~ 'NA',  # Handle missing values
       a < 99 ~ paste0(sprintf("%02d", a), "y"),  # Format ages 0-98 as "XXy"
@@ -63,7 +63,12 @@ df_meta <- df_meta %>%
     TRUE ~ division 
     )
   ) %>%
-  mutate(census_div = case_when(  #Attach census divisions to metadata
+  mutate(division = case_when(
+    country %in% c("Mexico") ~ "Mexico",
+    TRUE ~ division
+    )
+  ) %>%
+  mutate(census_div = case_when(  #Attach census divisions/Canadian regions to metadata
     division %in% c("Washington","Oregon","California") ~ "Pacific",
     division %in% c("Nevada","Idaho","Montana","Wyoming","Utah","Colorado","Arizona","New Mexico") ~ "Mountain",
     division %in% c("North Dakota","South Dakota","Nebraska","Kansas","Minnesota","Iowa","Missouri") ~ "West North Central",
@@ -77,7 +82,23 @@ df_meta <- df_meta %>%
     division %in% c("Hawaii") ~ "Hawaii",
     division %in% c("Guam","American Samoa") ~ "Pacific Territories",
     division %in% c("Puerto Rico","Virgin Islands") ~ "Caribbean Territories",
+    division %in% c("British Columbia","Alberta","Saskatchewan","Manitoba") ~ "Western Canada",
+    division %in% c("Ontario","Quebec","New Brunswick","Prince Edward Island","Nova Scotia","Newfoundland and Labrador") ~ "Eastern Canada",
+    division %in% c("Yukon","Northwest Territories","Nunavut") ~ "Northern Canada",
+    division %in% c("Mexico") ~ "Mexico",
     TRUE ~ "Invalid"
+    )
+  ) %>%
+  mutate(bea_reg = case_when(
+    division %in% c("Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont") ~ "New England",
+    division %in% c("Delaware", "District of Columbia", "Maryland", "New Jersey", "New York", "Pennsylvania") ~ "Mideast",
+    division %in% c("Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin") ~ "Great Lakes",
+    division %in% c("Iowa", "Kansas", "Minnesota", "Missouri", "Nebraska", "North Dakota", "South Dakota") ~ "Plains",
+    division %in% c("Arkansas", "Louisiana", "Alabama", "Kentucky", "Mississippi", "Tennessee","Virginia", "West Virginia","Florida", "Georgia", "North Carolina", "South Carolina") ~ "Southeast",
+    division %in% c("Arizona","New Mexico","Oklahoma", "Texas") ~ "Southwest",
+    division %in% c("Colorado", "Idaho", "Montana", "Utah", "Wyoming") ~ "Rocky Mountain",
+    division %in% c("Alaska", "California", "Hawaii", "Oregon", "Washington","Nevada") ~ "Far West",
+    TRUE ~ census_div  # fallback for non-U.S. regions
     )
   ) %>%
   mutate(census_reg = case_when( #Aggregate to census regions
@@ -88,7 +109,8 @@ df_meta <- df_meta %>%
     TRUE ~ census_div
     )
   ) %>%
-  filter(census_reg %in% c("West","Midwest","South","Northeast","Hawaii","Alaska")) %>% #Limits to 50 States + US
+  filter(census_reg %in% c("West","Midwest","South","Northeast","Hawaii","Alaska",
+  "Western Canada","Eastern Canada","Northern Canada","Mexico")) %>% #Limits to 50 States in US + Canada + Mexico
   filter(!is.na(division))  %>%
   collect() %>%
   mutate(age_adj = clean_age(age)) %>%

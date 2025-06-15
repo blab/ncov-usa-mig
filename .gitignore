@@ -2,6 +2,7 @@
 *.zst
 *.e
 *.o
+*.tsv
 
 cluster-analysis/*
 cecile-rr/*
@@ -15,6 +16,7 @@ tsv-utils/*
 tmp/*
 logs/*
 scripts/nondb_versions/*
+.snakemake/*
 
 .Rdata
 .Rhistory

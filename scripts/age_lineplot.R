@@ -20,6 +20,7 @@ collect_args <- function(){
 
 args <- collect_args()
 scenario <- args$scenario
+scenario <- "CAM_1000"
 
 AGE_UB <- "79y" #Censor older ages group
 

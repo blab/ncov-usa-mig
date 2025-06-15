@@ -32,23 +32,25 @@ STATE_ORDER<- c("Alaska","Hawaii","Washington","Oregon","California",
 "Connecticut","Rhode Island","Massachusetts","Vermont","New Hampshire","Maine",
 "Tennessee","Kentucky","West Virginia",
 "North Carolina","South Carolina","Georgia","Florida","Alabama","Mississippi",
-"Arkansas","Louisiana","Texas","Oklahoma",
-"Guam","American Samoa","Puerto Rico","Virgin Islands")
+"Arkansas","Louisiana","Texas","Oklahoma","Mexico",
+"British Columbia","Alberta","Saskatchewan","Manitoba",
+"Ontario","Quebec","Newfoundland and Labrador","New Brunswick","Prince Edward Island", "Nova Scotia")
 
 if(scenario ==  "USA"){
   SCALE_FACTOR <- 2.5
   RR_SIZE <- 0
   AXIS_SIZE <- 8
 }else{
-  SCALE_FACTOR <- 1
-  RR_SIZE <- 1.5
-  AXIS_SIZE <- 12
+  SCALE_FACTOR <- 2.5
+  RR_SIZE <- 0
+  AXIS_SIZE <- 8
 }
 
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_state.tsv",sep="")
 state_rr <- fread(fn_rr)
+print(unique(state_rr$x))
 
 
 UB<-1.2 #Set as bounds for RR and transform to log for display purposes
@@ -85,7 +87,7 @@ state_heatmap <- state_rr %>% rowwise %>% mutate(fill_RR = fill_bound(RR)) %>%
   #                size=RR_SIZE,
   #                bg.color="white",bg.r=0.1,
   #                force = 0)+
-  labs(x="States",y="States",title=scenario) +
+  labs(x="Divisions",y="Divisions",title=scenario) +
   theme(axis.text.x = element_text(angle = 45, hjust=1, size = AXIS_SIZE),
         axis.text.y = element_text(size = AXIS_SIZE))
 fn_state_plot <- paste0("figs/",scenario,"/state_heatmap",".jpg") 
@@ -93,7 +95,7 @@ fn_state_plot <- paste0("figs/",scenario,"/state_heatmap",".jpg")
 ggsave(fn_state_plot,
        plot=state_heatmap,
        device = "jpeg",
-       dpi = 600,
+       dpi = 200,
        width = 7 * SCALE_FACTOR,
        height = 6 * SCALE_FACTOR,
        create.dir = TRUE

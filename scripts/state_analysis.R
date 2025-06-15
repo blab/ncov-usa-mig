@@ -7,7 +7,7 @@
 #--threads: Number of threads for the parallelization, default is 1 if no parallelization
 
 library(argparse)
-library(dplyr)
+library(tidyverse)
 library(data.table)
 library(ggplot2)
 library(duckdb)
@@ -32,7 +32,7 @@ scenario <- args$scenario
 ci_flag <- args$ci
 
 #Debugging shortcuts
-#scenario <- "USA"
+#scenario <- "CAM_10"
 #ci_flag <- FALSE
 
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
@@ -57,6 +57,7 @@ state_rr <- state_rr %>% left_join( #Attach the adjacency and distance variables
 )
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_state.tsv",sep="")
+print(fn_rr)
 readr::write_tsv(state_rr,file=fn_rr)
 DBI::dbDisconnect(con,shutdown=TRUE)
 print("Successfully finished state analysis!")

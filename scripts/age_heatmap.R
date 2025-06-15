@@ -20,8 +20,9 @@ collect_args <- function(){
 
 args <- collect_args()
 scenario <- args$scenario
+scenario <- "CAM_1000"
 
-if(scenario ==  "USA"){
+if(scenario ==  "CAM_1000"){
   SCALE_FACTOR <- 2.5
   RR_SIZE <- 0
   AXIS_SIZE <- 8

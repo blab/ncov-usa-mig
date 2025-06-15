@@ -21,6 +21,7 @@ collect_args <- function(){
 
 args <- collect_args()
 scenario <- args$scenario
+scenario <- "CAM_1000"
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_state.tsv",sep="")
 state_rr <- fread(fn_rr) %>%
