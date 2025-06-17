@@ -2,6 +2,7 @@
 *.zst
 *.e
 *.o
+*.Rproj
 
 cluster-analysis/*
 cecile-rr/*
@@ -16,6 +17,7 @@ tmp/*
 logs/*
 scripts/nondb_versions/*
 
+
 .Rdata
 .Rhistory
 .DS_Store
@@ -26,3 +28,4 @@ scripts/nondb_versions/*
 ehthumbs.db
 Thumbs.db
 .vscode/*
+.Rproj.user
