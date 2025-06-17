@@ -2,7 +2,11 @@
 *.zst
 *.e
 *.o
+<<<<<<< HEAD
 *.Rproj
+=======
+*.tsv
+>>>>>>> b90f4437cc063950e30611f32c6913f7dac0db6d
 
 cluster-analysis/*
 cecile-rr/*
@@ -16,6 +20,7 @@ tsv-utils/*
 tmp/*
 logs/*
 scripts/nondb_versions/*
+.snakemake/*
 
 
 .Rdata

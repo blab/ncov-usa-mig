@@ -6,6 +6,7 @@
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
 #--threads: Number of threads for the parallelization, default is 1 if no parallelization
 
+library(tidyverse)
 library(argparse)
 library(dplyr)
 library(data.table)
@@ -35,12 +36,12 @@ fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db)
 
 div_rr <- con %>% 
-  bind_pairs_exp("census_div") %>%
+  bind_pairs_exp("bea_reg") %>%
   calculate_rr_matrix() %>%
   collect()
 
 if(ci_flag){
-  div_rr_ci <- calculate_rr_ci(con,"census_div")
+  div_rr_ci <- calculate_rr_ci(con,"bea_reg")
   div_rr <- inner_join(div_rr,div_rr_ci,by=join_by(x,y))
 }
 

@@ -1,3 +1,3 @@
-scenarios: ["USA"]
+scenarios: ["CAM_100","CAM_1000","CAM_10000","CAM_full"]
 threads: 32
-ci_flag: true
+ci_flag: "FALSE"

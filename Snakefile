@@ -5,9 +5,10 @@ SCENARIOS = config["scenarios"]  # <-- change this to support more, like ["USA",
 
 # Collect final outputs for all scenarios
 all_outputs = expand([
-    "figs/{scenario}/age_heatmap.jpg",
-    "figs/{scenario}/age_same_lineplot_by_state.jpg",
-    "results/{scenario}/summary_tables/tables_{scenario}.tar.zst"
+#    "figs/{scenario}/age_heatmap.jpg",
+#    "figs/{scenario}/age_same_lineplot_by_state.jpg",
+#    "results/{scenario}/summary_tables/tables_{scenario}.tar.zst",
+    "figs/{scenario}/state_heatmap.jpg"
 ], scenario=SCENARIOS)
 
 shell.prefix("ml fhR; set -euo pipefail; ")
@@ -25,13 +26,11 @@ rule database:
         unzstd -f data/{wildcards.scenario}/metadata/metadata_{wildcards.scenario}.tsv.zst
         unzstd -f data/{wildcards.scenario}/distance_aggregated/combined_df_identical_pairs_{wildcards.scenario}.tsv.zst
         ./scripts/init_db.sh -s {wildcards.scenario}
-        rm data/{wildcards.scenario}/metadata/metadata_{wildcards.scenario}.tsv
-        rm data/{wildcards.scenario}/distance_aggregated/combined_df_identical_pairs_{wildcards.scenario}.tsv.zst
         """
 
 rule clean_data:
     input:
-        "results/{scenario}/db_built.txt"
+        "db_files/db_{scenario}.duckdb"
     output:
         touch("results/{scenario}/data_cleaned.txt")
     group: "duckdb_acc"

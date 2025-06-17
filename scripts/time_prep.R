@@ -9,7 +9,7 @@ library(MASS)
 library(mgcv)
 
 select <- dplyr::select #Default select to dplyr
-SCENARIO <-"USA"
+SCENARIO <-"CAM_1000"
 
 curr_theme <- theme_set(theme_bw())
 curr_theme <- theme_update(axis.title = element_text(size=16),
