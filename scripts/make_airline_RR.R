@@ -93,7 +93,7 @@ df_rr_db1b <- left_join(t_DB1B_agg,t_DB1B_mirror,
   mutate(RR_air = pass_xy * pass_total / pass_x / pass_y) %>%
   select(x,y,RR_air)
 
-write_csv(df_rr_t100,"data/rr_air_t100.csv")
+write_csv(df_rr_db1b,"data/rr_air_db1b.csv")
 
 combo_set <- df_rr_t100 %>%
   rename(RR_t100 = RR_air) %>%
