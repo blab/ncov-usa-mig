@@ -31,7 +31,9 @@ df_map <- cam_map %>%
 df_map$logRR <- sapply(df_map$RR,fill_bound)
 
 df_main <- df_map %>% filter(NAME_En != "Hawaii") #Mainland
-df_hi <- df_map %>% filter(NAME_En == "Hawaii") #Hawai'i
+df_hi <- df_map %>% filter(NAME_En == "Hawaii") %>% #Hawai'i
+  st_transform(3857) %>%
+  mutate(geometry = st_geometry(.) * 0.5)
 
 fill_scale <- scale_fill_gradient2(
   name = "RR",
@@ -48,10 +50,18 @@ p_main <- ggplot(df_main) +
   theme_minimal() +
   labs(title = paste0("Enrichment RRs for ", ORI))
 
+
+
 p_hi <- ggplot(df_hi) + 
   geom_sf(aes(fill = logRR), color = "black", size = 1) +
   fill_scale +
-  theme_void()
+  theme_void() + 
+  theme(legend.position = "none")
+
+final_plot <- p_main +
+  inset_element(p_hi, 
+                left = 0.05, bottom = 0.05, 
+                right = 0.35, top = 0.25) 
 
 ggplot(df_map) + 
   geom_sf(aes(fill=logRR),color="black",size =1) +

@@ -19,6 +19,7 @@ source("scripts/bind_pairs_exp.R")
 source("scripts/calculate_rr_ci.R")
 
 STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
+CBSA_DISTANCE <- fread("data/state_cbsa_dist.tsv")
 
 collect_args <- function(){
   parser <- ArgumentParser()
@@ -54,7 +55,8 @@ state_rr <- state_rr %>% left_join( #Attach the adjacency and distance variables
     "x"="state_x",
     "y"="state_y"
   )
-)
+) %>% 
+  left_join(CBSA_DISTANCE,by=join_by(x,y))
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_state.tsv",sep="")
 print(fn_rr)

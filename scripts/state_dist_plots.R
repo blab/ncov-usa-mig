@@ -86,12 +86,14 @@ ggsave(fn_state_adj_plot,
 )
 
 #Note since spearman is rank-order correlation, log transformation does not matter
-rho_euclid <- cor(state_rr$euclid_dist,state_rr$RR,method = "spearman")
+rho_euclid <- cor(state_rr$euclid_dist,state_rr$RR,method = "spearman",use = "complete.obs")
+rho_cbsa <- cor(state_rr$min_cbsa_dist,state_rr$RR,method= "spearman", use = "complete.obs")
 rho_nbdist <- cor(state_rr$nb_dist,state_rr$RR,method = "spearman",use = "complete.obs") #Ignore NAs
 
 
 fn_state_euclid_dist_plot <- paste0("figs/",scenario,"/state_euclid_dist_plot.jpg") 
 state_euclid_dist_plot <- state_rr %>%
+  filter(x != y) %>%
   ggplot() +
   geom_point(aes(x=euclid_dist,y=RR),alpha=0.1,size=1,fill='black') +
   geom_linerange(aes(x=euclid_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
@@ -120,8 +122,62 @@ ggsave(fn_state_euclid_dist_plot,
        device = "jpeg",
        dpi = 600,
        width = 6,
-       height = 6
+       height = 4
 )
+
+fn_state_cbsa_dist_plot <- paste0("figs/",scenario,"/state_cbsa_dist_plot.jpg") 
+state_cbsa_dist_plot <- state_rr %>%
+  filter(x != y) %>%
+  ggplot() +
+  geom_point(aes(x=min_cbsa_dist,y=RR),alpha=0.1,size=1,fill='black') +
+  geom_linerange(aes(x=min_cbsa_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
+  geom_smooth(aes(x=min_cbsa_dist,y=RR),color='firebrick',fill='firebrick',method='loess') +
+  scale_x_continuous(name="State Nearest CBSA Distance (km)",
+                     breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
+                     limits=c(0,2000)) +
+  scale_y_continuous(transform ='log',
+                     name=expression(RR["identical sequences"]),
+                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
+                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
+                     expand = expansion(mult = c(0.18, 0.13)),
+                     limits = c(10^(-0.15),10^(1.5))) +
+  geom_hline(yintercept = 1) + #Reference point
+  theme_classic() + 
+  theme(plot.title=element_text(hjust=0.5),
+        plot.subtitle = element_text(hjust=0.5),
+        strip.background = element_blank(),
+        strip.text = element_blank()) + 
+  theme(axis.text.x = element_text(angle = 45, hjust=1))+
+  ggtitle(scenario) +
+  labs(subtitle = paste0("Spearman's rho: ",round(rho_cbsa,2)))
+
+ggsave(fn_state_cbsa_dist_plot,
+       plot=state_cbsa_dist_plot,
+       device = "jpeg",
+       dpi = 600,
+       width = 6,
+       height = 4
+)
+
+fn_euclid_cbsa_dist_plot <- paste0("figs/",scenario,"/state_euclid_vs_cbsa.jpg")
+state_euclid_cbsa_dist_plot <- state_rr %>%
+  filter(x != y) %>%
+  ggplot() +
+  geom_point(aes(x=euclid_dist,y=RR),alpha = 0.1,color="firebrick") + 
+  geom_smooth(aes(x=euclid_dist,y=RR),alpha=0.5,color = "firebrick") + 
+  geom_point(aes(x=min_cbsa_dist,y=RR),alpha=0.1,color="navyblue") + 
+  geom_smooth(aes(x=min_cbsa_dist,y=RR),alpha=0.5,color = "navyblue") + 
+  scale_x_continuous(name="Distance (km)",
+                     breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
+                     limits=c(0,3000)) +
+  scale_y_continuous(transform ='log',
+                     name=expression(RR["identical sequences"]),
+                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
+                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
+                     expand = expansion(mult = c(0.18, 0.13)),
+                     limits = c(10^(-0.5),10^(1.5))) +
+  geom_hline(yintercept = 1) + #Reference point
+  theme_bw()
 
 fn_state_euclid_logdist_plot <- paste0("figs/",scenario,"/state_euclid_logdist_plot.jpg") 
 state_euclid_logdist_plot <- state_rr %>%

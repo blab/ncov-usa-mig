@@ -1,3 +1,9 @@
+#File: calc_grav_matrix.R
+#Author(s): Amin Bemanian
+#Date: 07/07/25
+#Description: Gravity matrix calculation for states
+#Arguments: None
+
 library(data.table)
 library(tidyverse)
 

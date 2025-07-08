@@ -4,7 +4,7 @@
 # Description: Generates summary tables (count + percentage + total row) for specified columns
 #              from a DuckDB database and exports each as a TSV file.
 #              Then compresses all TSVs into a single .tar.zst archive.
-
+# Kept primarily for testing purposes, likely can be replaced by a formal R script
 # Function to show usage
 ml zstd
 

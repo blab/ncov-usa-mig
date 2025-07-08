@@ -1,6 +1,6 @@
 #File: age_heatmap.R
 #Author(s): Amin Bemanian
-#Date: 11/12/24
+#Date: 07/07/25
 #Description: Makes a heatmap from age RR matrix
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
@@ -11,6 +11,8 @@ library(data.table)
 library(ggplot2)
 library(RColorBrewer)
 library(ggrepel)
+
+source("scripts/color_schemes.R")
 
 collect_args <- function(){
   parser <- ArgumentParser()
@@ -38,7 +40,7 @@ fn_rr <- paste("results/",scenario,"/df_RR_by_age_class.tsv",sep="")
 age_rr <- fread(fn_rr)
 
 #Force a fill value to be within a certain range for display purposes 
-UB<-1.1 #Set as bounds for RR and transform to log for display purposes
+UB<-1.3 #Set as bounds for RR and transform to log for display purposes
 LB <- 2-UB #Symmetrical bounds around 1
 fill_bound <- function(x){
   log_x <- log10(x)
@@ -49,12 +51,7 @@ fill_bound <- function(x){
 age_heatmap <- age_rr %>% rowwise %>% mutate(fill_RR = fill_bound(RR)) %>% 
   ggplot(aes(x=x,y=y,fill=fill_RR)) +
   geom_tile() +
-  scale_fill_gradient2(name="RR",
-                       high = "#D67C34",
-                       low = "#4C90C0",
-                       limits=c(log10(LB),log10(UB)),
-                       breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
-                       labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
+  RR_log_grad(LB,UB) +
   theme_minimal() + theme(plot.title=element_text(hjust=0.5)) + 
   geom_text_repel(aes(label=round(RR,digits=2)),color = "black",
                   size=RR_SIZE,
@@ -69,7 +66,7 @@ fn_age_plot <- paste0("figs/",scenario,"/age_heatmap",".jpg")
 ggsave(fn_age_plot,
        plot=age_heatmap,
        device = "jpeg",
-       dpi = 600,
+       dpi = 192,
        width = 25,
        height = 20
 )

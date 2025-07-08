@@ -1,3 +1,5 @@
+#To-do: Determine if this is still necessary
+
 library(tidyverse)
 
 in_fn <- "results/USA/df_RR_by_state.tsv"

@@ -1,3 +1,9 @@
+# TO-DO: A lot of changes are necessary
+# Need to make this compatible with larger map areas (Canada/US/Mexico)
+# Need to standardize color schemes
+# Should this merge with seq_effort_plots.R?
+# Time dependent?
+
 library(tidyverse, quietly = "T ")
 library(usmap, quietly = "T")
 library(ggplot2, quietly = "T")

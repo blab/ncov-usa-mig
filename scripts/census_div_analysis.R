@@ -1,6 +1,6 @@
 #File: census_div_analysis.R
 #Author(s): Amin Bemanian
-#Date: 8/19/24
+#Date: 07/07/25
 #Description: Calculate the relative risks across states
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)

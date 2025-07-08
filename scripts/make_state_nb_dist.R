@@ -3,7 +3,7 @@
 #Date: 8/19/24
 #Description: R script that obtains state shapefiles and makes an neighbor (adjacency) and euclidean distance matrix using spdep/sf. 
 #Does not need to be re-run with scenarios after initial run.
-#TODO: County level version if we pursue higher resolution analysis?
+#TODO: Integrate with NHTS?
 
 library(spdep)
 library(tigris)

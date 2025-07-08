@@ -1,3 +1,12 @@
+# Filename: hyper_power.R
+# Author(s): Amin Bemanian
+# Date: 07/08/25
+# Description: Hyper-enhancer analysis done on the full USA set
+# Goal was to help determine what is a maximum number of identical 
+# sequence matches to allow for an individual sequence. Extremely
+# high match numbers (1K-10K) seem to dilute relationships and
+# are more likely to be outliers
+
 library(tidyverse)
 library(data.table)
 library(dbplyr)

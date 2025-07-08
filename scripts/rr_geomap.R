@@ -5,6 +5,7 @@
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
 #--scale: "state" vs "county" (Later addition if we can do geocoding)
+#TODO: Adapt for CAM scenarios, or replace with D3/Shiny and discontinue
 
 library(argparse)
 library(dplyr)
@@ -17,7 +18,7 @@ library(usmap)
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--scale', type = 'character', default = 'state', help = 'Level of geograph (state vs county)')
+  parser$add_argument('--scale', type = 'character', default = 'state', help = 'Level of geography (state vs county)')
   return(parser$parse_args())
 }
 

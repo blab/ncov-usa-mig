@@ -1,6 +1,7 @@
+### REVIEW WHETHER THIS FILE IS STILL RELEVANT?
 #File: age_histo.R
 #Author(s): Amin Bemanian
-#Date: 10/7/24
+#Date: 07/07/25
 #Description: Makes a histogram of the age distribution for both the individuals and the pairs
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)

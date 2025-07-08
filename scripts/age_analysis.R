@@ -1,10 +1,10 @@
 #File: age_analysis.R
 #Author(s): Amin Bemanian
-#Date: 8/15/24
-#Description: Simple cleaning of dataset to make a curated dataframe that combines the cluster data with the cluster allocations
+#Date: 07/07/25
+#Description: Calculate identical sequence RR across age groups
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
-#--threads: Number of threads for the parallelization, default is 1 if no parallelization
+#--ci: TRUE or FALSE for confidence interval calculation
 
 library(tidyverse)
 library(argparse)

@@ -1,3 +1,6 @@
+-- Check where in the code this is used
+-- It may be able to be deleted 
+
 DELETE FROM pairs
     WHERE rowid NOT IN (
         SELECT MIN(rowid)

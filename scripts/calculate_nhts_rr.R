@@ -1,3 +1,6 @@
+##TO DO AS OF 07/07/25 
+##INTEGRATE ALL NHTS TRAVEL INTO THIS ONE
+
 library(tidyverse)
 
 df_travel <- fread("data/interstate_travel_dot.csv")  %>%

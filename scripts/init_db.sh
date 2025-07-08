@@ -1,4 +1,8 @@
 #! /bin/bash
+# Filename: init_db.sh
+# Author(s): Amin Bemanian
+# Date: 07/08/25
+# Description: DuckDB initialization using idseq output
 
 usage()
 {

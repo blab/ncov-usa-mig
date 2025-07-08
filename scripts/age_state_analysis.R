@@ -1,6 +1,6 @@
 #File: age_state_analysis.R
 #Author(s): Amin Bemanian
-#Date: 8/22/24
+#Date: 07/07/25
 #Description: Calculate the age relative risks within each state and stratified by adjacency
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)

@@ -1,6 +1,6 @@
 #File: find_hyper_seq.R
 #Author(s): Amin Bemanian
-#Date: 4/17/25
+#Date: 07/07/25
 #Description: Find sequences that are hyper-represented in the pairs file
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)

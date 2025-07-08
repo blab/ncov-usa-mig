@@ -1,7 +1,14 @@
-#db_con - Connection for dbplyr, typically will be duckdb_connection
-#exp_var - Name of exposure variable to bind to the table
-#sub_samp - True if you are planning on using this to subsample for confidence interval generation
-#time_bounds - Default null, if you time analysis should be provided array of two Date values 
+#File: bind_pairs_exp.R
+#Author(s): Amin Bemanian
+#Date: 07/07/25
+#Description: Attach exposure demes to pairs for RR calculation
+#Arguments: 
+#db_con: DuckDB Connection
+#exp_var: Name of exposure variable to attach
+#sub_samp: Sub-sample (for CI calculation)
+#samp_cov: Sample coverage (for CI calculation)
+#time_bounds: Date range (as vector of two Date values) for time analyses
+
 bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bounds=NULL){
   meta_tbl <- tbl(db_con,'metadata')
   

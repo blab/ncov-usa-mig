@@ -1,3 +1,6 @@
+--Legacy code for making a small toyset
+--Possibly delete or move to a different directory
+
 BEGIN TRANSACTION;
 
 CREATE OR REPLACE TABLE metadata AS
