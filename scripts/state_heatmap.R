@@ -11,6 +11,7 @@ library(data.table)
 library(ggplot2)
 library(RColorBrewer)
 library(ggrepel)
+source("scripts/color_schemes.R")
 
 
 collect_args <- function(){
@@ -21,30 +22,26 @@ collect_args <- function(){
 
 args <- collect_args()
 scenario <- args$scenario
+scenario <- "CAM_1000"
 
 #Manual ordering for labels
-STATE_ORDER<- c("Alaska","Hawaii","Washington","Oregon","California",
-"Nevada","Idaho","Montana","Wyoming","Utah","Colorado","Arizona","New Mexico",
-"North Dakota","South Dakota","Nebraska","Kansas","Missouri","Iowa","Minnesota",
-"Wisconsin","Illinois","Indiana","Michigan","Ohio",
-"Pennsylvania","New York","New Jersey",
-"Delaware","Maryland","District of Columbia","Virginia",
-"Connecticut","Rhode Island","Massachusetts","Vermont","New Hampshire","Maine",
-"Tennessee","Kentucky","West Virginia",
-"North Carolina","South Carolina","Georgia","Florida","Alabama","Mississippi",
-"Arkansas","Louisiana","Texas","Oklahoma","Mexico",
-"British Columbia","Alberta","Saskatchewan","Manitoba",
-"Ontario","Quebec","Newfoundland and Labrador","New Brunswick","Prince Edward Island", "Nova Scotia")
+STATE_ORDER<- c("Alaska","Hawaii","Washington","Oregon","California", "Nevada", #Far West
+                "Idaho","Montana","Wyoming","Utah","Colorado", #Rocky Mountain
+                "Arizona","New Mexico", "Texas","Oklahoma", #Southwest
+                "North Dakota","South Dakota","Nebraska","Kansas","Missouri","Iowa","Minnesota", #Plains
+                "Wisconsin","Illinois","Indiana","Michigan","Ohio", #Great Lakes
+                "Kentucky","Tennessee","Arkansas","Georgia","Florida","Alabama","Mississippi", #Southeast
+                "North Carolina","South Carolina","West Virginia","Virginia", #Southeast
+                "Delaware","Maryland","District of Columbia","Pennsylvania","New York","New Jersey", #Mideast
+                "Connecticut","Rhode Island","Massachusetts","Vermont","New Hampshire","Maine", #New England
+                "Mexico",
+                "British Columbia","Alberta","Saskatchewan","Manitoba", #Western Canada
+                "Ontario","Quebec","Newfoundland and Labrador","New Brunswick","Prince Edward Island", "Nova Scotia") #Eastern Canada
 
-if(scenario ==  "USA"){
-  SCALE_FACTOR <- 2.5
-  RR_SIZE <- 0
-  AXIS_SIZE <- 8
-}else{
-  SCALE_FACTOR <- 2.5
-  RR_SIZE <- 0
-  AXIS_SIZE <- 8
-}
+SCALE_FACTOR <- 2.5
+RR_SIZE <- 0
+AXIS_SIZE <- 8
+
 
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
 
@@ -53,31 +50,20 @@ state_rr <- fread(fn_rr)
 print(unique(state_rr$x))
 
 
-UB<-1.2 #Set as bounds for RR and transform to log for display purposes
-LB <- 2-UB #Symmetrical bounds around 1
-fill_bound <- function(x){
-  log_x <- log10(x)
-  max(min(log_x,log10(UB)),log10(LB)) 
-}
+#Set as bounds for RR and transform to log for display purposes
+UB <- 2 
+LB <- 0.5 
+
 
 print(paste("The range of RRs is:",range(state_rr$RR)))
 
 state_rr$x <- factor(state_rr$x,levels=STATE_ORDER)
 state_rr$y <- factor(state_rr$y,levels=STATE_ORDER)
 
-#TEMPORARY FOR PIDS GRANT PROPOSAL DELETE IN FINAL VERSION
-#excl_states <- c("Minnesota","Wisconsin","Illinois","Indiana","Michigan","Ohio","Kentucky","West Virginia")
-#state_rr <- state_rr |> filter(!(x %in% excl_states)) |> filter(!(y %in% excl_states))
-
-state_heatmap <- state_rr %>% rowwise %>% mutate(fill_RR = fill_bound(RR)) %>% 
+state_heatmap <- state_rr %>% rowwise %>% mutate(fill_RR = fill_bound(RR,LB,UB)) %>% 
   ggplot(aes(x=x,y=y,fill=fill_RR)) +
   geom_tile() +
-  scale_fill_gradient2(name="RR",
-                       high = "#D67C34",
-                       low = "#4C90C0",
-                       limits=c(log10(LB),log10(UB)),
-                       breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
-                       labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
+  RR_log_grad(LB,UB) +
   theme_minimal() + 
   theme(plot.title=element_text(hjust=0.5,size = 24,face="bold"),
         legend.text = element_text(size=16),
@@ -95,7 +81,7 @@ fn_state_plot <- paste0("figs/",scenario,"/state_heatmap",".jpg")
 ggsave(fn_state_plot,
        plot=state_heatmap,
        device = "jpeg",
-       dpi = 200,
+       dpi = 192,
        width = 7 * SCALE_FACTOR,
        height = 6 * SCALE_FACTOR,
        create.dir = TRUE

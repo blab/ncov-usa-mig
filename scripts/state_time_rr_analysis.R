@@ -13,6 +13,7 @@ source("scripts/calculate_rr_ci.R")
 select <- dplyr::select
 STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
 SCENARIO <- "CAM_1000"
+REGION_DATA <- fread("data/regions.csv")
 
 STATE_ORDER<- c("Alaska","Hawaii","Washington","Oregon","California",
                 "Nevada","Idaho","Montana","Wyoming","Utah","Colorado","Arizona","New Mexico",
@@ -31,19 +32,20 @@ normalized_state_rr <- function(df_rr){
   # First: filter to the diagonal (RR(x,x)) entries
   rr_diag <- df_rr %>%
     filter(x == y) %>%
-    select(date, state = x, RR_diag = RR)
+    select(date, state = x, RR_diag = RR, N_diag = N_pairs) %>%
+    mutate(RR_diag = ifelse(N_diag == 0,NA,RR_diag))
   # Join to get RR(x,x) and RR(y,y) for each row
   df_rr <- df_rr %>%
     left_join(rr_diag, by = c("date", "x" = "state")) %>%
     rename(RR_xx = RR_diag) %>%
     left_join(rr_diag, by = c("date", "y" = "state")) %>%
     rename(RR_yy = RR_diag) %>%
-    mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = TRUE))
-  return(df_rr)
+    mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = FALSE))
+return(df_rr)
 }
 
 fn_db <- paste0("db_files/db_",SCENARIO,".duckdb")
-con <- DBI::dbConnect(duckdb(),fn_db)
+con <- DBI::dbConnect(duckdb(),fn_db,read_only = TRUE)
 df_meta <- tbl(con,"metadata")
 df_pairs <- tbl(con,"pairs_time")
 
@@ -113,10 +115,11 @@ state_rr_all <- con %>%
 state_rr_all$x <- factor(state_rr_all$x,levels=STATE_ORDER)
 state_rr_all$y <- factor(state_rr_all$y,levels=STATE_ORDER)
 
+#Snapshot analysis will be every quarter (3 months)
 #Generalize upper and lowerbound definition
-TIME_LB_YEARS <- seq(as.Date("2020-01-01"),as.Date("2025-01-01"),by="6 mo")
-TIME_UB_YEARS <- TIME_LB_YEARS[2:length(TIME_LB_YEARS)]-1
-TIME_LB_YEARS <- TIME_LB_YEARS[1:length(TIME_LB_YEARS)-1] 
+TIME_LB_YEARS <- seq(as.Date("2020-01-01"),as.Date("2025-01-01"),by="3 mo")
+TIME_UB_YEARS <- TIME_LB_YEARS[2:length(TIME_LB_YEARS)]-1 #Drop the first bound
+TIME_LB_YEARS <- TIME_LB_YEARS[1:length(TIME_LB_YEARS)-1] #Drop the last bound
 
 state_rr_snap <- NULL
 
@@ -153,97 +156,138 @@ write_tsv(state_rr_all,file=paste0(fn_out_path,"df_state_rr_all.tsv"))
 state_rr_snap <- normalized_state_rr(state_rr_snap)
 write_tsv(state_rr_snap,file=paste0(fn_out_path,"df_state_rr_snap.tsv"))
 
-##Heatmaps
-UB<-2 #Set as bounds for RR and transform to log for display purposes
-LB <- 0.5 #Symmetrical bounds around 1
-fill_bound <- function(x){
-  log_x <- log10(x)
-  max(min(log_x,log10(UB)),log10(LB)) 
-}
-
+MONTH_BUFFER = 3 
 # Make date sequences for the time series analysis
-lb_start_date <- as.Date("2020-01-01")
-lb_end_date <- as.Date("2024-10-08")
-lb_vector <- seq(from = lb_start_date, to = lb_end_date, by = "4 weeks")
+mid_start_date <- as.Date("2020-03-01")
+mid_end_date <- as.Date("2024-10-01")
+mid_date_vector <- seq(from = mid_start_date, to = mid_end_date,by = "4 weeks")
+lb_date_vector <- mid_date_vector - 28 * MONTH_BUFFER
+ub_date_vector <- mid_date_vector + 28 * MONTH_BUFFER
+
 
 tic("Series anaylsis")
-ub_start_date <- as.Date("2020-03-25")
-ub_end_date <- as.Date("2024-12-31")
-ub_vector <- seq(from = ub_start_date, to = ub_end_date, by = "4 weeks")
-
 state_rr_series <- NULL
-for(i in 1:length(lb_vector)){
+for(i in 1:length(lb_date_vector)){
   if(i == 1){
     state_rr_series <- con %>% 
-      bind_pairs_exp("division",time_bounds = c(lb_vector[i],ub_vector[i])) %>%
+      bind_pairs_exp("division",time_bounds = c(lb_date_vector[i],ub_date_vector[i])) %>%
       calculate_rr_matrix() %>%
       collect() %>%
-      mutate(date = mean(c(ub_vector[i],lb_vector[i])))
+      mutate(date = mean(c(lb_date_vector[i],ub_date_vector[i])))
   } else{
     rr_series <- con %>% 
-      bind_pairs_exp("division",time_bounds = c(lb_vector[i],ub_vector[i])) %>%
+      bind_pairs_exp("division",time_bounds = c(lb_date_vector[i],ub_date_vector[i])) %>%
       calculate_rr_matrix() %>%
       collect() %>%
-      mutate(date = mean(c(ub_vector[i],lb_vector[i])))
+      mutate(date = mean(c(lb_date_vector[i],ub_date_vector[i])))
     state_rr_series <- bind_rows(state_rr_series,rr_series)
   } 
 }
 toc()
 
+state_region_list <- REGION_DATA %>%
+  select(state,bea_reg,country)
+
+state_rr_series <- state_rr_series %>%
+  left_join(state_region_list, join_by(x == state)) %>%
+  rename(region_x = bea_reg) %>%
+  rename(country_x = country) %>%
+  left_join(state_region_list, join_by(y == state)) %>%
+  rename(region_y = bea_reg) %>%
+  rename(country_y = country) %>%
+  mutate(
+    pair_type = case_when(
+      country_x != country_y        ~ "International",
+      region_x  != region_y         ~ "Different Regions, Same Country",
+      x != y                        ~ "Different States, Same Region",
+      TRUE                          ~ "Same State/Province"
+  )) %>%
+  mutate(pair_type = factor(pair_type,
+                            levels = c("Same State/Province",
+                                       "Different States, Same Region",
+                                       "Different Regions, Same Country",
+                                       "International")))
+
 state_rr_series <- normalized_state_rr(state_rr_series)
 write_tsv(state_rr_series,file=paste0(fn_out_path,"df_state_rr_series.tsv"))
 dbDisconnect(con)
 
-outlier_nRR <- 1.5 #Maximum threshold
-ggplot(data=(state_rr_series |> filter(nRR <= outlier_nRR & x != y)),
-       aes(x=nRR,fill=x)) +
-  geom_histogram(show.legend = FALSE) +
-  labs(x="Normalized RR",y="Count") +
-  theme_bw()
 
-df_ordered_nRR <- state_rr_series %>%
-  filter(nRR <= outlier_nRR, x != y) %>%
-  mutate(x = fct_reorder(x, nRR, .fun = median, .desc = FALSE))  # or FALSE for ascending
+PAIR_LIST <- data.frame(
+  x = c("Mexico",
+        "Mexico",
+        "Mexico",
+        "Mexico",
+        "Ontario",
+        "Ontario",
+        "Ontario",
+        "Ontario",
+        "California",
+        "California",
+        "California",
+        "California"),
+  y = c("Texas",
+        "California",
+        "Illinois",
+        "New York",
+        "New York",
+        "Quebec",
+        "British Columbia",
+        "Mexico",
+        "New York",
+        "Illinois",
+        "Texas",
+        "Washington")
+)
 
-ggplot(data=df_ordered_nRR,
-       aes(x=nRR,fill=x)) +
-  geom_histogram(show.legend = FALSE) +
-  labs(x="Normalized RR",y="Count") +
-  theme_bw()
+sub_RR_snap <- state_rr_snap %>%
+  inner_join(PAIR_LIST, by=c("x","y")) %>%
+  mutate(pair_name = paste0(x,"-",y)) %>%
+  arrange(pair_name)
 
-ggplot(data = df_ordered_nRR,
-       aes(x = nRR, y = x, fill = x)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x = "Normalized RR", y = "State") +
-  theme_bw()
-
-
-ggplot(data=(state_rr_series |> filter(nRR <= outlier_nRR & x != y)),
-       aes(x=nRR,y=x,fill=x)) +
-  geom_boxplot(show.legend = FALSE) +
-  labs(x="Normalized RR",y="State") +
-  theme_bw()
-
-aov(nRR ~ x,data = (state_rr_series |> filter(nRR <= outlier_nRR & x != y))) %>% summary()
-
-ggplot(data=(state_rr_series |> filter(x==y)),
-       aes(x=date,y=RR,color=x)) +
-  geom_line(alpha=0.2) +
-  #geom_point(aes(fill=x)) +
-  geom_line(y=0,lty=2,size=0.5,color="black") +
+ggplot(sub_RR_snap,
+       aes(x=date,y=pair_name,fill=nRR)) +
+  geom_tile(color="#555") +
   scale_x_date(date_breaks = "6 months") +
-  scale_y_log10(
-    breaks = scales::trans_breaks("log10", function(x) 10^x),
-    labels = scales::trans_format("log10", scales::math_format(10^.x))
-  ) +
-  theme_bw() +
+  labs(x = "Date", y = "State/Province Pair") +
+  scale_fill_gradient(low="#EEE",
+                      high="#F73") +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-  theme(axis.text.y = element_text(size=11)) +
-  labs(x = "Calendar Date", y = "RR",title="Monthly Same State Enrichment") +
-  theme(axis.title.x = element_text(size=14)) +
-  theme(axis.title.y = element_text(size=14)) +
+    theme_minimal()
+
+
+unique_series <- state_rr_series %>% 
+  mutate(duplicate = x >= y) %>% 
+  filter (duplicate != TRUE) %>%
+  mutate(pair_name = paste0(x,"-",y)) %>%
+  arrange(pair_name)
+
+ggplot(unique_series,
+       aes(x = date, y = nRR, group = date, colour = pair_type)) +
+  geom_boxplot(alpha = 0.2) +
+  geom_smooth(aes(group = 1)) +
+  coord_cartesian(ylim=c(0,0.5)) +
+    facet_wrap(~ pair_type, ncol = 1) +
+  theme_bw() +
   theme(legend.position = "none")
 
+ts_nRR_df <- unique_series %>%
+  mutate(
+    date_num  = as.numeric(date),
+    pair_type = factor(pair_type),
+    pair_name = factor(pair_name)
+  ) %>%
+  filter(!is.na(nRR), !is.na(date_num), !is.na(pair_type), !is.na(pair_name))
+
+
+ts_nRR_model <- mgcv::gam(
+  nRR ~ s(date_num,bs="cs",k=10) + pair_type + s(pair_name,bs="re"),
+  data=ts_nRR_df
+)
+
+summary(ts_nRR_model)
+mgcv::gam.check(ts_nRR_model)
+AIC(ts_nRR_model)
 #Function that makes a 2x2 set of plots looking at self-enrichment vs pair-enrichment
 #s1 and s2 are state names to be compared
 state_pair_plot <- function(s1,s2){
@@ -270,105 +314,5 @@ state_pair_plot <- function(s1,s2){
   return(plot)
 }
 
-state_pair_plot("Manitoba", "North Dakota")
+state_pair_plot("New York", "California")
 
-# Early Normalization Code - Will Put on Hiatus While Cécile works on it
-# all_combinations <- expand.grid(
-#   x = unique(state_rr_series$x),
-#   y = unique(state_rr_series$y),
-#   date = unique(state_rr_series$date)
-# )
-# 
-# state_rr_series <- full_join(all_combinations, state_rr_series, by = c("x", "y", "date"))
-# 
-# RR_WA_WA <- state_rr_series |> filter(x=="Washington",y=="Washington") 
-# RR_OR_OR <- state_rr_series |> filter(x=="Oregon",y=="Oregon") 
-# RR_WA_OR <- state_rr_series |> filter(x=="Washington",y=="Oregon")
-# 
-# nRR_WA_OR <- data_frame(
-#   date = RR_WA_OR$date,
-#   RR = RR_WA_OR$RR/sqrt(RR_WA_WA$RR*RR_OR_OR$RR) 
-# )
-# 
-# ggplot(data=(nRR_WA_OR),
-#        aes(x=date,y=RR)) +
-#   geom_line() +
-#   geom_point() +
-#   scale_x_date(date_breaks = "6 months") +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-#   theme(axis.text.y = element_text(size=11)) +
-#   labs(x = "Calendar Date", y = "Normalzied RR",title="Monthly Enrichment - Washington & Oregon") +
-#   theme(axis.title.x = element_text(size=14)) +
-#   theme(axis.title.y = element_text(size=14))
-# 
-# RR_ID_ID <- state_rr_series |> filter(x=="Idaho",y=="Idaho") 
-# RR_MT_MT <- state_rr_series |> filter(x=="Montana",y=="Montana") 
-# RR_ID_MT <- state_rr_series |> filter(x=="Idaho",y=="Montana")
-# 
-# nRR_ID_MT <- data_frame(
-#   date = RR_ID_MT$date,
-#   RR = RR_ID_MT$RR/sqrt(RR_ID_ID$RR*RR_MT_MT$RR) 
-# )
-# 
-# 
-# ggplot(data=(nRR_ID_MT),
-#        aes(x=date,y=RR)) +
-#   geom_line() +
-#   geom_point() +
-#   scale_x_date(date_breaks = "6 months") +
-#   theme_bw() +
-#   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1,size= 11)) +
-#   theme(axis.text.y = element_text(size=11)) +
-#   labs(x = "Calendar Date", y = "Normalzied RR",title="Monthly Enrichment - Idaho & Montana") +
-#   theme(axis.title.x = element_text(size=14)) +
-#   theme(axis.title.y = element_text(size=14))
-
-# Hyper threshold graph code 
-# SCALE_FACTOR <- 1
-# RR_SIZE <- 1.5
-# AXIS_SIZE <- 12
-
-# hmap_state_rr_all <- state_rr_all %>%
-#   rowwise %>% mutate(fill_RR = fill_bound(RR)) %>% 
-#   ggplot(aes(x=x,y=y,fill=fill_RR)) +
-#   geom_tile() +
-#   scale_fill_gradient2(name="RR",
-#                        high = "#D67C34",
-#                        low = "#4C90C0",
-#                        na.value = "black",
-#                        limits=c(log10(LB),log10(UB)),
-#                        breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
-#                        labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
-#   theme_minimal() + 
-#   theme(plot.title=element_text(hjust=0.5,size = 16),
-#         legend.text = element_text(size=16),
-#         legend.title = element_text(size=16)) + 
-#   theme(axis.text.x = element_text(angle = 45, hjust=1, size = AXIS_SIZE),
-#         axis.text.y = element_text(size = AXIS_SIZE)) +
-#   labs(title=paste0("All years - Hyper Threshold: ",hCut))
-
-
-# hmap_state_rr_time <- state_rr_year %>%
-#   mutate(x = factor(x,levels=STATE_ORDER)) %>%
-#   mutate(y = factor(y,levels=STATE_ORDER)) %>%
-#   rowwise %>% mutate(fill_RR = fill_bound(RR)) %>% 
-#   ggplot(aes(x=x,y=y,fill=fill_RR)) +
-#   facet_wrap(facets=vars(year_date),ncol=5,dir='v') +
-#   geom_tile() +
-#   scale_fill_gradient2(name="RR",
-#                        high = "#D67C34",
-#                        low = "#4C90C0",
-#                        na.value = "black",
-#                        limits=c(log10(LB),log10(UB)),
-#                        breaks =c(log10(LB),log10((1+LB)/2),log10(1),log10((1+UB)/2),log10(UB)),
-#                        labels = c(LB,(1+LB)/2,1,(1+UB)/2,UB)) +
-#   theme_minimal() + 
-#   theme(plot.title=element_text(hjust=0.5,size = 16),
-#         legend.text = element_text(size=16),
-#         legend.title = element_text(size=16)) + 
-#   theme(axis.text.x = element_text(angle = 45, hjust=1, size = AXIS_SIZE),
-#         axis.text.y = element_text(size = AXIS_SIZE)) +
-#   labs(title=paste0("Hyper threshold: ",hCut))
-
-# hmap_state_rr_time

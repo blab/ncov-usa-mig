@@ -1,3 +1,5 @@
+### Makes pairs_time table for 
+
 library(tidyverse)
 library(data.table)
 library(dbplyr)
@@ -172,6 +174,7 @@ ggsave(filename = paste0("figs/",SCENARIO,"/time/ddiff_hist.jpg"),
 #Similar to dbWriteTable, except just executes the SQL command in DuckDB
 #This way I don't load the full table into memory
 df_pairs %>% compute(name = "pairs_time", 
-                     temporary = FALSE)
+                     temporary = FALSE,
+                     overwrite = TRUE)
 
 DBI::dbDisconnect(con)

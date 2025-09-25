@@ -6,6 +6,10 @@
 *.Rproj
 =======
 *.tsv
+*.jpg
+*.pdf
+*.png
+
 >>>>>>> b90f4437cc063950e30611f32c6913f7dac0db6d
 
 cluster-analysis/*
@@ -21,7 +25,7 @@ tmp/*
 logs/*
 scripts/nondb_versions/*
 .snakemake/*
-
+figs/*
 
 .Rdata
 .Rhistory

@@ -23,6 +23,11 @@ clean_age <- function(a){
   return(a)
 }
 
+#Only accepts male and female due to lack of consistent pattern for non-binary sex or gender
+clean_sex <- function(s){
+  ifelse(s == "Male" | s == "Female", s, NA)
+}
+
 #Aggregate the ages for the RR analysis, note that age should be cleaned prior
 aggregate_age <- function(a, BIN_SIZE = 5){
   if (scenario == 'USA' | grepl("CAM",scenario,fixed=TRUE)) {  #For USA or CAM will use individual age bins
@@ -46,6 +51,8 @@ aggregate_age <- function(a, BIN_SIZE = 5){
 
 args <- collect_args()
 scenario <- args$scenario
+#scenario <- "CAM_1000"
+
 
 dir.create(paste0("results/",scenario)) #Make a directory in case it doesn't already exist
 
@@ -115,7 +122,8 @@ df_meta <- df_meta %>%
   collect() %>%
   mutate(age_adj = clean_age(age)) %>%
   mutate(age_adj = as.integer(age_adj)) %>% # Explicitly cast to integer
-  mutate(age_class = aggregate_age(age_adj))
+  mutate(age_class = aggregate_age(age_adj)) %>%
+  mutate(sex = clean_sex(sex))
 
 
 dbWriteTable(conn = con,

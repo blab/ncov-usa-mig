@@ -21,7 +21,7 @@ collect_args <- function(){
 
 args <- collect_args()
 scenario <- args$scenario
-
+scenario <- "CAM_1000"
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_age_class.tsv",sep="")

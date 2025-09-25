@@ -1,6 +1,6 @@
 #File: state_dist_plot.R
 #Author(s): Amin Bemanian
-#Date: 8/20/24
+#Date: 7/29/24
 #Description: Makes a distance plots from state RR matrix
 #Arguments: 
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
@@ -22,6 +22,7 @@ collect_args <- function(){
 args <- collect_args()
 scenario <- args$scenario
 
+####TEMP DELETE ONCE YOU WANT TO MAKE THE FLOW WORK
 scenario <- "CAM_1000"
 
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
@@ -57,32 +58,40 @@ state_adj_plot <- state_rr%>%
   geom_jitter(aes(y=RR),alpha=0.1,fill='black',size=1,width=0.3, height = 0) +
   geom_signif(aes(y=RR),
               comparisons = list(c("Within state","Adjacent state"), c("Adjacent state","Non-adjacent state")),
-              map_signif_level = TRUE,
+              map_signif_level = function(p) {
+                ifelse(p < 0.001, "< 0.001", formatC(p, digits = 3, format = "f"))
+              },
+              tip_length = 0.01,
+              textsize = 4,
+              size = 1.5,
+              test = "wilcox.test",
+              y_position = log10(c(100, 10)), 
               color = 'firebrick') +
   geom_boxplot(data = df_adj_boxplot,
                aes(ymin = y05_plot, lower = y25_plot, middle = y50_plot,
                    upper = y75_plot, ymax = y95_plot),
                stat = "identity", fill = NA, width = 0.7) +
   scale_x_discrete(name= '') +
-  scale_y_continuous(transform ='log',
+  scale_y_continuous(transform ='log10',
                      name=expression(RR["identical sequences"]),
-                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
-                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
+                     breaks = c(1E-2,1E-1, 1, 1E1, 1E2, 1E3),
+                     labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2}),expression(10^{3})),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-1.001),10^(1.5))) +
+                     limits = c(10^(-1.5),10^(3))) +
   coord_flip() +
   theme_classic() + 
   theme(plot.title=element_text(hjust=0.5),
         strip.background = element_blank(),
         strip.text = element_blank()) + 
   ggtitle(scenario)  
+state_adj_plot
 
 ggsave(fn_state_adj_plot,
        plot=state_adj_plot,
        device = "jpeg",
-       dpi = 600,
-       width = 6,
-       height = 6
+       dpi = 200,
+       width = 8,
+       height = 5
 )
 
 #Note since spearman is rank-order correlation, log transformation does not matter
@@ -120,7 +129,7 @@ state_euclid_dist_plot <- state_rr %>%
 ggsave(fn_state_euclid_dist_plot,
        plot=state_euclid_dist_plot,
        device = "jpeg",
-       dpi = 600,
+       dpi = 192,
        width = 6,
        height = 4
 )
@@ -154,7 +163,7 @@ state_cbsa_dist_plot <- state_rr %>%
 ggsave(fn_state_cbsa_dist_plot,
        plot=state_cbsa_dist_plot,
        device = "jpeg",
-       dpi = 600,
+       dpi = 192,
        width = 6,
        height = 4
 )
@@ -208,7 +217,7 @@ state_euclid_logdist_plot <- state_rr %>%
 ggsave(fn_state_euclid_logdist_plot,
        plot=state_euclid_logdist_plot,
        device = "jpeg",
-       dpi = 600,
+       dpi = 192,
        width = 6,
        height = 6
 )
@@ -248,8 +257,8 @@ state_nb_dist_plot <- state_rr %>%
 ggsave(fn_state_nb_dist_plot,
        plot=state_nb_dist_plot,
        device = "jpeg",
-       dpi = 600,
+       dpi = 192,
        width = 6,
-       height = 6,
+       height = 4,
        create.dir = TRUE
 )

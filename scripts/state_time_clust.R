@@ -51,7 +51,7 @@ label_title <- "BEA Regions"
 get_region <- function(df) df[[region_col]]
 
 fn_path_rr <- paste0("results/",scenario,"/time_state/")
-df_regions <- read_csv("data/us_states_regions.csv") %>%
+df_regions <- read_csv("data/regions.csv") %>%
   mutate(hhs_reg = factor(hhs_reg,
                           levels = c("Boston (Region I)",
                                      "New York (Region II)",
