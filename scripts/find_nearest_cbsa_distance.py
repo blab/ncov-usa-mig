@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
 """
 File: find_nearest_cbsa_disttance.py
 Author(s): Amin Bemanian
@@ -6,7 +9,6 @@ Description: GPT assisted script which finds the closest CBSA distance
 between states as an alternative to Euclidean centroid distance
 """
 
-#!/usr/bin/env python3
 """
 cbsa_nearest_distance_by_state_fullnames_sym.py
 ==============================================
@@ -15,15 +17,13 @@ Outputs:
 1. **cbsa_points.csv** – every CBSA with centroid lat/lon and the set of
    full state names it spans.
 
-2. **state_pair_min_cbsa_distance_km.csv** – symmetric table: two rows
+2. **state_cbsa_dist.tsv** – symmetric table: two rows
    for each unordered state pair (state1, state2) and (state2, state1),
    with full state names and the minimum CBSA‑to‑CBSA distance (km).
 
 Data source: 2024 CBSA Gazetteer
 https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2024_Gazetteer/2024_Gaz_cbsa_national.zip
 """
-
-from __future__ import annotations
 import io, math, zipfile, re
 from itertools import combinations
 
@@ -146,4 +146,4 @@ for s1_full in state_full_list:
                 {"x": s1_full, "y": s2_full, "min_cbsa_dist": round(best, 2)}
             )
 pd.DataFrame(records).to_csv("data/state_cbsa_dist.tsv",sep="\t",index=False)
-print("Wrote state_pair_min_cbsa_distance_km.csv  (rows:",len(records),")")
+print("Wrote state_cbsa_dist.tsv  (rows:",len(records),")")

@@ -3,7 +3,6 @@
 #Date: 8/19/24
 #Description: R script that obtains state shapefiles and makes an neighbor (adjacency) and euclidean distance matrix using spdep/sf. 
 #Does not need to be re-run with scenarios after initial run.
-#TODO: Integrate with NHTS?
 
 library(spdep)
 library(tigris)
@@ -58,6 +57,6 @@ for(i in 1:length(STATE_NAMES)){
 }
 
 
-nb_matrix<-nb_matrix[order(nb_matrix$state_x,nb_matrix$state_y),]
+nb_matrix <- nb_matrix[order(nb_matrix$state_x,nb_matrix$state_y),]
 readr::write_tsv(nb_matrix,"../data/nb_dist_states.tsv")
 

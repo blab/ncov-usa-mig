@@ -37,14 +37,15 @@ plot_cam_choropleth <- function(
     state_col,
     value_col,
     fill_mapper = identity, 
-    scale_fun = NULL,         # e.g., function() RR_log_grad_manual(b)
+    scale_fun = NULL,
     title = NULL,
     ori = NULL,
     hi_angle = 45,
     inset_loc = list(left = 0.05, bottom = 0.05, right = 0.25, top = 0.2),
-    hi_crop = c(xmin = -56, xmax = -47, ymin = -10, ymax = -5),  # keep your hard-coded crop
-    bbox_margin = c(xmin = -0.5, xmax = 1, ymin = -1, ymax = 0),  # margins around HI bbox
-    bottom_legend = FALSE
+    hi_crop = c(xmin = -56, xmax = -47, ymin = -10, ymax = -5),
+    bbox_margin = c(xmin = -0.5, xmax = 1, ymin = -1, ymax = 0),
+    bottom_legend = FALSE,
+    theme_override = NULL
 ) {
   state_sym <- rlang::ensym(state_col)
   value_sym <- rlang::ensym(value_col)
@@ -86,6 +87,11 @@ plot_cam_choropleth <- function(
       axis.ticks = element_blank(),
       panel.grid = element_blank()
     )
+
+  # Apply theme override if provided
+  if (!is.null(theme_override)) {
+    p_main <- p_main + theme_override
+  }
   
   # add custom fill scale if provided
   if (is.function(scale_fun)) {
@@ -101,6 +107,9 @@ plot_cam_choropleth <- function(
     p_main <- p_main +
       theme(legend.position = "bottom") +
       theme(legend.text = element_text(angle = 45, hjust = 1))
+  } else{
+    p_main <- p_main +
+      theme(legend.position = "right")
   }
   
   # place asterisk either on main or on HI depending on ori
