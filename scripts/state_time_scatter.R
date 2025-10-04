@@ -1,5 +1,6 @@
 library(tidyverse)
 library(patchwork)
+library(RColorBrewer)
 source("scripts/color_schemes.R")
 
 SCENARIO <- "CAM_1000"
@@ -30,7 +31,7 @@ PAIR_LIST <- data.frame(
         "Ontario",
         "Ontario",
         "Ontario",
-        "Ontario",
+        "Quebec",
         "California",
         "California",
         "California",
@@ -39,14 +40,14 @@ PAIR_LIST <- data.frame(
   y = c("Texas",
         "California",
         "Washington",
-        "New York",
+        "Arizona",
         "Michigan",
         "New York",
         "Quebec",
         "British Columbia",
-        "Mexico",
         "New York",
-        "Illinois",
+        "New York",
+        "Arizona",
         "Texas",
         "Washington",
         "Michigan")
@@ -66,20 +67,24 @@ sub_RR_snap <- state_rr_snap %>%
   group_by(is_intl) %>%
   mutate(pair_name = factor(pair_name, levels = unique(pair_name[order(pair_name)]))) %>%
   mutate(quarter_label = format_quarters(date)) %>%
+  # Add fold change calculation
+  group_by(pair_name) %>%
+  arrange(date) %>%
+  mutate(nRR_fold = nRR / first(nRR)) %>%
   ungroup()
 
 # Create common scale for both plots
-common_fill_scale <- scale_fill_gradient(
-  low="#EEE", 
-  high="#F73",
-  limits = c(0.01, 0.3),
-  oob = scales::squish,  # Forces values outside the limits into the range
-  name = "nRR"
+common_fill_scale <- scale_fill_distiller(
+  palette = "Spectral",
+  limits = c(-1, 1),
+  oob = scales::squish,
+  name = "Fold Change",
+  labels = function(x) format(10^x, digits = 1)
 )
 
 # Create separate plots for each facet
 p1 <- ggplot(sub_RR_snap %>% filter(!is_intl),
-       aes(x=date, y=pair_name, fill=nRR)) +
+       aes(x=date, y=pair_name, fill = log10(nRR_fold))) +
   geom_tile(color="#555") +
   scale_x_date(
     date_breaks = "3 months",
@@ -87,18 +92,18 @@ p1 <- ggplot(sub_RR_snap %>% filter(!is_intl),
     expand = expansion(0.01)
   ) +
   labs(x = "Date", y = "Domestic Pairs") +
-  common_fill_scale +
+  common_fill_scale +  # Use common scale
   theme_minimal() +
   theme(
-    axis.text.x = element_blank(),  # Hide x-axis text
-    axis.title.x = element_blank(), # Hide x-axis title
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
     legend.position = "right",
     legend.justification = "center",
     panel.grid.major = element_blank()
   )
 
 p2 <- ggplot(sub_RR_snap %>% filter(is_intl),
-       aes(x=date, y=pair_name, fill=nRR)) +
+       aes(x=date, y=pair_name, fill=log10(nRR_fold))) +
   geom_tile(color="#555") +
   scale_x_date(
     date_breaks = "3 months",
@@ -106,11 +111,11 @@ p2 <- ggplot(sub_RR_snap %>% filter(is_intl),
     expand = expansion(0.01)
   ) +
   labs(x = "Date", y = "International Pairs") +
-  common_fill_scale +
+  common_fill_scale +  # Use common scale
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size=8),
-    legend.position = "none", # Remove legend from bottom plot
+    legend.position = "none",
     panel.grid.major = element_blank()
   ) 
 # Combine plots using patchwork

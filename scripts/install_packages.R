@@ -1,6 +1,7 @@
 # File: install_packages.R
 # Description: Install required R packages using pak for the ncov-usa-mig analysis
-# Date: 2025-09-25
+# Date: 2025-10-02
+# Updated: Complete package list from comprehensive scan of all scripts
 
 # First, install pak if not already installed
 if (!require("pak", quietly = TRUE)) {
@@ -9,48 +10,83 @@ if (!require("pak", quietly = TRUE)) {
 
 # List of required packages
 packages <- c(
-  # Core data manipulation and visualization
-  "tidyverse",      # Collection of data science packages
+  # Core data manipulation and tidyverse
+  "tidyverse",      # Collection of data science packages (includes dplyr, ggplot2, readr, tidyr, purrr, stringr, tibble, forcats)
   "data.table",     # Fast data manipulation
   "dplyr",          # Data manipulation grammar
-  "dbplyr",         # Database operations with dplyr
+  "tidyr",          # Tidy messy data
   "readr",          # Fast file reading
-  
+  "purrr",          # Functional programming tools
+  "stringr",        # String manipulation
+  "lubridate",      # Date/time manipulation
+  "magrittr",       # Pipe operators
+
   # Database connectivity
-  "duckdb",        # DuckDB database connector
-  "DBI",           # Database interface
-  
-  # Visualization
-  "ggplot2",       # Grammar of graphics plotting
-  "scales",        # Scale functions for visualization
-  "viridis",       # Color palettes
-  "patchwork",     # Combine plots
-  "ggpubr",        # Publication ready plots
-  "magick",        # Image manipulation
-  
-  # Statistical analysis
-  "splines",       # Regression spline functions
-  "broom",         # Convert statistical objects to tidy format
-  "sandwich",      # Robust covariance matrix estimators
-  "lmtest",        # Testing Linear Regression Models
-  "car",           # Companion to Applied Regression
-  "mclust",        # Clustering algorithms
-  "spdep",         # Spatial dependence
-  "yardstick",     # Model metric computations
-  
-  # Spatial data handling
-  "maps",          # Map visualization
-  "sf",            # Simple features for spatial data
-  "ape",           # Analysis of Phylogenetics and Evolution
-  
-  # Utility and performance
-  "tictoc",        # Timing functions
-  "argparse",      # Command line argument parsing
-  "doParallel",    # Parallel backend
-  
-  # Additional tidyverse components
-  "tidyr",         # Tidy messy data
-  "purrr"          # Functional programming tools
+  "duckdb",         # DuckDB database connector
+  "DBI",            # Database interface
+  "dbplyr",         # Database operations with dplyr
+
+  # Command-line interface
+  "argparse",       # Command line argument parsing
+  "cli",            # Terminal output formatting
+  "rlang",          # Low-level R programming tools
+
+  # Visualization - core
+  "ggplot2",        # Grammar of graphics plotting
+  "patchwork",      # Combine multiple plots
+  "scales",         # Scale functions for visualization
+  "RColorBrewer",   # Color palettes
+  "viridis",        # Color-blind friendly palettes
+
+  # Visualization - extensions
+  "ggrepel",        # Non-overlapping text labels
+  "ggpubr",         # Publication ready plots
+  "ggsignif",       # Significance brackets for ggplot2
+  "lemon",          # Axis and legend extensions for ggplot2
+  "gridGraphics",   # Convert base graphics to grid
+
+  # Spatial/geographic
+  "sf",             # Simple features for spatial data
+  "spdep",          # Spatial dependence analysis
+  "tigris",         # Census geographic data
+  "maps",           # Geographic map data
+  "ggspatial",      # Spatial data visualization
+  "usmap",          # US map plotting
+
+  # Statistical modeling
+  "broom",          # Tidying statistical model outputs
+  "car",            # Companion to Applied Regression (VIF, bootstrapping)
+  "lmtest",         # Linear model testing
+  "sandwich",       # Robust covariance estimation
+  "splines",        # Spline functions
+  "mgcv",           # Generalized Additive Models
+  "MASS",           # Robust linear models
+  "quantreg",       # Quantile regression
+
+  # Clustering and dimensionality reduction
+  "cluster",        # Cluster analysis (agnes, diana, silhouette)
+  "vegan",          # Community ecology (metaMDS, cmdscale)
+  "factoextra",     # Visualization of clustering results
+  "tsne",           # t-SNE dimensionality reduction
+  "ggdendro",       # Dendrogram plotting with ggplot2
+  "dendextend",     # Extended dendrogram functionality
+  "mclust",         # Model-based clustering (Adjusted Rand Index)
+
+  # Model evaluation
+  "yardstick",      # Model performance metrics
+
+  # Time series
+  "zoo",            # Time series infrastructure
+
+  # Utilities
+  "jsonlite",       # JSON parsing and generation
+  "magick",         # Image processing
+  "tictoc",         # Timing code execution
+
+  # 3D visualization
+  "plotly",         # Interactive 3D plots
+  "htmlwidgets",    # Save interactive HTML widgets
+  "scatterplot3d"   # Static 3D scatter plots
 )
 
 # Install packages using pak

@@ -28,6 +28,7 @@ library(jsonlite)
 library(gridGraphics)
 library(patchwork)
 library(magick)
+source("scripts/color_schemes.R")
 
 select <- dplyr::select
 
@@ -42,16 +43,13 @@ args <- collect_args()
 scenario <- "CAM_1000" #args$scenario
 dist_type <- args$dist #'E' or 'R'
 
-CUSTOM_SCALE <- c("#faa", "#e66", "#ea5", "#fdb", "#fd0", 
-                  "#fea", "#ad4", "#bfb", "#0fd", "#9df", 
-                  "#8bf", "#aaf", "#cae", "#eae", "#fcf")
 
 region_col <- "bea_reg"
 label_title <- "BEA Regions"
 get_region <- function(df) df[[region_col]]
 
 fn_path_rr <- paste0("results/",scenario,"/time_state/")
-df_regions <- read_csv("data/regions.csv") %>%
+df_regions <- read_csv("data/us_states_regions.csv") %>%
   mutate(hhs_reg = factor(hhs_reg,
                           levels = c("Boston (Region I)",
                                      "New York (Region II)",
@@ -274,8 +272,8 @@ gg_tree_all <- ggplot() +
   geom_point(data = label_df,
              aes(x = y, y = x, color = region_label),
              size = 3) +
-  scale_fill_manual(values = CUSTOM_SCALE) +
-  scale_color_manual(values = CUSTOM_SCALE) +
+  region_fill_scale() +
+  region_color_scale() +
   guides(color = guide_legend(title = label_title)) +
   scale_x_reverse(expand = expansion(mult = c(0.05, 0.3))) +
   labs(title = "State Clustering by Region",
@@ -297,67 +295,229 @@ ggsave(gg_tree_all,
 
 
 set.seed(17)
-state_PCoA_final <- cmdscale(state_dist_mat, eig = TRUE, k = 6)
+state_PCoA_final <- cmdscale(state_dist_mat, eig = TRUE, k = 10)
 
-state_kclust_pcoa <- kmeans(state_PCoA_final$points, centers = 6)$cluster %>%
+# Calculate percent variance explained by each component
+eigenvalues <- state_PCoA_final$eig[1:10]
+pct_var_explained <- (eigenvalues / sum(abs(state_PCoA_final$eig))) * 100
+
+df_var_explained <- tibble(
+  component = paste0("V", 1:10),
+  pct_variance = pct_var_explained
+) %>%
+  mutate(component = factor(component, levels = component))
+
+gg_var_explained <- ggplot(df_var_explained, aes(x = component, y = pct_variance)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = sprintf("%.1f%%", pct_variance)), vjust = -0.5, size = 3) +
+  labs(
+    title = "Percent Variance Explained by PCoA Components",
+    x = "Principal Coordinate",
+    y = "Percent Variance Explained (%)"
+  ) +
+  theme_bw() +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_text(angle = 0)
+  )
+
+ggsave(gg_var_explained,
+       filename = paste0("figs/", scenario, "/clust/pcoa_variance_explained.jpg"),
+       width = 800,
+       height = 600,
+       units = "px",
+       dpi = 150)
+
+# Use first 6 components for clustering
+state_kclust_pcoa <- kmeans(state_PCoA_final$points[, 1:6], centers = 6)$cluster %>%
   as_tibble(rownames = "state") %>%
   rename(cluster = value) %>%
   mutate(cluster = as.factor(cluster)) %>%
-  left_join(as_tibble(state_PCoA_final$points) %>% mutate(state = rownames(state_PCoA_final$points)), by = join_by(state)) %>%
+  left_join(as_tibble(state_PCoA_final$points[, 1:6]) %>% mutate(state = rownames(state_PCoA_final$points)), by = join_by(state)) %>%
   left_join(df_regions, by = join_by(state)) %>%
   mutate(region = get_region(.))
 
-get_hull <- function(data, comp1, comp2) {
-  data %>%
+make_pcoa_plot <- function(df, comp_x, comp_y) {
+  # Calculate convex hull for each region
+  hull_data <- df %>%
     group_by(region) %>%
-    slice(chull(!!sym(comp1), !!sym(comp2)))
-}
+    slice(chull(!!sym(comp_x), !!sym(comp_y)))
 
-hull_V1_V2 <- get_hull(state_kclust_pcoa, "V1", "V2")
-hull_V1_V3 <- get_hull(state_kclust_pcoa, "V1", "V3")
-hull_V1_V4 <- get_hull(state_kclust_pcoa, "V1", "V4")
+  # Extract component numbers for variance lookup
+  comp_x_num <- as.numeric(gsub("V", "", comp_x))
+  comp_y_num <- as.numeric(gsub("V", "", comp_y))
 
-make_pcoa_plot <- function(df, comp_x, comp_y, hull_data) {
+  # Get variance explained percentages
+  var_x <- sprintf("%.1f%%", pct_var_explained[comp_x_num])
+  var_y <- sprintf("%.1f%%", pct_var_explained[comp_y_num])
+
+  # Create axis labels with variance explained
+  x_label <- sprintf("PC %d Explained Var: %s", comp_x_num, var_x)
+  y_label <- sprintf("PC %d Explained Var: %s", comp_y_num, var_y)
+
   ggplot(df, aes(x = .data[[comp_x]], y = .data[[comp_y]], color = region)) +
-    geom_point(show.legend = FALSE,alpha=1) +
-    geom_polygon(data = hull_data, 
+    geom_point(show.legend = FALSE, alpha = 1) +
+    geom_polygon(data = hull_data,
                  aes(x = .data[[comp_x]], y = .data[[comp_y]], group = region, fill = region),
                  alpha = 0.2, show.legend = FALSE) +
-    scale_color_manual(values = CUSTOM_SCALE) +
-    scale_fill_manual(values = CUSTOM_SCALE) +
-    labs(x = paste("PCoA", comp_x), y = paste("PCoA", comp_y)) +
+    region_color_scale() +
+    region_fill_scale() +
+    labs(x = x_label, y = y_label) +
     theme_bw()
 }
 
-gg_pcoa_V1V2 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V2", hull_V1_V2)
-gg_pcoa_V1V3 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V3", hull_V1_V3)
-gg_pcoa_V1V4 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V4", hull_V1_V4)
+gg_pcoa_V1V2 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V2")
+gg_pcoa_V1V3 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V3")
+gg_pcoa_V1V4 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V4")
+gg_pcoa_V2V3 <- make_pcoa_plot(state_kclust_pcoa, "V2", "V3")
+gg_pcoa_V2V3_US <- make_pcoa_plot(state_kclust_pcoa %>% filter(country == "USA"), "V2", "V3")
 
-# Save plots
+# Create 3D interactive plot with plotly
+library(plotly)
+
+plot_3d_pcoa <- plot_ly(
+  data = state_kclust_pcoa,
+  x = ~V1,
+  y = ~V2,
+  z = ~V3,
+  color = ~region,
+  colors = REGION_SCALE,
+  text = ~state,
+  type = "scatter3d",
+  mode = "markers+text",
+  marker = list(size = 8),
+  textposition = "top center",
+  textfont = list(size = 10)
+) %>%
+  layout(
+    title = "3D PCoA: First Three Components",
+    scene = list(
+      xaxis = list(title = "PCoA V1"),
+      yaxis = list(title = "PCoA V2"),
+      zaxis = list(title = "PCoA V3")
+    ),
+    showlegend = TRUE
+  )
+
+# Save as interactive HTML
+htmlwidgets::saveWidget(
+  plot_3d_pcoa,
+  file = paste0("figs/", scenario, "/clust/pcoa_3d_interactive.html"),
+  selfcontained = TRUE
+)
+
+# Alternative: Static 3D plot with scatterplot3d (simpler, non-interactive)
+library(scatterplot3d)
+
+jpeg(paste0("figs/", scenario, "/clust/pcoa_3d_static.jpg"),
+     width = 1200, height = 1200, res = 150)
+
+# Map regions to colors using REGION_SCALE
+region_colors <- REGION_SCALE[as.character(state_kclust_pcoa$region)]
+
+s3d <- scatterplot3d(
+  x = state_kclust_pcoa$V1,
+  y = state_kclust_pcoa$V2,
+  z = state_kclust_pcoa$V3,
+  color = region_colors,
+  pch = 19,
+  cex.symbols = 1.5,
+  xlab = "PCoA V1",
+  ylab = "PCoA V2",
+  zlab = "PCoA V3",
+  main = "3D PCoA: First Three Components",
+  angle = 45,
+  grid = TRUE,
+  box = TRUE
+)
+
+# Add legend - use unique regions with their corresponding colors
+unique_regions <- unique(state_kclust_pcoa$region)
+legend_colors <- REGION_SCALE[as.character(unique_regions)]
+
+legend("topright",
+       legend = unique_regions,
+       col = legend_colors,
+       pch = 19,
+       cex = 0.8,
+       title = label_title)
+
+dev.off()
+
+# Save plots with aspect ratios based on variance explained
 dir.create(paste0("figs/", scenario, "/clust"), recursive = TRUE, showWarnings = FALSE)
-ggsave(gg_pcoa_V1V2, filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.jpg"), width = 600, height = 600, units = "px", dpi = 150)
-ggsave(gg_pcoa_V1V3, filename = paste0("figs/", scenario, "/clust/pcoa_V1V3.jpg"), width = 600, height = 600, units = "px", dpi = 150)
-ggsave(gg_pcoa_V1V4, filename = paste0("figs/", scenario, "/clust/pcoa_V1V4.jpg"), width = 600, height = 600, units = "px", dpi = 150)
 
-pcoa_column <- gg_pcoa_V1V2 / gg_pcoa_V1V3 / gg_pcoa_V1V4 + plot_layout(heights = c(1,1,1))
+# Helper function to calculate aspect ratio from variance explained
+get_aspect <- function(comp_x, comp_y) {
+  pct_var_explained[comp_x] / pct_var_explained[comp_y]
+}
 
-# Dynamically set column name for US map
-df_regions_usmap <- df_regions %>%
-  mutate(region_var = .data[[region_col]])
+# Base dimension for scaling
+base_dim <- 900
 
-gg_regions_map <- plot_usmap(regions = "state", data = df_regions_usmap, values = "region_var") +
-  scale_fill_manual(values = CUSTOM_SCALE) +
-  guides(fill = "none")
+# V1 vs V2
+ggsave(gg_pcoa_V1V2,
+       filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.jpg"),
+       width = base_dim,
+       height = base_dim / get_aspect(1, 2),
+       units = "px",
+       dpi = 192)
 
-# Compose and save the stitched layout
-gg_combined <- (pcoa_column | plot_spacer() | gg_tree_all) + plot_layout(widths = c(1, 0.05, 3))
-gg_combined <- gg_combined / gg_regions_map
+# V1 vs V3
+ggsave(gg_pcoa_V1V3,
+       filename = paste0("figs/", scenario, "/clust/pcoa_V1V3.jpg"),
+       width = base_dim,
+       height = base_dim / get_aspect(1, 3),
+       units = "px",
+       dpi = 192)
+
+# V1 vs V4
+ggsave(gg_pcoa_V1V4,
+       filename = paste0("figs/", scenario, "/clust/pcoa_V1V4.jpg"),
+       width = base_dim,
+       height = base_dim / get_aspect(1, 4),
+       units = "px",
+       dpi = 192)
+
+# V2 vs V3
+ggsave(gg_pcoa_V2V3,
+       filename = paste0("figs/", scenario, "/clust/pcoa_V2V3.jpg"),
+       width = base_dim,
+       height = base_dim / get_aspect(2, 3),
+       units = "px",
+       dpi = 192)
+
+# V2 vs V3 (USA only)
+ggsave(gg_pcoa_V2V3_US,
+       filename = paste0("figs/", scenario, "/clust/pcoa_V2V3_US.jpg"),
+       width = base_dim,
+       height = base_dim / get_aspect(2, 3),
+       units = "px",
+       dpi = 192)
+
+stop("Temp break")
+
+# Create column with V1V2 and V2V3_US, maintaining aspect ratios
+pcoa_column <- gg_pcoa_V1V2 / gg_pcoa_V2V3_US +
+  plot_layout(heights = c(get_aspect(2, 1), get_aspect(3, 2)))
+
+# Compose and save the stitched layout with 1:1 ratio between column and tree
+gg_combined <- (pcoa_column | plot_spacer() | gg_tree_all) + plot_layout(widths = c(1, 0.05, 1))
+
+# Calculate dimensions to preserve aspect ratios in combined plot
+# Total height is sum of both plot heights (weighted by their aspect ratios)
+base_dim <- 2000
+combined_height <- base_dim / get_aspect(1, 2) + base_dim / get_aspect(2, 3)
+
+# Width calculation: pcoa column width + spacer + tree width (1:1 ratio)
+# Tree height should match combined_height, so tree width = combined_height (assuming square-ish tree)
+combined_width <- base_dim + 0.05 * base_dim + combined_height
 
 ggsave(
   gg_combined,
   filename = paste0("figs/", scenario, "/clust/stitched_clust_", region_col, ".png"),
-  width = 3500,
-  height = 4000,
+  width = combined_width,
+  height = combined_height,
   units = "px",
   dpi = 192
 )

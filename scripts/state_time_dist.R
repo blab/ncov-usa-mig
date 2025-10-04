@@ -1,5 +1,3 @@
-
-
 # File: state_time_dist.R
 # Author(s): Amin Bemanian
 # Date: 2025-09-25
@@ -79,6 +77,66 @@ df_travel <- fread("data/travel_vars.tsv")
 SCENARIO <- "CAM_1000"
 fig_path <- paste0("figs/",SCENARIO,"/time/")
 
+# Add the normalization function from state_time_rr_analysis.R
+normalized_state_rr <- function(df_rr){
+  # First: filter to the diagonal (RR(x,x)) entries
+  rr_diag <- df_rr %>%
+    filter(x == y) %>%
+    select(date, state = x, RR_diag = RR, N_diag = N_pairs) %>%
+    mutate(RR_diag = ifelse(N_diag == 0,NA,RR_diag))
+  # Join to get RR(x,x) and RR(y,y) for each row
+  df_rr <- df_rr %>%
+    left_join(rr_diag, by = c("date", "x" = "state")) %>%
+    rename(RR_xx = RR_diag) %>%
+    left_join(rr_diag, by = c("date", "y" = "state")) %>%
+    rename(RR_yy = RR_diag) %>%
+    mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = FALSE))
+return(df_rr)
+}
+
+# Modified normalization function for travel data (without N_pairs)
+normalized_travel_rr <- function(df_rr){
+  # First: filter to the diagonal (RR(x,x)) entries
+  rr_diag <- df_rr %>%
+    filter(x == y) %>%
+    select(date, state = x, RR_diag = RR) %>%
+    mutate(RR_diag = ifelse(is.na(RR_diag), NA, RR_diag))
+  
+  # Join to get RR(x,x) and RR(y,y) for each row
+  df_rr <- df_rr %>%
+    left_join(rr_diag, by = c("date", "x" = "state")) %>%
+    rename(RR_xx = RR_diag) %>%
+    left_join(rr_diag, by = c("date", "y" = "state")) %>%
+    rename(RR_yy = RR_diag) %>%
+    mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = FALSE))
+  return(df_rr)
+}
+
+# Function to normalize travel RR variables
+normalize_travel_vars <- function(df) {
+  # Normalize RR_trips
+  if("RR_trips" %in% names(df)) {
+    df_trips <- df %>%
+      select(date, x, y, RR = RR_trips) %>%
+      filter(!is.na(RR)) %>%
+      normalized_travel_rr() %>%
+      select(date, x, y, nRR_trips = nRR)
+    df <- left_join(df, df_trips, by = c("date", "x", "y"))
+  }
+  
+  # Normalize RR_move
+  if("RR_move" %in% names(df)) {
+    df_move <- df %>%
+      select(date, x, y, RR = RR_move) %>%
+      filter(!is.na(RR)) %>%
+      normalized_travel_rr() %>%
+      select(date, x, y, nRR_move = nRR)
+    df <- left_join(df, df_move, by = c("date", "x", "y"))
+  }
+  
+  return(df)
+}
+
 attach_distances <- function(df) {
   # Join neighbor distances
   df <- left_join(
@@ -105,7 +163,10 @@ attach_distances <- function(df) {
        RR_air_short = ifelse(min_cbsa_dist < 300, RR_air, NA),
        RR_air_med = ifelse(min_cbsa_dist >= 300 & min_cbsa_dist < 1800, RR_air, NA),
        RR_air_long = ifelse(min_cbsa_dist >= 1800, RR_air, NA)
-    )
+    ) %>%
+    normalize_travel_vars()
+    
+  return(df)
 }
 
 state_rr_snap <- read_tsv(paste0("results/",
@@ -193,18 +254,56 @@ plot_neighbor_rank(state_rr_snap, "nb_boxplot_time.png")
 # Create standardized time series plot function
 plot_rr_relationship <- function(data, x_var, title, x_label, filename, 
                                log_x = FALSE, x_limits = NULL) {
-  p <- ggplot(data %>% filter(x != y),
-              aes(x = .data[[x_var]], y = nRR)) +
+  
+  # Filter data and check if variable exists
+  plot_data <- data %>% filter(x != y)
+  
+  if (!x_var %in% names(plot_data)) {
+    warning(paste("Variable", x_var, "not found in data. Skipping plot."))
+    return(NULL)
+  }
+  
+  # Check if there's enough data for each facet
+  data_summary <- plot_data %>%
+    group_by(date) %>%
+    summarise(
+      n_valid = sum(!is.na(.data[[x_var]]) & !is.na(nRR)),
+      .groups = 'drop'
+    )
+  
+  # Only proceed if we have enough data points
+  min_points <- max(data_summary$n_valid)
+  if (min_points < 10) {
+    warning(paste("Not enough data points for", x_var, ". Maximum points in any date:", min_points))
+    return(NULL)
+  }
+  
+  p <- ggplot(plot_data, aes(x = .data[[x_var]], y = nRR)) +
     geom_point(alpha = 0.2,
                aes(color = as.factor(date)),
                show.legend = FALSE) +
-    geom_smooth(formula = y ~ s(x, k = 10, bs = "cs")) +
     theme_bw() +
     facet_wrap(vars(date), nrow = 4, dir = "v") +
     ylim(0, 0.5) +
     labs(title = title,
          x = x_label,
          y = "Normalized RR")
+  
+  # Add smooth line only if we have enough points, with reduced complexity
+  tryCatch({
+    # Use fewer knots and simpler basis
+    k_value <- min(5, floor(min_points / 3))  # Adaptive k based on data
+    if (k_value >= 3) {
+      p <- p + geom_smooth(method = "gam", 
+                          formula = y ~ s(x, k = k_value, bs = "cs"),
+                          se = FALSE)
+    } else {
+      # Fall back to loess for very sparse data
+      p <- p + geom_smooth(method = "loess", se = FALSE)
+    }
+  }, error = function(e) {
+    warning(paste("Could not add smooth line for", x_var, ":", e$message))
+  })
   
   # Add log scale with limits if requested
   if (log_x) {
@@ -293,6 +392,67 @@ plot_rr_relationship(
   filename = "air_travel_long_time.png",
   log_x = TRUE,
   x_limits = c(0.01, 10)
+)
+
+# Add new normalized travel plots
+plot_rr_relationship(
+  data = state_rr_snap,
+  x_var = "nRR_trips",
+  title = "Normalized Travel RR and Normalized RR",
+  x_label = "Normalized Travel RR",
+  filename = "nhts_time_normalized.png",
+  log_x = FALSE,
+  x_limits = c(0, 5)
+)
+
+plot_rr_relationship(
+  data = state_rr_snap,
+  x_var = "nRR_move",
+  title = "Normalized Mobility RR and Normalized RR",
+  x_label = "Normalized Mobility RR",
+  filename = "safegraph_time_normalized.png",
+  log_x = FALSE,
+  x_limits = c(0, 5)
+)
+
+plot_rr_relationship(
+  data = state_rr_snap,
+  x_var = "nRR_air",
+  title = "Normalized Air Travel RR and Normalized RR",
+  x_label = "Normalized Air Travel RR",
+  filename = "air_travel_time_normalized.png",
+  log_x = FALSE,
+  x_limits = c(0, 5)
+)
+
+plot_rr_relationship(
+  data = state_rr_snap,
+  x_var = "nRR_air_short",
+  title = "Normalized Air Travel RR (Short) and Normalized RR",
+  x_label = "Normalized Air Travel RR (Short)",
+  filename = "air_travel_short_time_normalized.png",
+  log_x = FALSE,
+  x_limits = c(0, 5)
+)
+
+plot_rr_relationship(
+  data = state_rr_snap,
+  x_var = "nRR_air_med",
+  title = "Normalized Air Travel RR (Medium) and Normalized RR",
+  x_label = "Normalized Air Travel RR (Medium)",
+  filename = "air_travel_med_time_normalized.png",
+  log_x = FALSE,
+  x_limits = c(0, 5)
+)
+
+plot_rr_relationship(
+  data = state_rr_snap,
+  x_var = "nRR_air_long",
+  title = "Normalized Air Travel RR (Long) and Normalized RR",
+  x_label = "Normalized Air Travel RR (Long)",
+  filename = "air_travel_long_time_normalized.png",
+  log_x = FALSE,
+  x_limits = c(0, 5)
 )
 
 # Function to calculate correlation CI using Fisher z-transformation
@@ -492,4 +652,11 @@ plot_correlation_series(
   var_list = c("min_cbsa_dist", "RR_trips", "RR_move", "RR_air_short", "RR_air_med", "RR_air_long"),
   var_labels = c("Geographic Distance", "Travel", "Mobility", "Air Travel (Short)", "Air Travel (Medium)", "Air Travel (Long)"),
   filename = "correlations_time_series_split_air.png"
+)
+
+plot_correlation_series(
+  data = state_rr_series,
+  var_list = c("min_cbsa_dist", "nRR_trips", "nRR_move"),
+  var_labels = c("Geographic Distance", "Normalized Travel", "Normalized Mobility"),
+  filename = "correlations_time_series_normalized.png"
 )

@@ -89,24 +89,35 @@ zero_corrections <- list(
   move = min(df_travel$RR_move[df_travel$RR_move > 0], na.rm = TRUE)
 )
 
-# Add small constant to zeros before taking logs
+# Normalize travel RR variables (z-score normalization)
+# Distance variables (min_cbsa_dist, euclid_dist) are left unnormalized
+normalize <- function(x) {
+  (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)
+}
+
+# Add normalized travel RR variables to the main df_travel dataframe
+df_travel <- df_travel %>%
+  mutate(
+    zlog_RR_trips = normalize(log10(RR_trips + zero_corrections$trips)),
+    zlog_RR_air = normalize(log10(RR_air + zero_corrections$air)),
+    zlog_RR_move = normalize(log10(RR_move + zero_corrections$move))
+  )
+
+# Add small constant to zeros before taking logs and normalize travel RRs
 df_model <- df_travel %>%
   mutate(
-    log_RR_seq = log10(RR_seq),
-    log_RR_trips = log10(RR_trips + zero_corrections$trips),
-    log_RR_air = log10(RR_air + zero_corrections$air),
-    log_RR_move = log10(RR_move + zero_corrections$move)
+    log_RR_seq = log10(RR_seq)
   ) %>%
   filter(!is.infinite(log_RR_seq))
 
 # Fit regression models
 models <- list(
-  NHTS = lm(log_RR_seq ~ log_RR_trips, data = df_model),
-  Air = lm(log_RR_seq ~ log_RR_air, data = df_model),
-  Mobility = lm(log_RR_seq ~ log_RR_move, data = df_model),
+  NHTS = lm(log_RR_seq ~ zlog_RR_trips, data = df_model),
+  Air = lm(log_RR_seq ~ zlog_RR_air, data = df_model),
+  Mobility = lm(log_RR_seq ~ zlog_RR_move, data = df_model),
   Distance = lm(log_RR_seq ~ min_cbsa_dist, data = df_model),
-  Combined = lm(log_RR_seq ~ log_RR_trips + log_RR_air + 
-    log_RR_move + min_cbsa_dist, data = df_model)
+  Combined = lm(log_RR_seq ~ zlog_RR_trips + zlog_RR_air +
+    zlog_RR_move + min_cbsa_dist, data = df_model)
 )
 
 # Summarize model results
@@ -363,40 +374,78 @@ ggsave(plot_air_length,
 zero_correction <- min(df_travel_dist[df_travel_dist$RR_trips > 0, "RR_trips"])
 
 # Model summary function with diagnostics
-model_summary <- function(m, calc_bootstrap = TRUE) {
+model_summary <- function(m, calc_bootstrap = TRUE, model_name = NULL, output_file = NULL) {
+  # Open output file connection if provided
+  if (!is.null(output_file)) {
+    sink(output_file, append = TRUE)
+    if (!is.null(model_name)) {
+      cat(paste0("\n", strrep("=", 80), "\n"))
+      cat(paste0("MODEL: ", model_name, "\n"))
+      cat(paste0(strrep("=", 80), "\n\n"))
+    }
+  }
+
   # Basic model summary
+  cat(strrep("-", 80), "\n")
+  cat("STANDARD LINEAR MODEL SUMMARY\n")
+  cat(strrep("-", 80), "\n")
   print(summary(m))
 
   # Count predictors and check VIF if multiple predictors
   n_terms <- length(attr(terms(m), "term.labels"))
 
   if (n_terms >= 2) {
-    message("\nVIF:")
+    cat("\n", strrep("-", 80), "\n")
+    cat("VARIANCE INFLATION FACTORS (VIF)\n")
+    cat(strrep("-", 80), "\n")
     print(car::vif(m))
   } else {
-    message("\nVIF not shown: model has fewer than 2 predictors.")
+    cat("\n", strrep("-", 80), "\n")
+    cat("VARIANCE INFLATION FACTORS (VIF)\n")
+    cat(strrep("-", 80), "\n")
+    cat("VIF not shown: model has fewer than 2 predictors.\n")
   }
 
   # Heteroskedasticity test
-  message("\nBreusch-Pagan Test for Heteroskedasticity:")
+  cat("\n", strrep("-", 80), "\n")
+  cat("BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY\n")
+  cat(strrep("-", 80), "\n")
   print(lmtest::bptest(m))
-  plot(m, which = 1)
 
-  # Robust coefficient test
-  message("\nRobust Coefficient Test (HC1 robust SEs):")
-  print(lmtest::coeftest(m, vcov = sandwich::vcovHC(m, type = "HC1")))
+  # Robust coefficient test with CIs
+  cat("\n", strrep("-", 80), "\n")
+  cat("ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)\n")
+  cat(strrep("-", 80), "\n")
+  robust_vcov <- sandwich::vcovHC(m, type = "HC1")
+  robust_coef <- lmtest::coeftest(m, vcov = robust_vcov)
+  print(robust_coef)
+
+  # Calculate and print robust confidence intervals
+  cat("\n95% Confidence Intervals (Robust SEs):\n")
+  robust_ci <- confint(robust_coef)
+  print(robust_ci)
 
   # Bootstrap if requested
   if (calc_bootstrap) {
-    message("\nBootstrapped CIs for Coefficients:")
-    boot_m <- car::Boot(m, R = 5000)
+    cat("\n", strrep("-", 80), "\n")
+    cat("BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS\n")
+    cat(strrep("-", 80), "\n")
+    set.seed(17)  # Set seed for reproducibility
+    boot_m <- car::Boot(m, R = 200)
     print(summary(boot_m))
     print(confint(boot_m))
   }
 
   # AIC
-  message("\nAIC:")
-  print(AIC(m))
+  cat("\n", strrep("-", 80), "\n")
+  cat("AKAIKE INFORMATION CRITERION (AIC)\n")
+  cat(strrep("-", 80), "\n")
+  cat(AIC(m), "\n")
+
+  # Close sink if opened
+  if (!is.null(output_file)) {
+    sink()
+  }
 }
 
 # Function to create observed vs predicted plots for RR
@@ -445,113 +494,120 @@ plot_pred_RR <- function(m, RR_obs, model_name, log_predict = TRUE, eps = 1e-10)
 }
 
 
-df_model_data <- df_travel_dist %>% filter(x != y & !is.na(RR_move))
+df_model_data <- df_travel_dist %>%
+  filter(x != y) %>%
+  na.omit()  # Remove all rows with any NA values for car::Boot compatibility
 y_obs <- df_model_data$RR_seq
+
+# Create output file for regression results
+results_file <- paste0("results/", scenario, "/regression_results.txt")
+# Clear file if it exists
+if (file.exists(results_file)) file.remove(results_file)
 
 lm_trips <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ log10(RR_trips + zero_correction)
+  formula = log10(RR_seq) ~ log10(RR_trips + zero_corrections$trips)
 )
-lm_trips %>% model_summary()
+lm_trips %>% model_summary(model_name = "NHTS Trips", output_file = results_file)
 lm_trips_plot <- plot_pred_RR(lm_trips, y_obs, "NHTS Trips")
 
 slm_trips <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ bs(log10(RR_trips + zero_correction), df = 6)
+  formula = log10(RR_seq) ~ bs(log10(RR_trips + zero_corrections$trips), df = 6)
 )
-slm_trips %>% model_summary()
+slm_trips %>% model_summary(model_name = "NHTS Trips - Spline", output_file = results_file)
 slm_trips_plot <- plot_pred_RR(slm_trips, y_obs, "NHTS Trips - Spline")
 
 lm_move <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ log10(RR_move)
+  formula = log10(RR_seq) ~ log10(RR_move + zero_corrections$move)
 )
-lm_move %>% model_summary()
+lm_move %>% model_summary(model_name = "Safegraph Mobility", output_file = results_file)
 lm_move_plot <- plot_pred_RR(lm_move, y_obs, "Safegraph Mobility")
 
 slm_move <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ bs(log10(RR_move), df = 6)
+  formula = log10(RR_seq) ~ bs(log10(RR_move + zero_corrections$move), df = 6)
 )
-slm_move %>% model_summary(calc_bootstrap = FALSE)
+slm_move %>% model_summary(calc_bootstrap = FALSE, model_name = "Safegraph Mobility - Spline", output_file = results_file)
 slm_move_plot <- plot_pred_RR(slm_move, y_obs, "Safegraph Mobility - Spline")
 
 lm_air <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ log10(RR_air)
+  formula = log10(RR_seq) ~ log10(RR_air + zero_corrections$air)
 )
-lm_air %>% model_summary()
+lm_air %>% model_summary(model_name = "Air Travel", output_file = results_file)
 lm_air_plot <- plot_pred_RR(lm_air, y_obs, "Air Travel")
 
 slm_air <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ bs(log10(RR_air), df = 6)
+  formula = log10(RR_seq) ~ bs(log10(RR_air + zero_corrections$air), df = 6)
 )
-slm_air %>% model_summary(calc_bootstrap = FALSE)
+slm_air %>% model_summary(calc_bootstrap = FALSE, model_name = "Air Travel - Spline", output_file = results_file)
 slm_air_plot <- plot_pred_RR(slm_air, y_obs, "Air Travel - Spline")
 
 lm_air_int <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ log10(RR_air):flight_length
+  formula = log10(RR_seq) ~ log10(RR_air + zero_corrections$air):flight_length
 )
-lm_air_int %>% model_summary()
+lm_air_int %>% model_summary(model_name = "Air Travel : Flight Length", output_file = results_file)
 lm_air_int_plot <- plot_pred_RR(lm_air_int, y_obs, "Air Travel : Flight Length")
 
 
 slm_air_int <- lm(
   data = df_model_data,
-  log10(RR_seq) ~ bs(log10(RR_air), df = 6) * bs(min_cbsa_dist, df = 6)
+  log10(RR_seq) ~ bs(log10(RR_air + zero_corrections$air), df = 6) * bs(min_cbsa_dist, df = 6)
 )
-slm_air_int %>% model_summary(calc_bootstrap = FALSE)
+slm_air_int %>% model_summary(calc_bootstrap = FALSE, model_name = "Air Travel x CBSA Distance - Spline", output_file = results_file)
 slm_air_int_plot <- plot_pred_RR(slm_air_int, y_obs, "Air Travel x CBSA Distance - Spline")
 
 lm_euclid <- lm(
   data = df_model_data,
   formula = log10(RR_seq) ~ euclid_dist
 )
-lm_euclid %>% model_summary()
+lm_euclid %>% model_summary(model_name = "Euclidean Distance", output_file = results_file)
 lm_euclid_plot <- plot_pred_RR(lm_euclid, y_obs, "Euclidean Distance")
 
 slm_euclid <- lm(
   data = df_model_data,
   formula = log10(RR_seq) ~ bs(euclid_dist, df = 6)
 )
-slm_euclid %>% model_summary(calc_bootstrap = FALSE)
+slm_euclid %>% model_summary(calc_bootstrap = FALSE, model_name = "Euclidean Distance - Spline", output_file = results_file)
 slm_euclid_plot <- plot_pred_RR(slm_euclid, y_obs, "Euclidean Distance - Spline")
 
 lm_cbsa <- lm(
   data = df_model_data,
   formula = log10(RR_seq) ~ min_cbsa_dist
 )
-lm_cbsa %>% model_summary()
+lm_cbsa %>% model_summary(model_name = "CBSA Distance", output_file = results_file)
 lm_cbsa_plot <- plot_pred_RR(lm_cbsa, y_obs, "CBSA Distance")
 
 slm_cbsa <- lm(
   data = df_model_data,
   formula = log10(RR_seq) ~ bs(min_cbsa_dist, df = 6)
 )
-slm_cbsa %>% model_summary(calc_bootstrap = FALSE)
-slm_cbsa_plot <- plot_pred_RR(slm_cbsa, y_obs, "CBSA Distance")
+slm_cbsa %>% model_summary(calc_bootstrap = FALSE, model_name = "CBSA Distance - Spline", output_file = results_file)
+slm_cbsa_plot <- plot_pred_RR(slm_cbsa, y_obs, "CBSA Distance - Spline")
 
 # Combined Regression
 lm_combo <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ log10(RR_trips + zero_correction) +
-    log10(RR_move) +
-    log10(RR_air):flight_length
+  formula = log10(RR_seq) ~ zlog_RR_trips +
+    zlog_RR_move +
+    zlog_RR_air:flight_length
 )
-lm_combo %>% model_summary()
-lm_combo_plot <- plot_pred_RR(lm_combo, y_obs, "Multivariate Model")
+lm_combo %>% model_summary(model_name = "Multivariate Model (normalized)", output_file = results_file)
+lm_combo_plot <- plot_pred_RR(lm_combo, y_obs, "Multivariate Model (normalized)")
 
 # Spline combined regression
 slm_combo <- lm(
   data = df_model_data,
-  formula = log10(RR_seq) ~ log10(RR_trips + zero_correction) +
-    log10(RR_move) +
-    bs(log10(RR_air), df = 6) * bs(min_cbsa_dist, df = 6)
+  formula = log10(RR_seq) ~ zlog_RR_trips +
+    zlog_RR_move +
+    bs(zlog_RR_air, df = 6) * bs(min_cbsa_dist, df = 6)
 )
-slm_combo %>% model_summary(calc_bootstrap = FALSE)
-slm_combo_plot <- plot_pred_RR(slm_combo, y_obs, "Multivariate Model - Spline")
+slm_combo %>% model_summary(calc_bootstrap = FALSE, model_name = "Multivariate Model - Spline (normalized)", output_file = results_file)
+slm_combo_plot <- plot_pred_RR(slm_combo, y_obs, "Multivariate Model - Spline (normalized)")
 
 OE_plots <- patchwork::wrap_plots(lm_trips_plot, slm_trips_plot, lm_move_plot, slm_move_plot,
   lm_air_plot, slm_air_plot, lm_air_int_plot, slm_air_int_plot,
