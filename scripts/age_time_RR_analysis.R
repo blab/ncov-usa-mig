@@ -31,7 +31,8 @@ if(aggregate_flag){
       age_aggr = case_when(
         is.na(age_adj) ~ "NA",
         age_adj < 6 ~ "0-5y",
-        age_adj < 18 ~ "6-17y",
+        age_adj < 12 ~ "6-11y",
+        age_adj < 18 ~ "12-17y",
         age_adj < 26 ~ "18-25y",
         age_adj < 46 ~ "26-45y",
         age_adj < 66 ~ "46-65y",
@@ -80,7 +81,7 @@ for(i in 1:length(lb_date_vector)){
 }
 toc()
 
-fn_series <- paste0("results/",scenario,"/df_RR_by_age_time_series.tsv")
+fn_series <- paste0("results/",scenario,"/age_time/df_RR_by_age_time_series.tsv")
 write_tsv(age_rr_series,file=fn_series)
 
 # School age analysis stratified by state and time
@@ -127,7 +128,59 @@ for(i in 1:length(lb_date_vector)){
 }
 toc()
 
-fn_school_state_time <- paste0("results/", scenario, "/df_RR_by_school_state_time.tsv")
+fn_school_state_time <- paste0("results/", scenario, "/age_time/df_RR_by_school_state_time.tsv")
 write_tsv(school_state_time_rr, file = fn_school_state_time)
+
+# School age analysis stratified by state and academic year
+tic("School age by state and academic year analysis")
+school_state_ay_rr <- NULL
+
+# Define academic years (Sept 1 to May 31)
+academic_years <- data.frame(
+  ay_label = c("2020-2021", "2021-2022", "2022-2023", "2023-2024"),
+  start_date = as.Date(c("2020-09-01", "2021-09-01", "2022-09-01", "2023-09-01")),
+  end_date = as.Date(c("2021-05-31", "2022-05-31", "2023-05-31", "2024-05-31"))
+)
+
+for(ay_idx in 1:nrow(academic_years)){
+  ay_label <- academic_years$ay_label[ay_idx]
+  start_date <- academic_years$start_date[ay_idx]
+  end_date <- academic_years$end_date[ay_idx]
+
+  print(paste0("Processing academic year: ", ay_label))
+
+  # Bind pairs for the academic year once
+  pairs_ay <- con %>%
+    bind_pairs_exp("school_cat", time_bounds = c(start_date, end_date)) %>%
+    collect()
+
+  for(state in states){
+    # Filter pairs where both strains are from this state
+    pairs_state <- pairs_ay %>%
+      filter(division_x == state & division_y == state)
+
+    # Skip if no pairs for this state
+    if(nrow(pairs_state) == 0) next
+
+    # Calculate RR matrix for this state
+    rr_state_ay <- pairs_state %>%
+      calculate_rr_matrix() %>%
+      mutate(
+        academic_year = ay_label,
+        state = state
+      )
+
+    # Bind to main dataframe
+    if(is.null(school_state_ay_rr)){
+      school_state_ay_rr <- rr_state_ay
+    } else {
+      school_state_ay_rr <- bind_rows(school_state_ay_rr, rr_state_ay)
+    }
+  }
+}
+toc()
+
+fn_school_state_ay <- paste0("results/", scenario, "/age_time/df_RR_by_school_state_ay.tsv")
+write_tsv(school_state_ay_rr, file = fn_school_state_ay)
 
 DBI::dbDisconnect(con, shutdown = TRUE)
