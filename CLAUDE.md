@@ -159,6 +159,7 @@ DBI::dbDisconnect(con, shutdown=TRUE)
 - **Time analyses**: Use `pairs_time` table and pass `time_bounds` parameter to `bind_pairs_exp`
 - **NA handling**: Age and sex have explicit cleaning functions; "NA" may appear as character literal in DuckDB
 - **Module loading**: Scripts assume `ml fhR` module is loaded (Fred Hutch environment)
+- **Color schemes**: ALWAYS use `scripts/color_schemes.R` for visualization colors to maintain consistency across all figures. This file defines standardized color scales for regions (BEA regions), countries, RR gradients, sex, and other categorical variables.
 
 ## Dependencies
 

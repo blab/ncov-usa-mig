@@ -5,14 +5,23 @@ library(duckdb)
 library(ggplot2)
 library(tictoc)
 library(scales)
+library(argparse)
 
 source("scripts/calculate_rr_matrix.R")
 source("scripts/bind_pairs_exp.R")
 source("scripts/calculate_rr_ci.R")
 
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
+
+args <- collect_args()
+scenario <- args$scenario
+
 select <- dplyr::select
 STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
-SCENARIO <- "CAM_1000"
 REGION_DATA <- fread("data/regions.csv")
 
 STATE_ORDER<- c("Alaska","Hawaii","Washington","Oregon","California",
@@ -44,7 +53,7 @@ normalized_state_rr <- function(df_rr){
 return(df_rr)
 }
 
-fn_db <- paste0("db_files/db_",SCENARIO,".duckdb")
+fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db,read_only = TRUE)
 df_meta <- tbl(con,"metadata")
 df_pairs <- tbl(con,"pairs_time")
@@ -150,7 +159,7 @@ all_combinations <- expand.grid(
 state_rr_snap <- full_join(all_combinations, state_rr_snap, by = c("x", "y", "date"))
 toc()
 
-fn_out_path <- paste0("results/",SCENARIO,"/time_state/")
+fn_out_path <- paste0("results/",scenario,"/time_state/")
 dir.create(file.path(fn_out_path),showWarnings = FALSE)
 write_tsv(state_rr_all,file=paste0(fn_out_path,"df_state_rr_all.tsv"))
 state_rr_snap <- normalized_state_rr(state_rr_snap)
