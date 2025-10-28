@@ -16,6 +16,7 @@ all_outputs = expand([
     "figs/{scenario}/age_heatmap.jpg",
     "figs/{scenario}/age_lineplot_all_censor.jpg",
     "figs/{scenario}/age_lineplot_by_state.jpg",
+    "figs/{scenario}/age_lineplot_abridged.jpg",
     "figs/{scenario}/age_same_lineplot_by_state.jpg",
     # State analyses
     "results/{scenario}/df_RR_by_state.tsv",
@@ -160,6 +161,7 @@ rule age_lineplot:
     output:
         "figs/{scenario}/age_lineplot_all_censor.jpg",
         "figs/{scenario}/age_lineplot_by_state.jpg",
+        "figs/{scenario}/age_lineplot_abridged.jpg",
         "figs/{scenario}/age_same_lineplot_by_state.jpg"
     shell:
         """

@@ -71,7 +71,7 @@ age_plot_all <- age_rr %>%
         legend.position = 'none',
         plot.title=element_text(hjust=0.5))
 
-fn_age_plot_all <- paste0("figs/",scenario,"/age_lineplot_all_censor.jpg") 
+fn_age_plot_all <- paste0("figs/",scenario,"/age_lineplot_all_censor.jpg")
 ggsave(fn_age_plot_all,
        plot=age_plot_all,
        device = "jpeg",
@@ -79,6 +79,40 @@ ggsave(fn_age_plot_all,
        width = 50,
        height = 40,
        limitsize = FALSE
+)
+
+# Abridged version: focus on key age groups, stratified by same-state
+TARGET_AGES <- c("05y", "15y", "25y", "35y", "45y", "55y", "65y", "75y")
+
+age_plot_abridged <- age_state_rr %>%
+  filter(!age_censor) %>%
+  filter(y %in% TARGET_AGES) %>%
+  ggplot(aes(x = x, colour = sameState)) +
+  geom_point(aes(y = RR)) +
+  geom_line(aes(y = RR, group = sameState)) +
+  geom_hline(yintercept = 1) +
+  facet_wrap(. ~ y, ncol = 2, nrow = 4, scales = 'free_y') +
+  scale_x_discrete(name = 'Age Group', breaks = age_breaks) +
+  scale_y_continuous(name = expression(RR["identical sequences"])) +
+  scale_color_brewer(type="qual", name = "Within State", palette = "Paired") +
+  theme_classic() +
+  ggtitle(paste0("Age-wise RR for ",scenario," - Key Age Groups")) +
+  theme(axis.title.x = element_text(size = 13),
+        axis.title.y = element_text(size = 13),
+        axis.text = element_text(size = 10),
+        axis.text.x = element_text(angle = 45, hjust = 1.),
+        strip.text = element_text(size = 12),
+        strip.background = element_rect(colour = 'white'),
+        legend.position = 'bottom',
+        plot.title=element_text(hjust=0.5))
+
+fn_age_plot_abridged <- paste0("figs/",scenario,"/age_lineplot_abridged.jpg")
+ggsave(fn_age_plot_abridged,
+       plot=age_plot_abridged,
+       device = "jpeg",
+       dpi = 192,
+       width = 12,
+       height = 16
 )
 
 #Do RRs stratified by adjacency plot (single plot)
