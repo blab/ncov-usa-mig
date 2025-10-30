@@ -5,7 +5,7 @@
 #              and its relationship with geographic distances and travel patterns
 # 
 # Arguments:
-#   None - Uses fixed SCENARIO variable for file paths
+#   --scenario: Scenario name (e.g., CAM_1000)
 #
 # Input files:
 #   - data/nb_dist_states.tsv: State neighbor distances matrix
@@ -30,6 +30,7 @@ suppressPackageStartupMessages({
   library(scales)
   library(maps)
   library(sf)
+  library(argparse)
 })
 
 # Import specific functions to avoid namespace conflicts
@@ -74,7 +75,15 @@ df_state_distances <- fread("data/nb_dist_states.tsv")
 df_cbsa_distances <- fread("data/state_cbsa_dist.tsv")
 df_travel <- fread("data/travel_vars.tsv")
 
-SCENARIO <- "CAM_1000"
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
+                      help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
+
+args <- collect_args()
+SCENARIO <- args$scenario
 fig_path <- paste0("figs/",SCENARIO,"/time/")
 
 # Add the normalization function from state_time_rr_analysis.R

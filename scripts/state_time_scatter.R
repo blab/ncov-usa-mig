@@ -1,9 +1,18 @@
 library(tidyverse)
 library(patchwork)
 library(RColorBrewer)
+library(argparse)
 source("scripts/color_schemes.R")
 
-SCENARIO <- "CAM_1000"
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
+                      help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
+
+args <- collect_args()
+SCENARIO <- args$scenario
 fig_path <- paste0("figs/",SCENARIO,"/time/")
 
 state_rr_snap <- read_tsv(paste0("results/",
@@ -128,7 +137,6 @@ ggsave(paste0(fig_path,"state_pair_nRR_heatmap.png"),
        width=8,
        height=5,
        dpi=192)
-break
 
 unique_series <- state_rr_series %>% 
   mutate(duplicate = x >= y) %>% 

@@ -6,8 +6,19 @@
 library(sf)
 library(tidyverse)
 library(patchwork)
+library(argparse)
 source("scripts/color_schemes.R")
 source("scripts/cam_map.R")
+
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
+                      help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
+
+args <- collect_args()
+scenario <- args$scenario
 
 # Read BEA region assignments
 regions_data <- read_csv("data/us_states_regions.csv", show_col_types = FALSE) %>%
@@ -41,11 +52,11 @@ p <- plot_cam_choropleth(
 )
 
 # Create output directory if it doesn't exist
-dir.create("figs/regions", recursive = TRUE, showWarnings = FALSE)
+dir.create(paste0("figs/", scenario), recursive = TRUE, showWarnings = FALSE)
 
 # Save the plot
 ggsave(
-  "figs/regions/bea_region_map.png",
+  paste0("figs/", scenario, "/bea_region_map.png"),
   p,
   width = 14,
   height = 12,

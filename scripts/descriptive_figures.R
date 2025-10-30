@@ -4,12 +4,20 @@ library(dbplyr)
 library(zoo)
 library(patchwork)
 library(lemon)
+library(argparse)
 
 source("scripts/cam_map.R")
 source("scripts/color_schemes.R")
 
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
+                      help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
 
-scenario <- "CAM_1000"
+args <- collect_args()
+scenario <- args$scenario
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db)
 meta_tbl <- tbl(con,'metadata') |> collect()
@@ -32,7 +40,9 @@ bea_map <- plot_cam_choropleth(cam_map,
                     value_col = bea_reg,
                     scale_fun = region_fill_scale,
                     title = "State/Provincial Regions")
-ggsave(plot=bea_map,"test.jpg",height=7,width=7,dpi=192)
+ggsave(plot=bea_map,
+       filename=paste0("figs/",scenario,"/bea_region_map.jpg"),
+       height=7,width=7,dpi=192)
 
 seq_by_div <- meta_tbl |>
   group_by(division) |>
@@ -233,7 +243,7 @@ combined_fig <- seq_map + seq_eff_map +
     plot.tag.position = c(0.02, 0.98)  
   )
 ggsave(combined_fig,
-       filename="figs/CAM_1000/figure_1.jpg",
+       filename=paste0("figs/",scenario,"/figure_1.jpg"),
        units = "in",
        dpi = 192,
        height = 20,

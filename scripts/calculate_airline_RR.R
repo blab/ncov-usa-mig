@@ -116,6 +116,6 @@ ggplot(combo_set) +
 
 #Quick summary of the datasets in comments: T100 has sine very extreme RR because it picks up small regional carriers doing commuter flights
 #These are not a significant sample of the DB1B set so we find that DB1B data tends to be more in line with expected patterns
-#Additioanally flights to and from hubs play a much larger role in the T100 data since it divides up a single trip into all of its legs
+#Additionally flights to and from hubs play a much larger role in the T100 data since it divides up a single trip into all of its legs
 #For the purpose of identifying the travel patterns between states DB1B seems more helpful, although it will miss some of that within airport mixing
 #But since sequencing will happen at the final destination, it probably wouldn't even catch that signal anyways

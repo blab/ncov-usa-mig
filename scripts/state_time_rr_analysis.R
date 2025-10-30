@@ -14,11 +14,13 @@ source("scripts/calculate_rr_ci.R")
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
   return(parser$parse_args())
 }
 
 args <- collect_args()
 scenario <- args$scenario
+exclude_duplicates <- args$exclude_duplicates
 
 select <- dplyr::select
 STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
@@ -118,7 +120,7 @@ ggplot(data = filter(strain_counts,Nextstrain_clade == "21K (Omicron)"),aes(x = 
   theme_bw() 
 
 state_rr_all <- con %>%
-  bind_pairs_exp("division") %>%
+  bind_pairs_exp("division", exclude_duplicates = exclude_duplicates) %>%
   calculate_rr_matrix()
 
 state_rr_all$x <- factor(state_rr_all$x,levels=STATE_ORDER)
@@ -135,19 +137,19 @@ state_rr_snap <- NULL
 tic("Snapshot analysis")
 for(i in 1:length(TIME_LB_YEARS)){
   if(i == 1){
-    state_rr_snap <- con %>% 
-      bind_pairs_exp("division",time_bounds = c(TIME_LB_YEARS[i],TIME_UB_YEARS[i])) %>%
+    state_rr_snap <- con %>%
+      bind_pairs_exp("division",time_bounds = c(TIME_LB_YEARS[i],TIME_UB_YEARS[i]), exclude_duplicates = exclude_duplicates) %>%
       calculate_rr_matrix() %>%
       collect() %>%
       mutate(date = TIME_LB_YEARS[i])
   } else{
-    rr_snap <- con %>% 
-      bind_pairs_exp("division",time_bounds = c(TIME_LB_YEARS[i],TIME_UB_YEARS[i])) %>%
+    rr_snap <- con %>%
+      bind_pairs_exp("division",time_bounds = c(TIME_LB_YEARS[i],TIME_UB_YEARS[i]), exclude_duplicates = exclude_duplicates) %>%
       calculate_rr_matrix() %>%
       collect() %>%
       mutate(date = TIME_LB_YEARS[i])
     state_rr_snap <- bind_rows(state_rr_snap,rr_snap)
-  } 
+  }
 }
 
 #Make sure there are no missing entries and if there are add NAs
@@ -178,19 +180,19 @@ tic("Series anaylsis")
 state_rr_series <- NULL
 for(i in 1:length(lb_date_vector)){
   if(i == 1){
-    state_rr_series <- con %>% 
-      bind_pairs_exp("division",time_bounds = c(lb_date_vector[i],ub_date_vector[i])) %>%
+    state_rr_series <- con %>%
+      bind_pairs_exp("division",time_bounds = c(lb_date_vector[i],ub_date_vector[i]), exclude_duplicates = exclude_duplicates) %>%
       calculate_rr_matrix() %>%
       collect() %>%
       mutate(date = mean(c(lb_date_vector[i],ub_date_vector[i])))
   } else{
-    rr_series <- con %>% 
-      bind_pairs_exp("division",time_bounds = c(lb_date_vector[i],ub_date_vector[i])) %>%
+    rr_series <- con %>%
+      bind_pairs_exp("division",time_bounds = c(lb_date_vector[i],ub_date_vector[i]), exclude_duplicates = exclude_duplicates) %>%
       calculate_rr_matrix() %>%
       collect() %>%
       mutate(date = mean(c(lb_date_vector[i],ub_date_vector[i])))
     state_rr_series <- bind_rows(state_rr_series,rr_series)
-  } 
+  }
 }
 toc()
 

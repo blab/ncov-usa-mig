@@ -2,14 +2,15 @@
 #Author(s): Amin Bemanian
 #Date: 07/07/25
 #Description: Attach exposure demes to pairs for RR calculation
-#Arguments: 
+#Arguments:
 #db_con: DuckDB Connection
 #exp_var: Name of exposure variable to attach
 #sub_samp: Sub-sample (for CI calculation)
 #samp_cov: Sample coverage (for CI calculation)
 #time_bounds: Date range (as vector of two Date values) for time analyses
+#exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
 
-bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bounds=NULL){
+bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bounds=NULL,exclude_duplicates=FALSE){
   meta_tbl <- tbl(db_con,'metadata')
   
   #For time analysis use the pairs_time table instead
@@ -32,6 +33,10 @@ bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bound
     pairs_tbl <- pairs_tbl %>%
       filter(transmit_date > time_LB) %>%
       filter(transmit_date < time_UB)
+  }
+  if(exclude_duplicates){
+    pairs_tbl <- pairs_tbl %>%
+      filter(!possible_duplicates | is.na(possible_duplicates))
   }
   exp_dict <- meta_tbl %>% select(c(strain,sym(exp_var))) #Makes a simple dictionary for binding exposures to
   return(pairs_tbl %>%

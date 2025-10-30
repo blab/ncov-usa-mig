@@ -6,6 +6,7 @@ cluster: "sbatch --job-name={rule} \
                  --mail-user=abemania@fredhutch.org \
                  --output=logs/{rule}_%j.out \
                  --error=logs/{rule}_%j.err"
+jobscript: "profile/slurm-jobscript.sh"
 jobs: 50
 latency-wait: 60
 

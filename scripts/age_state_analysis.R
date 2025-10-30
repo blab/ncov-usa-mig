@@ -26,6 +26,7 @@ collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = "USA", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--ci', type = 'logical', default = TRUE, help = "Whether to calculate CIs, default is TRUE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
   return(parser$parse_args())
 }
 
@@ -33,18 +34,19 @@ collect_args <- function(){
 args <- collect_args()
 ci_flag <- args$ci
 scenario <- args$scenario
+exclude_duplicates <- args$exclude_duplicates
 
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db)
 
-pairs_state <- con %>% 
-  bind_pairs_exp("division") %>%
+pairs_state <- con %>%
+  bind_pairs_exp("division", exclude_duplicates = exclude_duplicates) %>%
   rename(state.x = x) %>%
   rename(state.y = y) %>%
   mutate(sameState = (state.x == state.y))
 
 pairs_age <- con %>%
-  bind_pairs_exp("age_class") 
+  bind_pairs_exp("age_class", exclude_duplicates = exclude_duplicates) 
 
 pairs_state_age <- inner_join(pairs_state,pairs_age)
 
@@ -59,12 +61,12 @@ meta_age <- con %>%
 #meta_tbl - Metadata table to subset sequences from
 #specific_state - name of a specific state to stratify
 
-calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,interval_width=0.95){
+calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,interval_width=0.95,exclude_duplicates=FALSE){
   RR_dist_same <- matrix()
   RR_dist_diff <- matrix()
   for(x in 1:k){
-    pairs_state_samp <- con %>% 
-      bind_pairs_exp("division") %>%
+    pairs_state_samp <- con %>%
+      bind_pairs_exp("division", exclude_duplicates = exclude_duplicates) %>%
       rename(state.x = x) %>%
       rename(state.y = y) %>%
       mutate(sameState = (state.x == state.y))
@@ -72,7 +74,7 @@ calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,
       pairs_state_samp <- pairs_state_samp %>% filter(state.x == specific_state | state.y == specific_state)
     }
     pairs_age_samp <- con %>%
-      bind_pairs_exp("age_class",sub_samp = TRUE,samp_cov) 
+      bind_pairs_exp("age_class",sub_samp = TRUE,samp_cov, exclude_duplicates = exclude_duplicates)
     pairs_combo_samp <- inner_join(pairs_state_samp,pairs_age_samp)
     
     RR_samp_same <- pairs_combo_samp %>%
@@ -117,7 +119,7 @@ ages_rr_diff <- pairs_state_age %>%
   mutate(sameState=FALSE) 
 
 if(ci_flag){
-  ci_list <- calculate_rr_ci(con,meta_age,samp_cov=0.8)
+  ci_list <- calculate_rr_ci(con,meta_age,samp_cov=0.8,exclude_duplicates=exclude_duplicates)
   ages_rr_same <- inner_join(ages_rr_same,ci_list[[1]],by=join_by(x,y))
   ages_rr_diff <- inner_join(ages_rr_diff,ci_list[[2]],by=join_by(x,y))
 }

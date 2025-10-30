@@ -45,6 +45,10 @@ packages <- c(
   "lemon",          # Axis and legend extensions for ggplot2
   "gridGraphics",   # Convert base graphics to grid
 
+  # Network visualization
+  "igraph",         # Network analysis and graph theory
+  "ggraph",         # Grammar of graphics for network graphs
+
   # Spatial/geographic
   "sf",             # Simple features for spatial data
   "spdep",          # Spatial dependence analysis
@@ -62,6 +66,8 @@ packages <- c(
   "mgcv",           # Generalized Additive Models
   "MASS",           # Robust linear models
   "quantreg",       # Quantile regression
+  "lme4",           # Linear mixed-effects models
+  "lmerTest",       # Testing linear mixed-effects models
 
   # Clustering and dimensionality reduction
   "cluster",        # Cluster analysis (agnes, diana, silhouette)
@@ -82,6 +88,7 @@ packages <- c(
   "jsonlite",       # JSON parsing and generation
   "magick",         # Image processing
   "tictoc",         # Timing code execution
+  "doParallel",     # Parallel processing backend
 
   # 3D visualization
   "plotly",         # Interactive 3D plots

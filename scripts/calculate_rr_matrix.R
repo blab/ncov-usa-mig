@@ -43,10 +43,12 @@ calculate_rr_matrix <- function(df_p){
     mutate(pair_count = replace_na(pair_count, 0)) %>%
     left_join(var_counts, by = c("x" = "var")) %>%
     rename(x_appearances = count) %>%
+    mutate(x_appearances = as.numeric(x_appearances)) %>%
     left_join(var_counts, by = c("y" = "var")) %>%
     rename(y_appearances = count) %>%
+    mutate(y_appearances = as.numeric(y_appearances)) %>%
     mutate(
-      N_total = total_pairs,
+      N_total = as.numeric(total_pairs),
       RR = ((pair_count * N_total) + 1) / (x_appearances * y_appearances)
     ) %>%
     select(x, y, RR, pair_count, x_appearances, y_appearances, N_total) %>%

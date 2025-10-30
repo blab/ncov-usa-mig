@@ -1,4 +1,4 @@
-### Makes pairs_time table for 
+### Makes pairs_time table for
 
 library(tidyverse)
 library(data.table)
@@ -9,9 +9,19 @@ library(quantreg)
 library(splines)
 library(MASS)
 library(mgcv)
+library(argparse)
 
 select <- dplyr::select #Default select to dplyr
-SCENARIO <-"CAM_1000"
+
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
+                      help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
+
+args <- collect_args()
+SCENARIO <- args$scenario
 
 curr_theme <- theme_set(theme_bw())
 curr_theme <- theme_update(axis.title = element_text(size=16),
@@ -48,8 +58,8 @@ df_pairs <- df_pairs |>
   ) |>
   # Now compute derived columns
   mutate(
-    transmit_date = pmax(date_1, date_2, na.rm = TRUE),
-    early_date = pmin(date_1, date_2, na.rm=TRUE),
+    transmit_date = if_else(is.na(date_1) | is.na(date_2), NA, pmax(date_1, date_2)),
+    early_date = if_else(is.na(date_1) | is.na(date_2), NA, pmin(date_1, date_2)),
     date_diff = abs(date_1 - date_2)
 )
 delta_t <- select(df_pairs,c(date_diff,transmit_date,early_date,Nextstrain_clade)) |> collect() 

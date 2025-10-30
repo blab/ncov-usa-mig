@@ -1,0 +1,6 @@
+Starting compression of cluster-analysis directory...
+Start time: Tue Oct 28 16:48:28 PDT 2025
+Compression complete!
+End time: Tue Oct 28 17:12:35 PDT 2025
+Output file: cluster-analysis.tar.zst
+-rw-rw---- 1 abemania g_abemania 27G Oct 28 17:12 cluster-analysis.tar.zst

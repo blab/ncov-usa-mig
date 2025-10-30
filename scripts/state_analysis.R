@@ -25,12 +25,14 @@ collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
   parser$add_argument('--ci', type = 'logical', default = TRUE, help = "Whether to calculate CIs, default is TRUE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
   return(parser$parse_args())
 }
 
 args <- collect_args()
 scenario <- args$scenario
 ci_flag <- args$ci
+exclude_duplicates <- args$exclude_duplicates
 
 #Debugging shortcuts
 #scenario <- "CAM_10"
@@ -39,13 +41,13 @@ ci_flag <- args$ci
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
 con <- DBI::dbConnect(duckdb(),fn_db)
 
-state_rr <- con %>% 
-  bind_pairs_exp("division") %>%
+state_rr <- con %>%
+  bind_pairs_exp("division", exclude_duplicates = exclude_duplicates) %>%
   calculate_rr_matrix() %>%
   collect()
 
 if(ci_flag){
-  state_rr_ci <- calculate_rr_ci(con,"division")
+  state_rr_ci <- calculate_rr_ci(con,"division", exclude_duplicates = exclude_duplicates)
   state_rr <- inner_join(state_rr,state_rr_ci,by=join_by(x,y))
 }
 

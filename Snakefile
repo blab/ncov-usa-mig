@@ -1,5 +1,6 @@
 configfile: "config.yaml"
 CI_FLAG = config['ci_flag']
+EXCLUDE_DUPLICATES = config['exclude_duplicates']
 
 SCENARIOS = config["scenarios"]
 
@@ -11,6 +12,8 @@ MIN_OCCURRENCES = 4
 all_outputs = expand([
     # Summary tables
     "results/{scenario}/summary_tables/tables_{scenario}.tar.zst",
+    # Descriptive figures
+    "figs/{scenario}/figure_1.jpg",
     # Age analyses
     "results/{scenario}/df_RR_by_age_class.tsv",
     "figs/{scenario}/age_heatmap.jpg",
@@ -22,6 +25,7 @@ all_outputs = expand([
     "results/{scenario}/df_RR_by_state.tsv",
     "figs/{scenario}/state_heatmap.jpg",
     "figs/{scenario}/state_nb_dist_plot.jpg",
+    "figs/{scenario}/bea_region_map.png",
     # Age x State analyses
     "results/{scenario}/df_RR_by_age_state.tsv",
     # Census division analyses
@@ -30,6 +34,16 @@ all_outputs = expand([
     # Time series analyses
     "results/{scenario}/time_state/df_state_rr_series.tsv",
     "results/{scenario}/age_time/df_RR_by_age_time_series.tsv",
+    # School analyses
+    "results/{scenario}/time_age/state_trajectory_classifications.tsv",
+    "figs/{scenario}/age_time/school_share_RR_correlation.jpg",
+    # Age time visualizations
+    "figs/{scenario}/age_time/age_RR_time_faceted.png",
+    # State time visualizations
+    "figs/{scenario}/time/rr_boxplot_time.png",
+    "figs/{scenario}/clust/htree.jpg",
+    # State regression
+    "figs/{scenario}/dist/regression_fit.jpg",
     # Significant connections network analysis
     "results/{scenario}/time_state/df_significant_connections_3.0sd.tsv",
     "results/{scenario}/time_state/network_plots_complete.txt",
@@ -39,12 +53,22 @@ all_outputs = expand([
     f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus_map.jpg"
 ], scenario=SCENARIOS)
 
-shell.prefix("ml fhR; set -euo pipefail; ")
+shell.prefix("ml R/4.4.0-gfbf-2023b; set -euo pipefail; ")
 
 rule all:
     input: all_outputs
 
+rule install_packages:
+    output:
+        touch(".snakemake/packages_installed.txt")
+    shell:
+        """
+        Rscript scripts/install_packages.R
+        """
+
 rule database:
+    input:
+        ".snakemake/packages_installed.txt"
     output:
         "db_files/db_{scenario}.duckdb"
     group: "duckdb_acc"
@@ -66,6 +90,18 @@ rule clean_data:
         """
         Rscript ./scripts/clean_data.R --scenario {wildcards.scenario}
         duckdb db_files/db_{wildcards.scenario}.duckdb < scripts/trim_pairs.sql
+        Rscript ./scripts/find_duplicates.R --scenario {wildcards.scenario}
+        """
+
+rule time_prep:
+    input:
+        "results/{scenario}/data_cleaned.txt"
+    output:
+        touch("results/{scenario}/pairs_time_created.txt")
+    group: "duckdb_acc"
+    shell:
+        """
+        Rscript ./scripts/time_prep.R --scenario {wildcards.scenario}
         """
 
 rule demo_tables:
@@ -77,6 +113,18 @@ rule demo_tables:
     shell:
         """
         scripts/demographic_tables.sh -s {wildcards.scenario} -c "clade_nextstrain division census_div sex age_class"
+        """
+
+rule descriptive_figures:
+    input:
+        "results/{scenario}/data_cleaned.txt"
+    output:
+        "figs/{scenario}/bea_region_map.jpg",
+        "figs/{scenario}/figure_1.jpg"
+    group: "duckdb_acc"
+    shell:
+        """
+        Rscript ./scripts/descriptive_figures.R --scenario {wildcards.scenario}
         """
 
 # ============================================================================
@@ -91,7 +139,7 @@ rule age_analysis_RR:
     group: "duckdb_acc"
     shell:
         """
-        Rscript ./scripts/age_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG}
+        Rscript ./scripts/age_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 rule age_heatmap:
@@ -116,7 +164,7 @@ rule state_analysis_RR:
     group: "duckdb_acc"
     shell:
         """
-        Rscript ./scripts/state_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG}
+        Rscript ./scripts/state_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 rule state_heatmap:
@@ -139,6 +187,16 @@ rule state_dist:
         Rscript ./scripts/state_dist_plots.R --scenario {wildcards.scenario}
         """
 
+rule plot_region_map:
+    input:
+        ".snakemake/packages_installed.txt"
+    output:
+        "figs/{scenario}/bea_region_map.png"
+    shell:
+        """
+        Rscript ./scripts/plot_region_map.R --scenario {wildcards.scenario}
+        """
+
 # ============================================================================
 # Age x State Analyses
 # ============================================================================
@@ -152,7 +210,7 @@ rule age_state_RR:
     group: "duckdb_acc"
     shell:
         """
-        Rscript ./scripts/age_state_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG}
+        Rscript ./scripts/age_state_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 rule age_lineplot:
@@ -180,7 +238,7 @@ rule census_div_analysis:
     group: "duckdb_acc"
     shell:
         """
-        Rscript ./scripts/census_div_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG}
+        Rscript ./scripts/census_div_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 rule census_div_heatmap:
@@ -199,7 +257,7 @@ rule census_div_heatmap:
 
 rule state_time_rr_analysis:
     input:
-        "results/{scenario}/data_cleaned.txt"
+        "results/{scenario}/pairs_time_created.txt"
     output:
         "results/{scenario}/time_state/df_state_rr_all.tsv",
         "results/{scenario}/time_state/df_state_rr_snap.tsv",
@@ -207,7 +265,7 @@ rule state_time_rr_analysis:
     group: "duckdb_acc"
     shell:
         """
-        Rscript ./scripts/state_time_rr_analysis.R --scenario {wildcards.scenario}
+        Rscript ./scripts/state_time_rr_analysis.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 rule state_time_significant_connections:
@@ -265,7 +323,7 @@ rule state_time_conserved_network_map:
 
 rule age_time_rr_analysis:
     input:
-        "results/{scenario}/data_cleaned.txt"
+        "results/{scenario}/pairs_time_created.txt"
     output:
         "results/{scenario}/age_time/df_RR_by_age_time_series.tsv",
         "results/{scenario}/age_time/df_RR_by_school_state_time.tsv",
@@ -273,5 +331,83 @@ rule age_time_rr_analysis:
     group: "duckdb_acc"
     shell:
         """
-        Rscript ./scripts/age_time_RR_analysis.R --scenario {wildcards.scenario} --ci FALSE --aggregate TRUE
+        Rscript ./scripts/age_time_RR_analysis.R --scenario {wildcards.scenario} --ci FALSE --aggregate TRUE --exclude_duplicates {EXCLUDE_DUPLICATES}
+        """
+
+rule school_analyses:
+    input:
+        "results/{scenario}/age_time/df_RR_by_school_state_time.tsv",
+        "results/{scenario}/age_time/df_RR_by_school_state_ay.tsv"
+    output:
+        # age_school_analysis outputs
+        "figs/{scenario}/age_time/age_school_ay_boxplot.jpg",
+        "figs/{scenario}/age_time/age_school_ay_nRR_boxplot.jpg",
+        "figs/{scenario}/age_time/age_school_ay_nRR_fixed_boxplot.jpg",
+        "results/{scenario}/time_age/anova_school_ay_within_group_results.rds",
+        "results/{scenario}/time_age/anova_school_ay_nRR_fixed_results.rds",
+        # school_share_analysis outputs
+        "results/{scenario}/time_age/state_trajectory_classifications.tsv",
+        "figs/{scenario}/age_time/school_trajectories_by_type.jpg",
+        "figs/{scenario}/age_time/school_share_timeseries.jpg",
+        "figs/{scenario}/age_time/school_share_RR_correlation.jpg",
+        "figs/{scenario}/age_time/school_share_nRR_fixed_correlation.jpg",
+        "results/{scenario}/time_age/df_RR_school_share_combined.tsv"
+    shell:
+        """
+        Rscript ./scripts/age_school_analysis.R --scenario {wildcards.scenario}
+        Rscript ./scripts/school_share_analysis.R --scenario {wildcards.scenario}
+        """
+
+rule age_time_plots:
+    input:
+        "results/{scenario}/age_time/df_RR_by_age_time_series.tsv"
+    output:
+        "figs/{scenario}/age_time/age_RR_time_faceted.png",
+        "figs/{scenario}/age_time/age_nRR_time_faceted.png",
+        "figs/{scenario}/age_time/age_nRR_fixed_time_faceted_all.png"
+    shell:
+        """
+        Rscript ./scripts/age_time_plot.R --scenario {wildcards.scenario}
+        """
+
+rule state_time_visualizations:
+    input:
+        "results/{scenario}/time_state/df_state_rr_snap.tsv",
+        "results/{scenario}/time_state/df_state_rr_series.tsv"
+    output:
+        "figs/{scenario}/time/rr_boxplot_time.png",
+        "figs/{scenario}/time/nb_boxplot_time.png",
+        "figs/{scenario}/time/euclid_dist_time.png",
+        "figs/{scenario}/time/nhts_time.png"
+    shell:
+        """
+        Rscript ./scripts/state_time_scatter.R --scenario {wildcards.scenario}
+        Rscript ./scripts/state_time_dist.R --scenario {wildcards.scenario}
+        """
+
+rule state_time_clustering:
+    input:
+        "results/{scenario}/time_state/df_state_rr_snap.tsv"
+    output:
+        "figs/{scenario}/clust/htree.jpg",
+        "figs/{scenario}/clust/pcoa_variance_explained.jpg",
+        "figs/{scenario}/clust/pcoa_V1V2.jpg",
+        "figs/{scenario}/clust/pcoa_V1V3.jpg",
+        "figs/{scenario}/clust/pcoa_V1V4.jpg",
+        "figs/{scenario}/clust/pcoa_V2V3.jpg",
+        "figs/{scenario}/clust/pcoa_V2V3_US.jpg"
+    shell:
+        """
+        Rscript ./scripts/state_time_clust.R --scenario {wildcards.scenario}
+        """
+
+rule state_regression:
+    input:
+        "results/{scenario}/df_RR_by_state.tsv"
+    output:
+        "figs/{scenario}/travel_seq_air_length.jpg",
+        "figs/{scenario}/dist/regression_fit.jpg"
+    shell:
+        """
+        Rscript ./scripts/state_regression.R --scenario {wildcards.scenario}
         """

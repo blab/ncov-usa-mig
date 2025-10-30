@@ -255,7 +255,8 @@ snapshot_trees <- pmap_dfr(tree_input, function(d,di_tree) {
   )
 })
 
-write_json(snapshot_trees %>% select(-hc_tree), "tree_snapshots.json", pretty = TRUE, auto_unbox = TRUE)
+# Note: snapshot_trees contains nested tree structures for D3 visualization
+# The JSON export is currently disabled (see below stop() break)
 meth_list <- c("DIANA","AGNES")
 
 dendro_data <- dendro_data(snapshot_trees$hc_tree[[12]],type="rectangle")
@@ -496,6 +497,17 @@ ggsave(gg_pcoa_V2V3_US,
        dpi = 192)
 
 stop("Temp break")
+
+# ============================================================================
+# D3 VISUALIZATION EXPORTS AND COMPOSITE PLOTS (Currently disabled)
+# ============================================================================
+# This section contains:
+# - JSON export of tree structures for D3 interactive visualizations
+# - Additional composite plot layouts (tanglegrams, combined PCoA+tree plots)
+# These are on hiatus pending further design decisions.
+
+# Export tree structures for D3 visualization
+write_json(snapshot_trees %>% select(-hc_tree), "tree_snapshots.json", pretty = TRUE, auto_unbox = TRUE)
 
 # Create column with V1V2 and V2V3_US, maintaining aspect ratios
 pcoa_column <- gg_pcoa_V1V2 / gg_pcoa_V2V3_US +

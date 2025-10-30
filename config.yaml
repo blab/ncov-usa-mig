@@ -1,3 +1,4 @@
-scenarios: ["CAM_100","CAM_1000","CAM_10000","CAM_full"]
+scenarios: ["CAM_1000"]
 threads: 32
 ci_flag: "FALSE"
+exclude_duplicates: "TRUE"
