@@ -139,7 +139,7 @@ p <- ggraph(g, layout = layout_matrix) +
 # Save plot
 fn_out_path <- paste0("figs/", scenario, "/time_state_networks/")
 fn_out <- paste0(fn_out_path, "network_conserved_", min_occurrences, "plus.jpg")
-ggsave(fn_out, plot = p, width = 14, height = 9, dpi = 300)
+ggsave(fn_out, plot = p, width = 14, height = 9, dpi = 300,create.dir=TRUE)
 
 cat("\nConserved network plot saved to:", fn_out, "\n")
 

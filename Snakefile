@@ -11,7 +11,7 @@ MIN_OCCURRENCES = 4
 # Collect final outputs for all scenarios
 all_outputs = expand([
     # Summary tables
-    "results/{scenario}/summary_tables/tables_{scenario}.tar.zst",
+    "results/{scenario}/summary_tables/demo_tables.tar.zst",
     # Descriptive figures
     "figs/{scenario}/figure_1.jpg",
     # Age analyses
@@ -33,19 +33,19 @@ all_outputs = expand([
     "figs/{scenario}/census_divisions_heatmap.jpg",
     # Time series analyses
     "results/{scenario}/time_state/df_state_rr_series.tsv",
-    "results/{scenario}/age_time/df_RR_by_age_time_series.tsv",
+    "results/{scenario}/time_age/df_RR_by_time_age_series.tsv",
     # School analyses
     "results/{scenario}/time_age/state_trajectory_classifications.tsv",
     "figs/{scenario}/age_time/school_share_RR_correlation.jpg",
     # Age time visualizations
-    "figs/{scenario}/age_time/age_RR_time_faceted.png",
+    "figs/{scenario}/age_time/USA/age_RR_time_faceted.png",
     # State time visualizations
-    "figs/{scenario}/time/rr_boxplot_time.png",
+    "figs/{scenario}/time/state_pair_nRR_heatmap.png",
     "figs/{scenario}/clust/htree.jpg",
     # State regression
     "figs/{scenario}/dist/regression_fit.jpg",
     # Significant connections network analysis
-    "results/{scenario}/time_state/df_significant_connections_3.0sd.tsv",
+    "results/{scenario}/time_state/df_significant_connections_3sd.tsv",
     "results/{scenario}/time_state/network_plots_complete.txt",
     # Conserved network map
     f"results/{{scenario}}/time_state/df_significant_connections_{SD_THRESHOLD}sd.tsv",
@@ -53,7 +53,7 @@ all_outputs = expand([
     f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus_map.jpg"
 ], scenario=SCENARIOS)
 
-shell.prefix("ml R/4.4.0-gfbf-2023b; set -euo pipefail; ")
+shell.prefix("set -euo pipefail; ")
 
 rule all:
     input: all_outputs
@@ -72,9 +72,10 @@ rule database:
     output:
         "db_files/db_{scenario}.duckdb"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
-        ml zstd
         unzstd -f data/{wildcards.scenario}/metadata/metadata_{wildcards.scenario}.tsv.zst
         unzstd -f data/{wildcards.scenario}/distance_aggregated/combined_df_identical_pairs_{wildcards.scenario}.tsv.zst
         ./scripts/init_db.sh -s {wildcards.scenario}
@@ -82,10 +83,12 @@ rule database:
 
 rule clean_data:
     input:
-        "db_files/db_{scenario}.duckdb"
+        ancient("db_files/db_{scenario}.duckdb")
     output:
         touch("results/{scenario}/data_cleaned.txt")
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/clean_data.R --scenario {wildcards.scenario}
@@ -99,6 +102,8 @@ rule time_prep:
     output:
         touch("results/{scenario}/pairs_time_created.txt")
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/time_prep.R --scenario {wildcards.scenario}
@@ -108,8 +113,10 @@ rule demo_tables:
     input:
         "results/{scenario}/data_cleaned.txt"
     output:
-        "results/{scenario}/summary_tables/tables_{scenario}.tar.zst"
+        "results/{scenario}/summary_tables/demo_tables.tar.zst"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         scripts/demographic_tables.sh -s {wildcards.scenario} -c "clade_nextstrain division census_div sex age_class"
@@ -122,6 +129,8 @@ rule descriptive_figures:
         "figs/{scenario}/bea_region_map.jpg",
         "figs/{scenario}/figure_1.jpg"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/descriptive_figures.R --scenario {wildcards.scenario}
@@ -137,6 +146,8 @@ rule age_analysis_RR:
     output:
         "results/{scenario}/df_RR_by_age_class.tsv"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/age_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
@@ -162,6 +173,8 @@ rule state_analysis_RR:
     output:
         "results/{scenario}/df_RR_by_state.tsv"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/state_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
@@ -208,6 +221,8 @@ rule age_state_RR:
     output:
         "results/{scenario}/df_RR_by_age_state.tsv"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/age_state_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
@@ -236,6 +251,8 @@ rule census_div_analysis:
     output:
         "results/{scenario}/df_RR_by_census_div.tsv"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/census_div_analysis.R --scenario {wildcards.scenario} --ci {CI_FLAG} --exclude_duplicates {EXCLUDE_DUPLICATES}
@@ -263,6 +280,8 @@ rule state_time_rr_analysis:
         "results/{scenario}/time_state/df_state_rr_snap.tsv",
         "results/{scenario}/time_state/df_state_rr_series.tsv"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/state_time_rr_analysis.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
@@ -270,10 +289,10 @@ rule state_time_rr_analysis:
 
 rule state_time_significant_connections:
     input:
-        "results/{scenario}/time_state/df_state_rr_series.tsv"
+        "results/{scenario}/time_state/df_state_rr_snap.tsv"
     output:
-        "results/{scenario}/time_state/df_significant_connections_3.0sd.tsv",
-        "results/{scenario}/time_state/summary_significant_connections_by_time_3.0sd.tsv"
+        "results/{scenario}/time_state/df_significant_connections_3sd.tsv",
+        "results/{scenario}/time_state/summary_significant_connections_by_time_3sd.tsv"
     shell:
         """
         Rscript ./scripts/state_time_significant_connections.R --scenario {wildcards.scenario} --sd_threshold 3.0
@@ -281,7 +300,7 @@ rule state_time_significant_connections:
 
 rule state_time_network_viz:
     input:
-        "results/{scenario}/time_state/df_significant_connections_3.0sd.tsv"
+        "results/{scenario}/time_state/df_significant_connections_3sd.tsv"
     output:
         "results/{scenario}/time_state/network_plots_complete.txt"
     shell:
@@ -325,10 +344,12 @@ rule age_time_rr_analysis:
     input:
         "results/{scenario}/pairs_time_created.txt"
     output:
-        "results/{scenario}/age_time/df_RR_by_age_time_series.tsv",
-        "results/{scenario}/age_time/df_RR_by_school_state_time.tsv",
-        "results/{scenario}/age_time/df_RR_by_school_state_ay.tsv"
+        "results/{scenario}/time_age/df_RR_by_time_age_series.tsv",
+        "results/{scenario}/time_age/df_RR_by_school_state_time.tsv",
+        "results/{scenario}/time_age/df_RR_by_school_state_ay.tsv"
     group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
     shell:
         """
         Rscript ./scripts/age_time_RR_analysis.R --scenario {wildcards.scenario} --ci FALSE --aggregate TRUE --exclude_duplicates {EXCLUDE_DUPLICATES}
@@ -336,8 +357,8 @@ rule age_time_rr_analysis:
 
 rule school_analyses:
     input:
-        "results/{scenario}/age_time/df_RR_by_school_state_time.tsv",
-        "results/{scenario}/age_time/df_RR_by_school_state_ay.tsv"
+        "results/{scenario}/time_age/df_RR_by_school_state_time.tsv",
+        "results/{scenario}/time_age/df_RR_by_school_state_ay.tsv"
     output:
         # age_school_analysis outputs
         "figs/{scenario}/age_time/age_school_ay_boxplot.jpg",
@@ -360,11 +381,11 @@ rule school_analyses:
 
 rule age_time_plots:
     input:
-        "results/{scenario}/age_time/df_RR_by_age_time_series.tsv"
+        "results/{scenario}/time_age/df_RR_by_time_age_series.tsv"
     output:
-        "figs/{scenario}/age_time/age_RR_time_faceted.png",
-        "figs/{scenario}/age_time/age_nRR_time_faceted.png",
-        "figs/{scenario}/age_time/age_nRR_fixed_time_faceted_all.png"
+        "figs/{scenario}/age_time/USA/age_RR_time_faceted.png",
+        "figs/{scenario}/age_time/USA/age_nRR_time_faceted.png",
+        "figs/{scenario}/age_time/USA/age_nRR_fixed_time_faceted_all.png"
     shell:
         """
         Rscript ./scripts/age_time_plot.R --scenario {wildcards.scenario}
@@ -375,10 +396,21 @@ rule state_time_visualizations:
         "results/{scenario}/time_state/df_state_rr_snap.tsv",
         "results/{scenario}/time_state/df_state_rr_series.tsv"
     output:
+        # From state_time_scatter.R
+        "figs/{scenario}/time/state_pair_nRR_heatmap.png",
+        "figs/{scenario}/time/all_pairs_fold_heatmap.png",
+        "figs/{scenario}/time/rr_series.png",
+        # From state_time_dist.R
         "figs/{scenario}/time/rr_boxplot_time.png",
         "figs/{scenario}/time/nb_boxplot_time.png",
-        "figs/{scenario}/time/euclid_dist_time.png",
-        "figs/{scenario}/time/nhts_time.png"
+        "figs/{scenario}/time/min_cbsa_dist_time.png",
+        "figs/{scenario}/time/nhts_time.png",
+        "figs/{scenario}/time/safegraph_time.png",
+        "figs/{scenario}/time/nhts_time_normalized.png",
+        "figs/{scenario}/time/safegraph_time_normalized.png",
+        "figs/{scenario}/time/correlations_time_series.png",
+        "figs/{scenario}/time/correlations_time_series_split_air.png",
+        "figs/{scenario}/time/correlations_time_series_normalized.png"
     shell:
         """
         Rscript ./scripts/state_time_scatter.R --scenario {wildcards.scenario}

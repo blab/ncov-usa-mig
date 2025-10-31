@@ -30,7 +30,7 @@ STATE_ORDER<- c("Alaska","Hawaii","Washington","Oregon","California", "Nevada", 
                 "Arizona","New Mexico", "Texas","Oklahoma", #Southwest
                 "North Dakota","South Dakota","Nebraska","Kansas","Missouri","Iowa","Minnesota", #Plains
                 "Wisconsin","Illinois","Indiana","Michigan","Ohio", #Great Lakes
-                "Kentucky","Tennessee","Arkansas","Georgia","Florida","Alabama","Mississippi", #Southeast
+                "Kentucky","Tennessee","Arkansas","Louisiana","Georgia","Florida","Alabama","Mississippi", #Southeast
                 "North Carolina","South Carolina","West Virginia","Virginia", #Southeast
                 "Delaware","Maryland","District of Columbia","Pennsylvania","New York","New Jersey", #Mideast
                 "Connecticut","Rhode Island","Massachusetts","Vermont","New Hampshire","Maine", #New England

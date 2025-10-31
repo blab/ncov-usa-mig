@@ -154,7 +154,7 @@ age_same_plot_by_state  <- age_state_rr  %>%
   ggplot(aes(x = x, colour = sameState)) +
   geom_point(aes(y = RR)) +
   geom_line(aes(y = RR, group = sameState)) +
-  geom_linerange(aes(ymin = ci_lb, ymax = ci_ub,group = sameState)) +
+  #geom_linerange(aes(ymin = ci_lb, ymax = ci_ub,group = sameState)) +
   geom_hline(yintercept = 1) +
   scale_x_discrete(name = 'Age Group', breaks = age_breaks) +
   scale_y_continuous(transform ='log',

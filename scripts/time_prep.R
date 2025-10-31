@@ -112,7 +112,8 @@ ggsave(filename = paste0("figs/",SCENARIO,"/time/ddiff_hist.jpg"),
        width = 8,
        height = 4,
        units = "in",
-       dpi = 300
+       dpi = 300,
+       create.dir = TRUE
 )
 
 #Delta-time over time, will put on hold for now 

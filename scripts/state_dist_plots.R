@@ -105,7 +105,6 @@ state_euclid_dist_plot <- state_rr %>%
   filter(x != y) %>%
   ggplot() +
   geom_point(aes(x=euclid_dist,y=RR),alpha=0.1,size=1,fill='black') +
-  geom_linerange(aes(x=euclid_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
   geom_smooth(aes(x=euclid_dist,y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name="State Centroid Distance (km)",
                      breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
@@ -139,7 +138,6 @@ state_cbsa_dist_plot <- state_rr %>%
   filter(x != y) %>%
   ggplot() +
   geom_point(aes(x=min_cbsa_dist,y=RR),alpha=0.1,size=1,fill='black') +
-  geom_linerange(aes(x=min_cbsa_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
   geom_smooth(aes(x=min_cbsa_dist,y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name="State Nearest CBSA Distance (km)",
                      breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
@@ -192,7 +190,6 @@ fn_state_euclid_logdist_plot <- paste0("figs/",scenario,"/state_euclid_logdist_p
 state_euclid_logdist_plot <- state_rr %>%
   ggplot() +
   geom_point(aes(x=log10(euclid_dist+1),y=RR),alpha=0.1,size=1,fill='black') +
-  geom_linerange(aes(x=euclid_dist,y=RR,ymin = ci_lb, ymax = ci_ub),alpha=0.1,color='black') +
   geom_smooth(aes(x=log10(euclid_dist+1),y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name=expression(log["10"]("Centroid Distance")),
                      breaks = c(0,1,2,3,4,5),
@@ -223,15 +220,10 @@ ggsave(fn_state_euclid_logdist_plot,
 )
 
 fn_state_nb_dist_plot <- paste0("figs/",scenario,"/state_nb_dist_plot.jpg")
-nb_jitter <- position_jitter(width=0.2,height=0)
 state_nb_dist_plot <- state_rr %>%
   ggplot() +
-  #geom_linerange(aes(x=nb_dist,y=RR,ymin = ci_lb, ymax = ci_ub),
-   #               position = nb_jitter,
-    #              alpha = 0.1,color='black') +
-  geom_point(aes(x=nb_dist,y=RR),
-             position = nb_jitter,
-             alpha = 0.1,fill='black',size=1) +
+  geom_boxplot(aes(x = nb_dist, y = RR, group = nb_dist),
+             fill = 'black', linewidth = 0.5) +
   geom_smooth(aes(x=nb_dist,y=RR),color='firebrick',fill='firebrick',method='loess') +
   scale_x_continuous(name = "Neighbor Order (Queen-Adjacency)",
                      breaks = 0:11,

@@ -424,46 +424,6 @@ plot_rr_relationship(
   x_limits = c(0, 5)
 )
 
-plot_rr_relationship(
-  data = state_rr_snap,
-  x_var = "nRR_air",
-  title = "Normalized Air Travel RR and Normalized RR",
-  x_label = "Normalized Air Travel RR",
-  filename = "air_travel_time_normalized.png",
-  log_x = FALSE,
-  x_limits = c(0, 5)
-)
-
-plot_rr_relationship(
-  data = state_rr_snap,
-  x_var = "nRR_air_short",
-  title = "Normalized Air Travel RR (Short) and Normalized RR",
-  x_label = "Normalized Air Travel RR (Short)",
-  filename = "air_travel_short_time_normalized.png",
-  log_x = FALSE,
-  x_limits = c(0, 5)
-)
-
-plot_rr_relationship(
-  data = state_rr_snap,
-  x_var = "nRR_air_med",
-  title = "Normalized Air Travel RR (Medium) and Normalized RR",
-  x_label = "Normalized Air Travel RR (Medium)",
-  filename = "air_travel_med_time_normalized.png",
-  log_x = FALSE,
-  x_limits = c(0, 5)
-)
-
-plot_rr_relationship(
-  data = state_rr_snap,
-  x_var = "nRR_air_long",
-  title = "Normalized Air Travel RR (Long) and Normalized RR",
-  x_label = "Normalized Air Travel RR (Long)",
-  filename = "air_travel_long_time_normalized.png",
-  log_x = FALSE,
-  x_limits = c(0, 5)
-)
-
 # Function to calculate correlation CI using Fisher z-transformation
 calculate_correlation_ci <- function(r, n, conf.level = 0.95) {
   # Fisher's z-transformation

@@ -496,7 +496,8 @@ ggsave(gg_pcoa_V2V3_US,
        units = "px",
        dpi = 192)
 
-stop("Temp break")
+message("Successfully completed main clustering analysis block")
+quit(save = "no", status = 0)
 
 # ============================================================================
 # D3 VISUALIZATION EXPORTS AND COMPOSITE PLOTS (Currently disabled)

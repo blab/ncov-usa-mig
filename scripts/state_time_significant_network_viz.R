@@ -113,7 +113,7 @@ for(i in 1:length(time_points)){
 
   # Save plot
   fn_out <- paste0(fn_out_path, "network_", format(current_date, "%Y-%m-%d"), ".jpg")
-  ggsave(fn_out, plot = p, width = 12, height = 8, dpi = 300)
+  ggsave(fn_out, plot = p, width = 12, height = 8, dpi = 300,create.dir=TRUE)
 
   cat("  [", i, "/", length(time_points), "] Saved:", fn_out, "\n")
 }

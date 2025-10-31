@@ -19,4 +19,5 @@ restart-times: 2
 keep-going: true
 printshellcmds: true
 
-#snakemake --profile ./profile --cores 32 --group-components duckdb_acc=1
+# Usage: snakemake --profile ./profile --cores 32 --resources duckdb_lock=1
+# The duckdb_lock resource constraint ensures only one DuckDB-accessing job runs at a time

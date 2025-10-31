@@ -12,4 +12,4 @@ rm -f batch.o batch.e
 rm -f logs/*.out logs/*.err
 
 ml snakemake/7.18.2-foss-2021b
-snakemake --profile ./profile --cores 32 --group-components duckdb_acc=1
+snakemake --profile ./profile --cores 32 --resources duckdb_lock=1

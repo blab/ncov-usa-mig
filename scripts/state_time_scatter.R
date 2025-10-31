@@ -15,6 +15,9 @@ args <- collect_args()
 SCENARIO <- args$scenario
 fig_path <- paste0("figs/",SCENARIO,"/time/")
 
+# Reference date for fold change calculations
+REF_DATE <- as.Date("2023-01-01")
+
 state_rr_snap <- read_tsv(paste0("results/",
                                  SCENARIO,
                                  "/time_state/df_state_rr_snap.tsv"))
@@ -31,35 +34,28 @@ df_regions <- read_csv("data/us_states_regions.csv") %>%
   select(state, bea_reg)
 
 
-PAIR_LIST <- data.frame(
-  x = c("Mexico",
-        "Mexico",
-        "British Columbia",
-        "Mexico",
-        "Ontario",
-        "Ontario",
-        "Ontario",
-        "Ontario",
-        "Quebec",
-        "California",
-        "California",
-        "California",
-        "California",
-        "Illinois"),
-  y = c("Texas",
-        "California",
-        "Washington",
-        "Arizona",
-        "Michigan",
-        "New York",
-        "Quebec",
-        "British Columbia",
-        "New York",
-        "New York",
-        "Arizona",
-        "Texas",
-        "Washington",
-        "Michigan")
+PAIR_LIST <- tribble(
+  ~x,                    ~y,
+  "Mexico",              "Texas",
+  "Mexico",              "California",
+  "Mexico",              "Arizona",
+  "British Columbia",    "Washington",
+  "Ontario",             "Michigan",
+  "Ontario",             "New York",
+  "Ontario",             "Quebec",
+  "Ontario",             "British Columbia",
+  "Ontario",             "Alberta",
+  "Quebec",              "New York",
+  "Quebec",              "Vermont",
+  "California",          "New York",
+  "California",          "Arizona",
+  "California",          "Texas",
+  "California",          "Washington",
+  "Michigan",            "Illinois",
+  "Alberta",             "Montana",
+  "Manitoba",            "North Dakota",
+  "Manitoba",            "Alberta",
+  "Vermont",             "New York" 
 )
 
 #Make quarter labels
@@ -67,24 +63,30 @@ format_quarters <- function(date){
   paste0(lubridate::year(date)," Q",lubridate::quarter(date))
 }
 
+ref_nRR <- state_rr_snap %>%
+  filter(date == REF_DATE) %>%
+  select(x,y,nRR) %>%
+  rename(nRR_ref = nRR)
+
+
 sub_RR_snap <- state_rr_snap %>%
+  left_join(ref_nRR,by=c("x","y")) %>%
   inner_join(PAIR_LIST, by=c("x","y")) %>%
   mutate(pair_name = paste0(x,"-",y)) %>%
-  arrange(pair_name) %>%
   mutate(is_intl = pair_type == "International") %>%
-  # Create separate factor levels for each facet
+  # Create separate factor levels for each facet with alphabetical order (reversed for plotting)
   group_by(is_intl) %>%
-  mutate(pair_name = factor(pair_name, levels = unique(pair_name[order(pair_name)]))) %>%
-  mutate(quarter_label = format_quarters(date)) %>%
+  arrange(pair_name, .by_group = TRUE) %>%
+  mutate(pair_name = factor(pair_name, levels = rev(unique(pair_name)))) %>%
   # Add fold change calculation
   group_by(pair_name) %>%
   arrange(date) %>%
-  mutate(nRR_fold = nRR / first(nRR)) %>%
+  mutate(nRR_fold = nRR / nRR_ref) %>%
   ungroup()
 
 # Create common scale for both plots
 common_fill_scale <- scale_fill_distiller(
-  palette = "Spectral",
+  palette = "RdYlBu",
   limits = c(-1, 1),
   oob = scales::squish,
   name = "Fold Change",
@@ -95,6 +97,8 @@ common_fill_scale <- scale_fill_distiller(
 p1 <- ggplot(sub_RR_snap %>% filter(!is_intl),
        aes(x=date, y=pair_name, fill = log10(nRR_fold))) +
   geom_tile(color="#555") +
+  geom_vline(xintercept = as.numeric(REF_DATE),
+             color = "black", linewidth = 1.5, linetype = "dotted") +
   scale_x_date(
     date_breaks = "3 months",
     labels = function(x) format_quarters(x),
@@ -114,6 +118,8 @@ p1 <- ggplot(sub_RR_snap %>% filter(!is_intl),
 p2 <- ggplot(sub_RR_snap %>% filter(is_intl),
        aes(x=date, y=pair_name, fill=log10(nRR_fold))) +
   geom_tile(color="#555") +
+  geom_vline(xintercept = as.numeric(REF_DATE),
+             color = "black", linewidth = 1.5, linetype = "dotted") +
   scale_x_date(
     date_breaks = "3 months",
     labels = function(x) format_quarters(x),
@@ -128,14 +134,55 @@ p2 <- ggplot(sub_RR_snap %>% filter(is_intl),
     panel.grid.major = element_blank()
   ) 
 # Combine plots using patchwork
-p1 / p2 +
+sub_pair_plot <- p1 / p2 +
   plot_annotation(
     title = "Normalized RR Over Time by State/Province Pair",
     theme = theme_minimal())
 
-ggsave(paste0(fig_path,"state_pair_nRR_heatmap.png"),
+ggsave(filename = paste0(fig_path,"state_pair_nRR_heatmap.png"),plot = sub_pair_plot,
        width=8,
        height=5,
+       dpi=192)
+
+
+full_pair_snap <- state_rr_snap %>%
+  filter(x != y) %>%
+  left_join(ref_nRR, by = c("x", "y")) %>%
+  mutate(pair_type = factor(pair_type,
+                            levels = c("Different States, Same Region",
+                                       "Different Regions, Same Country",
+                                       "International"))) %>%
+  mutate(pair_name = paste0(x,"-",y)) %>%
+  arrange(pair_type, pair_name) %>%
+  mutate(pair_name = factor(pair_name, levels = unique(pair_name))) %>%
+  mutate(nRR_fold = nRR / nRR_ref) %>%
+  ungroup()
+
+# Create all pairs plot with faceting by pair_type
+p_all_fold <- ggplot(full_pair_snap,
+       aes(x=date, y=pair_name, fill = log10(nRR_fold))) +
+  geom_tile(color="#555", linewidth=0) +
+  scale_x_date(
+    date_breaks = "3 months",
+    labels = function(x) format_quarters(x),
+    expand = expansion(0.01)
+  ) +
+  facet_grid(rows = vars(pair_type), scales = "free_y", space = "free_y") +
+  common_fill_scale +
+  labs(x = "Date", y = "State/Province Pairs") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size=8),
+    axis.text.y = element_blank(),
+    legend.position = "right",
+    panel.grid.major = element_blank(),
+    strip.text.y = element_text(angle = 270, hjust = 0.5)
+  )
+
+ggsave(paste0(fig_path,"all_pairs_fold_heatmap.png"),
+       plot = p_all_fold,
+       width=8,
+       height=20,
        dpi=192)
 
 unique_series <- state_rr_series %>% 
@@ -152,7 +199,6 @@ unique_series <- state_rr_series %>%
 ggplot(unique_series,
        aes(x = date, y = nRR, group = date, colour = pair_type)) +
   geom_boxplot(alpha = 0.2) +
-  geom_smooth(aes(group = 1)) +
   coord_cartesian(ylim=c(0,0.5)) +
   facet_wrap(~ pair_type, ncol = 1) +
   theme_bw() +
