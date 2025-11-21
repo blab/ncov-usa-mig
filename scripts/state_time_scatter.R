@@ -382,9 +382,9 @@ correlation_poster <- ggplot(corr_snap, aes(x = date, y = correlation, color = v
   geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
   scale_color_manual(
     values = c(
-      "Geographic Distance" = "lightcoral",
-      "Normalized Travel" = "#66C2A5",
-      "Normalized Mobility" = "cornflowerblue"
+      "Geographic Distance" = "#20B2AA",
+      "Normalized Travel" = "#FF8C00",
+      "Normalized Mobility" = "#9370DB"
     ),
     name = "Variable"
   ) +

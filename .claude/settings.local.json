@@ -6,7 +6,8 @@
       "Bash(sed:*)",
       "Bash(bash -c \"ml purge && ml fhR/4.3.1-foss-2022b && which Rscript && Rscript --version\")",
       "Bash(scancel:*)",
-      "Bash(snakemake:*)"
+      "Bash(snakemake:*)",
+      "WebFetch(domain:www.rhozero.net)"
     ],
     "deny": [],
     "ask": []
