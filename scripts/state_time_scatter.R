@@ -33,6 +33,7 @@ state_rr_snap <- state_rr_snap %>%
 df_regions <- read_csv("data/us_states_regions.csv") %>%
   select(state, bea_reg)
 
+df_dist <- read_tsv("data/nb_dist_states.tsv")
 
 PAIR_LIST <- tribble(
   ~x,                    ~y,
@@ -185,6 +186,28 @@ ggsave(paste0(fig_path,"all_pairs_fold_heatmap.png"),
        height=20,
        dpi=192)
 
+full_pair_snap_dist <- full_pair_snap %>%
+  left_join(df_dist,
+     by=join_by("x" == "state_x","y" == "state_y")
+  ) %>%
+  mutate(pair_type = case_when(
+    pair_type == "International" & nb_dist == 1 ~ "International, Bordering State/Provinces",
+    pair_type == "International" & nb_dist != 1 ~ "International, Non-Bordering State/Provinces",
+    pair_type == "International" & is.na(nb_dist) ~ "International, Non-Bordering State/Provinces",
+    TRUE ~ as.character(pair_type)
+))
+
+gg_boxplot_fold <- ggplot(full_pair_snap_dist,
+  aes(x = date,
+    y = nRR_fold,
+    color = pair_type,
+    group=interaction(date,pair_type))
+  )+
+  geom_boxplot(outliers=FALSE) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "bottom") 
+
 unique_series <- state_rr_series %>% 
   mutate(duplicate = x >= y) %>% 
   filter (duplicate != TRUE) %>%
@@ -207,6 +230,188 @@ ggsave(paste0(fig_path,"rr_series.png"),
        width=8,
        height=8,
        dpi=192)
+
+# Create poster version with all categories in one plot (2:1 aspect ratio, no outliers)
+# Use rr_snap instead of rr_series to reduce clutter
+unique_snap_filtered <- state_rr_snap %>%
+  filter(pair_type != "Same State/Province", x != y) %>%
+  mutate(pair_type = factor(pair_type,
+                            levels = c("Different States, Same Region",
+                                      "Different Regions, Same Country",
+                                      "International")))
+
+rr_series_poster <- ggplot(unique_snap_filtered,
+       aes(x = date, y = nRR, group = interaction(date, pair_type), color = pair_type, fill = pair_type)) +
+  geom_boxplot(alpha = 0.3, outlier.shape = NA, linewidth = 0.4, position = position_dodge(width = 80)) +
+  coord_cartesian(ylim = c(0, 0.4)) +
+  scale_color_manual(
+    values = c(
+      "Different States, Same Region" = "lightcoral",
+      "Different Regions, Same Country" = "#66C2A5",
+      "International" = "cornflowerblue"
+    ),
+    name = "Pair Type"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Different States, Same Region" = "lightcoral",
+      "Different Regions, Same Country" = "#66C2A5",
+      "International" = "cornflowerblue"
+    ),
+    name = "Pair Type"
+  ) +
+  scale_x_date(date_breaks = "3 months",
+               labels = function(x) format_quarters(x),
+               expand = expansion(mult = 0.02)) +
+  labs(x = "Date", y = "nRR", title = "Normalized Identical Sequence RR Over Time") +
+  theme_classic(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 13, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_text(size = 10, face = "bold"),
+    legend.text = element_text(size = 9),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3)
+  )
+
+ggsave(paste0(fig_path,"rr_series_poster.png"),
+       plot = rr_series_poster,
+       width = 10,
+       height = 5,
+       dpi = 192)
+
+# ============================================================================
+# Correlation time series poster (using snap data)
+# ============================================================================
+
+# Load travel data and distance data, join with snap data
+df_travel <- read_tsv("data/travel_vars.tsv", show_col_types = FALSE)
+df_cbsa_dist <- read_csv("data/state_pair_min_cbsa_distance_km.csv", show_col_types = FALSE) %>%
+  rename(min_cbsa_dist = min_cbsa_distance_km)
+
+# Function to normalize travel RR (same method as for nRR)
+normalized_travel_rr <- function(df_rr){
+  # Filter to the diagonal (RR(x,x)) entries
+  rr_diag <- df_rr %>%
+    filter(x == y) %>%
+    select(date, state = x, RR_diag = RR) %>%
+    mutate(RR_diag = ifelse(is.na(RR_diag), NA, RR_diag))
+
+  # Join to get RR(x,x) and RR(y,y) for each row
+  df_rr <- df_rr %>%
+    left_join(rr_diag, by = c("date", "x" = "state")) %>%
+    rename(RR_xx = RR_diag) %>%
+    left_join(rr_diag, by = c("date", "y" = "state")) %>%
+    rename(RR_yy = RR_diag) %>%
+    mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = FALSE))
+  return(df_rr)
+}
+
+# Join travel data and distance data, then normalize
+state_rr_snap_travel <- state_rr_snap %>%
+  left_join(df_travel, by = c("x", "y")) %>%
+  left_join(df_cbsa_dist, by = c("x", "y"))
+
+# Normalize RR_trips
+if("RR_trips" %in% names(state_rr_snap_travel)) {
+  df_trips <- state_rr_snap_travel %>%
+    select(date, x, y, RR = RR_trips) %>%
+    filter(!is.na(RR)) %>%
+    normalized_travel_rr() %>%
+    select(date, x, y, nRR_trips = nRR)
+  state_rr_snap_travel <- left_join(state_rr_snap_travel, df_trips, by = c("date", "x", "y"))
+}
+
+# Normalize RR_move
+if("RR_move" %in% names(state_rr_snap_travel)) {
+  df_move <- state_rr_snap_travel %>%
+    select(date, x, y, RR = RR_move) %>%
+    filter(!is.na(RR)) %>%
+    normalized_travel_rr() %>%
+    select(date, x, y, nRR_move = nRR)
+  state_rr_snap_travel <- left_join(state_rr_snap_travel, df_move, by = c("date", "x", "y"))
+}
+
+# Function to calculate correlations for snap data
+calculate_snap_correlations <- function(data, var_list, var_labels) {
+  results_list <- vector("list", length(var_list))
+
+  for (i in seq_along(var_list)) {
+    var <- var_list[i]
+    var_data <- data %>% filter(x != y)
+
+    dates <- unique(var_data$date) %>% sort()
+    corr_results <- data.frame(
+      date = dates,
+      correlation = numeric(length(dates)),
+      variable = var_labels[i]
+    )
+
+    for (j in seq_along(dates)) {
+      date_data <- var_data[var_data$date == dates[j], ]
+      valid_idx <- !is.na(date_data[[var]]) & !is.na(date_data$nRR)
+
+      if (sum(valid_idx) >= 3) {
+        corr_results$correlation[j] <- cor(
+          date_data[[var]][valid_idx],
+          date_data$nRR[valid_idx],
+          method = "spearman"
+        )
+      } else {
+        corr_results$correlation[j] <- NA
+      }
+    }
+
+    results_list[[i]] <- corr_results
+  }
+
+  return(do.call(rbind, results_list))
+}
+
+# Calculate correlations for snap data
+corr_snap <- calculate_snap_correlations(
+  data = state_rr_snap_travel,
+  var_list = c("min_cbsa_dist", "nRR_trips", "nRR_move"),
+  var_labels = c("Geographic Distance", "Normalized Travel", "Normalized Mobility")
+)
+
+# Create correlation poster
+correlation_poster <- ggplot(corr_snap, aes(x = date, y = correlation, color = variable)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
+  scale_color_manual(
+    values = c(
+      "Geographic Distance" = "lightcoral",
+      "Normalized Travel" = "#66C2A5",
+      "Normalized Mobility" = "cornflowerblue"
+    ),
+    name = "Variable"
+  ) +
+  scale_x_date(date_breaks = "3 months",
+               labels = format_quarters,
+               expand = expansion(mult = 0.02)) +
+  labs(
+    title = "Spearman Correlation with Normalized RR Over Time",
+    x = "Date",
+    y = "Spearman Correlation"
+  ) +
+  ylim(-1, 1) +
+  theme_classic(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 13, face = "bold"),
+    legend.position = "bottom",
+    legend.text = element_text(size = 10),
+    legend.title = element_text(size = 10, face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+    panel.grid.major.y = element_line(color = "gray90", linewidth = 0.3)
+  )
+
+ggsave(paste0(fig_path,"correlations_poster.png"),
+       plot = correlation_poster,
+       width = 10,
+       height = 5,
+       dpi = 192)
 
 ts_nRR_df <- unique_series %>%
   mutate(

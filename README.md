@@ -191,6 +191,11 @@ This will:
 - 🔄 Integration with policy/intervention timelines
 - 🔄 Network analysis of persistent transmission routes
 
+## TODO
+
+- [x] Ensure make_state_nb_dist.R completes successfully and verify output
+- [x] Update state_time_scatter.R to use the updated neighbor distances from make_state_nb_dist.R
+
 ## Documentation
 
 - **[CLAUDE.md](CLAUDE.md)**: Comprehensive technical documentation for developers
