@@ -16,6 +16,7 @@ suppressPackageStartupMessages({
   library(lmtest)
   library(ggplot2)
   library(dplyr)
+  library(rsample)
 })
 
 # Command line arguments
@@ -598,6 +599,291 @@ lm_combo <- lm(
 )
 lm_combo %>% model_summary(model_name = "Multivariate Model (normalized)", output_file = results_file)
 lm_combo_plot <- plot_pred_RR(lm_combo, y_obs, "Multivariate Model (normalized)")
+
+# ============================================================================
+# ANOMALY DETECTION FOR STATE PAIRS
+# ============================================================================
+message("\n", strrep("=", 80))
+message("ANOMALY DETECTION: State pairs enriched beyond model expectations")
+message(strrep("=", 80), "\n")
+
+# Calculate diagnostic statistics
+df_anomalies <- df_model_data %>%
+  mutate(
+    fitted = predict(lm_combo),
+    residual = log10(RR_seq) - fitted,
+    standardized_residual = rstandard(lm_combo),
+    studentized_residual = rstudent(lm_combo),
+    cooks_distance = cooks.distance(lm_combo),
+    leverage = hatvalues(lm_combo),
+    predicted_RR = 10^fitted
+  )
+
+# Define anomaly thresholds
+STUDENTIZED_THRESHOLD <- 3  # |studentized residual| > 3
+COOKS_THRESHOLD <- 4 / nrow(df_model_data)  # Cook's D > 4/n (common rule)
+
+# Flag anomalies
+df_anomalies <- df_anomalies %>%
+  mutate(
+    is_outlier_residual = abs(studentized_residual) > STUDENTIZED_THRESHOLD,
+    is_influential = cooks_distance > COOKS_THRESHOLD,
+    is_anomaly = is_outlier_residual | is_influential,
+    anomaly_type = case_when(
+      is_outlier_residual & residual > 0 ~ "Enriched",
+      is_outlier_residual & residual < 0 ~ "Depleted",
+      is_influential ~ "Influential",
+      TRUE ~ "Normal"
+    )
+  ) %>%
+  arrange(desc(abs(studentized_residual)))
+
+# Summary statistics
+n_enriched <- sum(df_anomalies$anomaly_type == "Enriched")
+n_depleted <- sum(df_anomalies$anomaly_type == "Depleted")
+n_influential <- sum(df_anomalies$is_influential & !df_anomalies$is_outlier_residual)
+
+message(sprintf("Total state pairs analyzed: %d", nrow(df_anomalies)))
+message(sprintf("Enriched pairs (higher than expected): %d (%.1f%%)",
+                n_enriched, 100 * n_enriched / nrow(df_anomalies)))
+message(sprintf("Depleted pairs (lower than expected): %d (%.1f%%)",
+                n_depleted, 100 * n_depleted / nrow(df_anomalies)))
+message(sprintf("Influential pairs: %d (%.1f%%)",
+                n_influential, 100 * n_influential / nrow(df_anomalies)))
+
+# Top enriched pairs (transmission higher than expected from travel)
+df_enriched <- df_anomalies %>%
+  filter(anomaly_type == "Enriched") %>%
+  select(x, y, RR_seq, predicted_RR, residual, studentized_residual,
+         cooks_distance, RR_trips, RR_air, RR_move, min_cbsa_dist) %>%
+  arrange(desc(studentized_residual))
+
+message("\nTop enriched state pairs (observed > expected):")
+print(head(df_enriched, 20))
+
+# Top depleted pairs (transmission lower than expected from travel)
+df_depleted <- df_anomalies %>%
+  filter(anomaly_type == "Depleted") %>%
+  select(x, y, RR_seq, predicted_RR, residual, studentized_residual,
+         cooks_distance, RR_trips, RR_air, RR_move, min_cbsa_dist) %>%
+  arrange(studentized_residual)
+
+message("\nTop depleted state pairs (observed < expected):")
+print(head(df_depleted, 20))
+
+# Save anomaly results
+anomaly_file <- paste0("results/", scenario, "/state_pair_anomalies.tsv")
+fwrite(df_anomalies, anomaly_file, sep = "\t")
+message(sprintf("\nAnomaly results saved to: %s", anomaly_file))
+
+# ============================================================================
+# VISUALIZATIONS
+# ============================================================================
+
+# 1. Residual plot with anomalies highlighted
+# Remove symmetric pairs (keep only alphabetically ordered pairs)
+df_anomalies_unique <- df_anomalies %>%
+  mutate(
+    edge_pair = paste(pmin(x, y), pmax(x, y), sep = "-"),
+    pair_label = paste0(pmin(x, y), "-", pmax(x, y))
+  ) %>%
+  group_by(edge_pair) %>%
+  slice_head(n = 1) %>%  # Keep first occurrence of each unique pair
+  ungroup() %>%
+  mutate(
+    label = ifelse(anomaly_type %in% c("Enriched", "Depleted"), pair_label, "")
+  )
+
+# Update counts for subtitle after deduplication
+n_enriched_unique <- sum(df_anomalies_unique$anomaly_type == "Enriched")
+n_depleted_unique <- sum(df_anomalies_unique$anomaly_type == "Depleted")
+
+plot_residuals <- ggplot(df_anomalies_unique, aes(x = fitted, y = residual)) +
+  geom_point(aes(color = anomaly_type, size = cooks_distance), alpha = 0.6) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  geom_hline(yintercept = c(-STUDENTIZED_THRESHOLD, STUDENTIZED_THRESHOLD) * sd(df_anomalies_unique$residual),
+             linetype = "dashed", color = "red", alpha = 0.5) +
+  ggrepel::geom_text_repel(
+    aes(label = label, color = anomaly_type),
+    size = 2.5,
+    max.overlaps = 20,
+    box.padding = 0.5,
+    point.padding = 0.3,
+    segment.size = 0.2,
+    segment.alpha = 0.6,
+    show.legend = FALSE
+  ) +
+  scale_color_manual(
+    values = c("Enriched" = "firebrick", "Depleted" = "steelblue",
+               "Influential" = "orange", "Normal" = "gray60"),
+    breaks = c("Enriched", "Depleted", "Influential", "Normal")
+  ) +
+  scale_size_continuous(range = c(0.5, 3)) +
+  labs(
+    x = "Fitted log10(RR)",
+    y = "Residual",
+    title = "State Pair Anomalies in Multivariate Model",
+    subtitle = paste0("Enriched: n=", n_enriched_unique, ", Depleted: n=", n_depleted_unique, " (unique pairs)"),
+    color = "Anomaly Type",
+    size = "Cook's Distance"
+  ) +
+  theme_bw() +
+  theme(legend.position = "right")
+
+ggsave(paste0("figs/", scenario, "/state_pair_anomalies_residuals.jpg"),
+       plot = plot_residuals, width = 10, height = 7, dpi = 192)
+
+# 2. Cook's Distance plot
+plot_cooks <- ggplot(df_anomalies, aes(x = 1:nrow(df_anomalies), y = cooks_distance)) +
+  geom_segment(aes(xend = 1:nrow(df_anomalies), yend = 0, color = is_influential),
+               alpha = 0.6) +
+  geom_point(aes(color = is_influential), size = 1.5, alpha = 0.7) +
+  geom_hline(yintercept = COOKS_THRESHOLD, linetype = "dashed", color = "red") +
+  scale_color_manual(values = c("FALSE" = "gray60", "TRUE" = "firebrick")) +
+  labs(
+    x = "Observation Index",
+    y = "Cook's Distance",
+    title = "Influential State Pairs (Cook's Distance)",
+    subtitle = sprintf("Threshold: 4/n = %.4f", COOKS_THRESHOLD),
+    color = "Influential"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+ggsave(paste0("figs/", scenario, "/state_pair_cooks_distance.jpg"),
+       plot = plot_cooks, width = 10, height = 6, dpi = 192)
+
+# 3. Q-Q plot for residuals
+plot_qq <- ggplot(df_anomalies, aes(sample = studentized_residual)) +
+  stat_qq(aes(color = is_anomaly), alpha = 0.6) +
+  stat_qq_line(color = "black", linetype = "dashed") +
+  scale_color_manual(values = c("FALSE" = "gray60", "TRUE" = "firebrick")) +
+  labs(
+    title = "Q-Q Plot: Studentized Residuals",
+    x = "Theoretical Quantiles",
+    y = "Sample Quantiles",
+    color = "Anomaly"
+  ) +
+  theme_bw()
+
+ggsave(paste0("figs/", scenario, "/state_pair_qq_plot.jpg"),
+       plot = plot_qq, width = 8, height = 6, dpi = 192)
+
+# 4. Observed vs Predicted with anomalies highlighted
+plot_obs_pred_anomaly <- ggplot(df_anomalies, aes(x = predicted_RR, y = RR_seq)) +
+  geom_abline(slope = 1, intercept = 0, color = "black", linetype = "dashed") +
+  geom_point(aes(color = anomaly_type, size = abs(studentized_residual)), alpha = 0.6) +
+  scale_x_continuous(transform = "log10", name = "Predicted RR") +
+  scale_y_continuous(transform = "log10", name = "Observed RR") +
+  scale_color_manual(
+    values = c("Enriched" = "firebrick", "Depleted" = "steelblue",
+               "Influential" = "orange", "Normal" = "gray60")
+  ) +
+  scale_size_continuous(range = c(0.5, 4), name = "|Studentized Residual|") +
+  coord_equal() +
+  labs(
+    title = "Observed vs Predicted RR with Anomalies",
+    color = "Anomaly Type"
+  ) +
+  theme_bw()
+
+ggsave(paste0("figs/", scenario, "/state_pair_obs_pred_anomalies.jpg"),
+       plot = plot_obs_pred_anomaly, width = 10, height = 8, dpi = 192)
+
+message("\nAnomaly visualizations saved to figs/", scenario, "/")
+
+# ============================================================================
+# ROBUST REGRESSION: REFIT MODEL WITHOUT ANOMALIES
+# ============================================================================
+message("\n", strrep("=", 80))
+message("ROBUST MODEL: Refitting lm_combo without anomalies/influential obs")
+message(strrep("=", 80), "\n")
+
+# Filter out anomalies for robust model
+df_model_robust <- df_model_data %>%
+  filter(!df_anomalies$is_anomaly)
+
+y_obs_robust <- df_model_robust$RR_seq
+
+n_removed <- nrow(df_model_data) - nrow(df_model_robust)
+pct_removed <- 100 * n_removed / nrow(df_model_data)
+
+message(sprintf("Original sample size: %d", nrow(df_model_data)))
+message(sprintf("Removed observations: %d (%.1f%%)", n_removed, pct_removed))
+message(sprintf("Robust sample size: %d\n", nrow(df_model_robust)))
+
+# Refit the combined model without anomalies
+lm_combo_robust <- lm(
+  data = df_model_robust,
+  formula = log10(RR_seq) ~ zlog_RR_trips +
+    zlog_RR_move +
+    zlog_RR_air:flight_length
+)
+
+lm_combo_robust %>% model_summary(model_name = "Multivariate Model - Robust (anomalies removed)",
+                                   output_file = results_file)
+lm_combo_robust_plot <- plot_pred_RR(lm_combo_robust, y_obs_robust,
+                                       "Multivariate Model - Robust (anomalies removed)")
+
+# ============================================================================
+# MODEL COMPARISON: ORIGINAL vs ROBUST
+# ============================================================================
+message("\n", strrep("=", 80))
+message("MODEL COMPARISON: Original vs Robust")
+message(strrep("=", 80), "\n")
+
+# Extract key statistics for comparison
+comparison_stats <- data.frame(
+  Model = c("Original (with anomalies)", "Robust (anomalies removed)"),
+  N = c(nrow(df_model_data), nrow(df_model_robust)),
+  R_squared = c(summary(lm_combo)$r.squared, summary(lm_combo_robust)$r.squared),
+  Adj_R_squared = c(summary(lm_combo)$adj.r.squared, summary(lm_combo_robust)$adj.r.squared),
+  RMSE = c(
+    sqrt(mean(residuals(lm_combo)^2)),
+    sqrt(mean(residuals(lm_combo_robust)^2))
+  ),
+  AIC = c(AIC(lm_combo), AIC(lm_combo_robust))
+)
+
+print(comparison_stats)
+
+# Coefficient comparison
+coef_comparison <- data.frame(
+  Term = names(coef(lm_combo)),
+  Original = coef(lm_combo),
+  Robust = c(coef(lm_combo_robust), rep(NA, length(coef(lm_combo)) - length(coef(lm_combo_robust))))
+)
+# Handle case where models have same terms
+if (length(coef(lm_combo)) == length(coef(lm_combo_robust))) {
+  coef_comparison$Robust <- coef(lm_combo_robust)
+  coef_comparison$Difference <- coef_comparison$Robust - coef_comparison$Original
+  coef_comparison$Pct_Change <- 100 * coef_comparison$Difference / abs(coef_comparison$Original)
+}
+
+message("\nCoefficient comparison:")
+print(coef_comparison)
+
+# Save comparison stats
+comparison_file <- paste0("results/", scenario, "/model_comparison_original_vs_robust.tsv")
+fwrite(comparison_stats, comparison_file, sep = "\t")
+message(sprintf("\nModel comparison saved to: %s", comparison_file))
+
+# ============================================================================
+# VISUALIZATION: SIDE-BY-SIDE COMPARISON
+# ============================================================================
+
+# Create combined plot showing both models
+library(patchwork)
+comparison_plot <- lm_combo_plot + lm_combo_robust_plot +
+  plot_annotation(
+    title = "Model Comparison: With vs Without Anomalies/Influential Obs",
+    subtitle = sprintf("Removed %d anomalies/influential obs (%.1f%% of data)", n_removed, pct_removed)
+  )
+
+ggsave(paste0("figs/", scenario, "/model_comparison_with_without_anomalies.jpg"),
+       plot = comparison_plot, width = 14, height = 6, dpi = 192)
+
+message("\nComparison plot saved to figs/", scenario, "/model_comparison_with_without_anomalies.jpg")
 
 # Spline combined regression
 slm_combo <- lm(

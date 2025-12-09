@@ -1,6 +1,6 @@
 #File: make_state_nb_dist.R
 #Author(s): Amin Bemanian
-#Date: 8/19/24
+#Date: 10/31/25
 #Description: R script that obtains state/province shapefiles from cam-shp.gpkg and makes a
 #             neighbor (adjacency) and euclidean distance matrix using spdep/sf.
 #Does not need to be re-run with scenarios after initial run.

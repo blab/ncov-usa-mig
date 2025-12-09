@@ -68,6 +68,7 @@ packages <- c(
   "quantreg",       # Quantile regression
   "lme4",           # Linear mixed-effects models
   "lmerTest",       # Testing linear mixed-effects models
+  "rsample",        # For CV methods
 
   # Clustering and dimensionality reduction
   "cluster",        # Cluster analysis (agnes, diana, silhouette)

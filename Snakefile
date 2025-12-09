@@ -324,20 +324,12 @@ rule state_time_conserved_network_viz:
     input:
         f"results/{{scenario}}/time_state/df_significant_connections_{SD_THRESHOLD}sd.tsv"
     output:
-        f"results/{{scenario}}/time_state/df_conserved_connections_{MIN_OCCURRENCES}plus.tsv"
-    shell:
-        f"""
-        Rscript ./scripts/state_time_conserved_network_viz.R --scenario {{wildcards.scenario}} --sd_threshold {SD_THRESHOLD} --min_occurrences {MIN_OCCURRENCES}
-        """
-
-rule state_time_conserved_network_map:
-    input:
-        f"results/{{scenario}}/time_state/df_conserved_connections_{MIN_OCCURRENCES}plus.tsv"
-    output:
+        f"results/{{scenario}}/time_state/df_conserved_connections_{MIN_OCCURRENCES}plus.tsv",
+        f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus.jpg",
         f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus_map.jpg"
     shell:
         f"""
-        Rscript ./scripts/state_time_conserved_network_map.R --scenario {{wildcards.scenario}} --sd_threshold {SD_THRESHOLD} --min_occurrences {MIN_OCCURRENCES}
+        Rscript ./scripts/state_time_conserved_network_viz.R --scenario {{wildcards.scenario}} --sd_threshold {SD_THRESHOLD} --min_occurrences {MIN_OCCURRENCES}
         """
 
 rule age_time_rr_analysis:
@@ -399,6 +391,7 @@ rule state_time_visualizations:
         # From state_time_scatter.R
         "figs/{scenario}/time/state_pair_nRR_heatmap.png",
         "figs/{scenario}/time/all_pairs_fold_heatmap.png",
+        "figs/{scenario}/time/all_pairs_fold_boxplot_quarters.png",
         "figs/{scenario}/time/rr_series.png",
         # From state_time_dist.R
         "figs/{scenario}/time/rr_boxplot_time.png",

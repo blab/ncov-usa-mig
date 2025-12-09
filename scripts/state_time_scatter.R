@@ -2,6 +2,7 @@ library(tidyverse)
 library(patchwork)
 library(RColorBrewer)
 library(argparse)
+library(ggpubr)
 source("scripts/color_schemes.R")
 
 collect_args <- function(){
@@ -185,6 +186,88 @@ ggsave(paste0(fig_path,"all_pairs_fold_heatmap.png"),
        width=8,
        height=20,
        dpi=192)
+
+# Create boxplot version of fold change by quarters with significance testing
+# Time on horizontal axis, fold change on vertical axis
+full_pair_snap_quarters <- full_pair_snap %>%
+  mutate(quarter = format_quarters(date)) %>%
+  mutate(quarter = factor(quarter, levels = unique(quarter[order(date)]))) %>%
+  mutate(pair_category = ifelse(pair_type == "International", "International", "Domestic"))
+
+# Perform statistical tests for each quarter to compare International vs pooled Domestic
+quarter_list <- unique(full_pair_snap_quarters$quarter)
+sig_results <- data.frame()
+
+for (q in quarter_list) {
+  q_data <- full_pair_snap_quarters %>% filter(quarter == q)
+
+  # Test International vs Domestic (pooled, one-sided: International < Domestic)
+  # Note: pair_category levels are alphabetical ("Domestic", "International")
+  # So we use alternative = "greater" to test if Domestic > International (i.e., International < Domestic)
+  test_result <- wilcox.test(
+    nRR_fold ~ pair_category,
+    data = q_data,
+    alternative = "greater"
+  )
+
+  # Format p-value
+  p_label <- ifelse(test_result$p.value < 0.0001, "****",
+                    ifelse(test_result$p.value < 0.001, "***",
+                          ifelse(test_result$p.value < 0.01, "**",
+                                ifelse(test_result$p.value < 0.05, "*", "ns"))))
+
+  sig_results <- rbind(sig_results, data.frame(
+    quarter = q,
+    p_value = test_result$p.value,
+    p_label = p_label
+  ))
+}
+
+# Plot with 3 separate groups, but testing shows pooled Domestic vs International
+p_fold_boxplot_quarters <- ggplot(full_pair_snap_quarters,
+       aes(x = quarter, y = nRR_fold, fill = pair_type)) +
+  geom_boxplot(outlier.shape = NA, alpha = 0.7, position = position_dodge(width = 0.9)) +
+  # Add text annotations for International < Domestic significance
+  geom_text(
+    data = sig_results,
+    aes(x = quarter, y = Inf, label = p_label),
+    vjust = 1.2,
+    size = 5,
+    inherit.aes = FALSE,
+    color = "black",
+    fontface = "bold"
+  ) +
+  scale_y_log10(
+    name = "Fold Change (log scale)",
+    breaks = scales::trans_breaks("log10", function(x) 10^x),
+    labels = scales::trans_format("log10", scales::label_number())
+  ) +
+  geom_hline(yintercept = 1, linetype = "dashed", color = "black", linewidth = 0.5) +
+  scale_fill_manual(
+    values = c(
+      "Different States, Same Region" = "lightcoral",
+      "Different Regions, Same Country" = "#66C2A5",
+      "International" = "cornflowerblue"
+    ),
+    name = "Pair Type"
+  ) +
+  labs(
+    title = "Fold Change in Normalized RR by Quarter",
+    x = "Quarter"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 9),
+    legend.position = "bottom",
+    panel.grid.major.x = element_blank(),
+    plot.title = element_text(hjust = 0.5, face = "bold")
+  )
+
+ggsave(paste0(fig_path,"all_pairs_fold_boxplot_quarters.png"),
+       plot = p_fold_boxplot_quarters,
+       width = 12,
+       height = 6,
+       dpi = 192)
 
 full_pair_snap_dist <- full_pair_snap %>%
   left_join(df_dist,

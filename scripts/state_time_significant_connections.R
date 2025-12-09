@@ -4,8 +4,8 @@ library(argparse)
 
 collect_args <- function(){
   parser <- ArgumentParser()
-  parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--sd_threshold', type = 'double', default = 3.0, help = 'Number of standard deviations for significance threshold')
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--sd_threshold', type = 'double', default = 2, help = 'Number of standard deviations for significance threshold')
   parser$add_argument('--min_nb_dist', type = 'integer', default = 2, help = 'Minimum neighbor distance (exclude adjacent states)')
   return(parser$parse_args())
 }
