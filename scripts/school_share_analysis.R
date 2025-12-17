@@ -133,6 +133,45 @@ fn_trajectories_plot <- paste0("figs/", scenario, "/age_time/school_trajectories
 ggsave(fn_trajectories_plot, p_trajectories, width = 10, height = 10, dpi = 300)
 message(paste0("Trajectory plot saved to ", fn_trajectories_plot))
 
+# Create heatmap version of trajectories
+# Calculate the date interval for proper tile width (no gaps)
+date_interval <- as.numeric(diff(sort(unique(df_school_main_trajectories$date)))[1])
+
+p_trajectories_heatmap <- ggplot(df_school_main_trajectories,
+                                  aes(x = date, y = state, fill = share_inperson)) +
+  geom_tile(width = date_interval) +
+  facet_grid(trajectory_type ~ ., scales = "free_y", space = "free_y") +
+  scale_fill_gradient2(
+    low = "#C62828",      # Dark red (virtual)
+    mid = "#FDD835",      # Yellow (hybrid)
+    high = "#2E7D32",     # Dark green (in-person)
+    midpoint = 0.5,
+    limits = c(0, 1),
+    breaks = seq(0, 1, 0.2),
+    labels = scales::percent_format(accuracy = 1)
+  ) +
+  scale_x_date(date_breaks = "2 months", date_labels = "%b %Y", expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  labs(
+    x = "Date",
+    y = "State",
+    fill = "In-Person\nShare",
+    title = "State In-Person Instruction Heatmap by Trajectory Classification",
+    subtitle = "Academic Year 2020-2021 (Sept 2020 - May 2021)"
+  ) +
+  theme_bw() +
+  theme(
+    strip.background = element_rect(fill = "gray90"),
+    strip.text = element_text(face = "bold", size = 11),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    axis.text.y = element_text(size = 8),
+    panel.grid = element_blank()
+  )
+
+fn_trajectories_heatmap <- paste0("figs/", scenario, "/age_time/school_trajectories_heatmap.jpg")
+ggsave(fn_trajectories_heatmap, p_trajectories_heatmap, width = 8, height = 6, dpi = 300)
+message(paste0("Trajectory heatmap saved to ", fn_trajectories_heatmap))
+
 # ------------------------------------------------------------------
 
 # Filter RR data to within-group transmission for Primary and Secondary School

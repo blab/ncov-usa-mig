@@ -23,6 +23,7 @@ scripts/nondb_versions/*
 .snakemake/*
 figs/*
 pubs/*
+lit/*
 
 .Rdata
 .Rhistory
@@ -36,3 +37,4 @@ Thumbs.db
 .vscode/*
 .Rproj.user
 core
+*.Rproj

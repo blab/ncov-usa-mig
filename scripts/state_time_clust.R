@@ -353,8 +353,8 @@ make_pcoa_plot <- function(df, comp_x, comp_y) {
   var_y <- sprintf("%.1f%%", pct_var_explained[comp_y_num])
 
   # Create axis labels with variance explained
-  x_label <- sprintf("PC %d Explained Var: %s", comp_x_num, var_x)
-  y_label <- sprintf("PC %d Explained Var: %s", comp_y_num, var_y)
+  x_label <- sprintf("PC %d Var: %s", comp_x_num, var_x)
+  y_label <- sprintf("PC %d Var: %s", comp_y_num, var_y)
 
   ggplot(df, aes(x = .data[[comp_x]], y = .data[[comp_y]], color = region)) +
     geom_point(show.legend = FALSE, alpha = 1) +
@@ -368,6 +368,7 @@ make_pcoa_plot <- function(df, comp_x, comp_y) {
 }
 
 gg_pcoa_V1V2 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V2")
+gg_pcoa_V2V1 <- make_pcoa_plot(state_kclust_pcoa, "V2", "V1")
 gg_pcoa_V1V3 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V3")
 gg_pcoa_V1V4 <- make_pcoa_plot(state_kclust_pcoa, "V1", "V4")
 gg_pcoa_V2V3 <- make_pcoa_plot(state_kclust_pcoa, "V2", "V3")
@@ -429,7 +430,7 @@ s3d <- scatterplot3d(
   main = "3D PCoA: First Three Components",
   angle = 45,
   grid = TRUE,
-  box = TRUE
+  box = FALSE
 )
 
 # Add legend - use unique regions with their corresponding colors
@@ -457,20 +458,19 @@ get_aspect <- function(comp_x, comp_y) {
 base_dim <- 900
 
 # V1 vs V2
-ggsave(gg_pcoa_V1V2,
+ggsave(gg_pcoa_V2V1 + coord_fixed(ratio = 1,reverse="y"),
        filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.jpg"),
        width = base_dim,
-       height = base_dim / get_aspect(1, 2),
        units = "px",
-       dpi = 192)
+       dpi = 300)
 
 # V1 vs V3
-ggsave(gg_pcoa_V1V3,
+ggsave(gg_pcoa_V1V3 + coord_flip() + scale_x_reverse(),
        filename = paste0("figs/", scenario, "/clust/pcoa_V1V3.jpg"),
-       width = base_dim,
-       height = base_dim / get_aspect(1, 3),
+       width = base_dim * get_aspect(3, 1),
+       height = base_dim,
        units = "px",
-       dpi = 192)
+       dpi = 300)
 
 # V1 vs V4
 ggsave(gg_pcoa_V1V4,
@@ -481,22 +481,21 @@ ggsave(gg_pcoa_V1V4,
        dpi = 192)
 
 # V2 vs V3
-ggsave(gg_pcoa_V2V3,
+ggsave(gg_pcoa_V2V3 + coord_fixed(ratio = 1,reverse="y"),
        filename = paste0("figs/", scenario, "/clust/pcoa_V2V3.jpg"),
        width = base_dim,
-       height = base_dim / get_aspect(2, 3),
        units = "px",
-       dpi = 192)
+       dpi = 300)
 
 # V2 vs V3 (USA only)
-ggsave(gg_pcoa_V2V3_US,
+ggsave(gg_pcoa_V2V3_US + coord_fixed(ratio = 1,reverse="y"),
        filename = paste0("figs/", scenario, "/clust/pcoa_V2V3_US.jpg"),
-       width = base_dim,
-       height = base_dim / get_aspect(2, 3),
+       width = base_dim, 
        units = "px",
-       dpi = 192)
+       dpi = 300)
 
 message("Successfully completed main clustering analysis block")
+break
 quit(save = "no", status = 0)
 
 # ============================================================================

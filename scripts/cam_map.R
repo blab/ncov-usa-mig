@@ -44,6 +44,8 @@ plot_cam_choropleth <- function(
     inset_loc = list(left = 0.05, bottom = 0.05, right = 0.25, top = 0.2),
     hi_crop = c(xmin = -56, xmax = -47, ymin = -10, ymax = -5),
     bbox_margin = c(xmin = -0.5, xmax = 1, ymin = -1, ymax = 0),
+    line_size = 1, #For state borderlines
+    box_size = 1.5, #For box/frame around HI
     bottom_legend = FALSE,
     theme_override = NULL
 ) {
@@ -79,7 +81,7 @@ plot_cam_choropleth <- function(
   
   # main plot
   p_main <- ggplot(df_main) +
-    geom_sf(aes(fill = .fill_value), color = "black", size = 1) +
+    geom_sf(aes(fill = .fill_value), color = "black", size = line_size) +
     theme_minimal() +
     theme(
       axis.title = element_blank(),
@@ -134,8 +136,8 @@ plot_cam_choropleth <- function(
   hi_frame <- st_as_sf(st_as_sfc(hi_bbox))
   
   p_hi <- ggplot() +
-    geom_sf(data = hi_frame, fill = "white", color = "black", size = 1.5) +
-    geom_sf(data = df_hi, aes(fill = .fill_value), color = "black", size = 1) +
+    geom_sf(data = hi_frame, fill = "white", color = "black", size = box_size) +
+    geom_sf(data = df_hi, aes(fill = .fill_value), color = "black", size = line_size) +
     theme_void() +
     theme(legend.position = "none") 
   

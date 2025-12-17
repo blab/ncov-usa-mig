@@ -46,11 +46,11 @@ df_duplicates <- tbl(con, "pairs") %>%
   # Apply filters
   filter(
     n_mutations == 0,                           # Identical sequences
-    division_1 == division_2,                   # Same division
+    division_1 == division_2,                   # Same division (state/province)
     age_adj_1 == age_adj_2,                     # Same age
     abs(date_1 - date_2) <= 28,                 # Within 28 days
     (sex_1 == sex_2) | (is.na(sex_1) & is.na(sex_2)),           # Sex matches or both NA
-    (location_1 == location_2) | (is.na(location_1) & is.na(location_2))  # Location matches or both NA
+    (location_1 == location_2) | (is.na(location_1) & is.na(location_2))  # Location (sub-state/province) matches or both NA
   ) %>%
   collect()
 

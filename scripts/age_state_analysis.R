@@ -20,12 +20,12 @@ source("scripts/calculate_rr_matrix.R")
 source("scripts/bind_pairs_exp.R")
 
 STATE_DISTANCES <- fread("data/nb_dist_states.tsv")
-
+REGION_LIST <- fread("data/us_states_regions.csv")
 
 collect_args <- function(){
   parser <- ArgumentParser()
-  parser$add_argument('--scenario', type = 'character', default = "USA", help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--ci', type = 'logical', default = TRUE, help = "Whether to calculate CIs, default is TRUE")
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--ci', type = 'logical', default = FALSE, help = "Whether to calculate CIs, default is TRUE")
   parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
   return(parser$parse_args())
 }
@@ -43,12 +43,20 @@ pairs_state <- con %>%
   bind_pairs_exp("division", exclude_duplicates = exclude_duplicates) %>%
   rename(state.x = x) %>%
   rename(state.y = y) %>%
-  mutate(sameState = (state.x == state.y))
+  mutate(sameState = (state.x == state.y)) 
+
+pairs_region <- con %>%
+  bind_pairs_exp("bea_reg", exclude_duplicates = exclude_duplicates) %>%
+  rename(reg.x = x) %>%
+  rename(reg.y = y) %>%
+  mutate(sameRegion = (reg.x == reg.y)) 
+
+pairs_state_reg <- inner_join(pairs_state,pairs_region)
 
 pairs_age <- con %>%
   bind_pairs_exp("age_class", exclude_duplicates = exclude_duplicates) 
 
-pairs_state_age <- inner_join(pairs_state,pairs_age)
+pairs_state_age <- inner_join(pairs_state_reg,pairs_age)
 
 #Need for CI subsampling
 meta_age <- con %>%
@@ -56,11 +64,11 @@ meta_age <- con %>%
   filter(!is.na(age_class)) %>%
   filter(age_class != 'NA')
 
-#This analysis needs a unique CI calculation since it's being stratified over 2 add'l variables(state and sameState)
+#This analysis needs a unique CI calculation since it's being stratified over several add'l variables(state, sameState, sameRegion)
 #pair_list - full list, will be pairs_state_age
 #meta_tbl - Metadata table to subset sequences from
 #specific_state - name of a specific state to stratify
-
+#TODO 12/11 - IMPLEMENT STRATIFIED CI FOR REGIONS
 calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,interval_width=0.95,exclude_duplicates=FALSE){
   RR_dist_same <- matrix()
   RR_dist_diff <- matrix()
@@ -106,18 +114,25 @@ calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,
 }
 
 
-ages_rr_same <- pairs_state_age %>%
+ages_rr_same_state <- pairs_state_age %>%
   filter(sameState) %>%
   calculate_rr_matrix() %>%
   collect() %>%
-  mutate(sameState=TRUE)
+  mutate(sameState=TRUE, sameRegion=TRUE)
 
-ages_rr_diff <- pairs_state_age %>%
-  filter(!sameState) %>%
+ages_rr_same_region <- pairs_state_age %>%
+  filter(!sameState && sameRegion) %>%
   calculate_rr_matrix() %>%
   collect() %>%
-  mutate(sameState=FALSE) 
+  mutate(sameState = FALSE, sameRegion=TRUE)
 
+ages_rr_diff_region <- pairs_state_age %>%
+  filter(!sameRegion) %>%
+  calculate_rr_matrix() %>%
+  collect() %>%
+  mutate(sameState=FALSE, sameRegion=FALSE) 
+
+#TODO Implement CI for same_region
 if(ci_flag){
   ci_list <- calculate_rr_ci(con,meta_age,samp_cov=0.8,exclude_duplicates=exclude_duplicates)
   ages_rr_same <- inner_join(ages_rr_same,ci_list[[1]],by=join_by(x,y))
@@ -125,7 +140,9 @@ if(ci_flag){
 }
 
 #Combine different and same state RRs
-age_state_rr <- rbind(ages_rr_same,ages_rr_diff) 
+age_state_rr <- rbind(ages_rr_same_state,
+  ages_rr_same_region,
+  ages_rr_diff_region) 
 fn_rr <- paste("results/",scenario,"/df_RR_by_age_state.tsv",sep="")
 readr::write_tsv(age_state_rr,file=fn_rr)
 DBI::dbDisconnect(con,shutdown=TRUE)

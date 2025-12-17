@@ -130,7 +130,7 @@ effort_scale <- function(LB=0,UB=5000,step_size=1000){
 ## Sex categorical scales
 SEX_COLORS <- c(
   "Female" = "#395",
-  "Male" = "#853"
+  "Male" = "#C4C"
 )
 sex_fill_scale <- function(){
   scale_fill_manual(values=SEX_COLORS,na.translate=FALSE, name = "Sex")

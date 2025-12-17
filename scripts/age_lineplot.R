@@ -14,14 +14,14 @@ library(viridis)
 
 collect_args <- function(){
   parser <- ArgumentParser()
-  parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
   return(parser$parse_args())
 }
 
 args <- collect_args()
 scenario <- args$scenario
 
-AGE_UB <- "79y" #Censor older ages group
+AGE_UB <- "80y" #Censor older ages group
 
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
 
@@ -81,20 +81,19 @@ ggsave(fn_age_plot_all,
        limitsize = FALSE
 )
 
-# Abridged version: focus on key age groups, stratified by same-state
-TARGET_AGES <- c("05y", "15y", "25y", "35y", "45y", "55y", "65y", "75y")
+# Abridged version: focus on key age groups
+TARGET_AGES <- c("05y", "20y", "40y", "70y")
 
-age_plot_abridged <- age_state_rr %>%
+age_plot_abridged <- age_rr %>%
   filter(!age_censor) %>%
   filter(y %in% TARGET_AGES) %>%
-  ggplot(aes(x = x, colour = sameState)) +
+  ggplot(aes(x = x,color = y)) +
   geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = sameState)) +
+  geom_line(aes(y = RR,group = 1)) +
   geom_hline(yintercept = 1) +
-  facet_wrap(. ~ y, ncol = 2, nrow = 4, scales = 'free_y') +
+  facet_wrap(. ~ y, ncol = 2, scales = 'free_y') +
   scale_x_discrete(name = 'Age Group', breaks = age_breaks) +
-  scale_y_continuous(name = expression(RR["identical sequences"])) +
-  scale_color_brewer(type="qual", name = "Within State", palette = "Paired") +
+  scale_y_continuous(name = expression(RR["identical sequences"]),transform = "log10") +
   theme_classic() +
   ggtitle(paste0("Age-wise RR for ",scenario," - Key Age Groups")) +
   theme(axis.title.x = element_text(size = 13),
@@ -110,23 +109,32 @@ fn_age_plot_abridged <- paste0("figs/",scenario,"/age_lineplot_abridged.jpg")
 ggsave(fn_age_plot_abridged,
        plot=age_plot_abridged,
        device = "jpeg",
-       dpi = 192,
-       width = 12,
-       height = 16
+       dpi = 300,
+       width = 8,
+       height = 5
 )
+
+age_state_rr <- age_state_rr %>%
+  mutate(
+    state_region_flag = case_when(
+      sameState ~ "Same State",
+      !sameState & sameRegion ~ "Same Region, Different States",
+      !sameRegion ~ "Different Region",
+      .default = "Invalid Region/State"
+    ) %>% factor(levels = c("Same State","Same Region, Different States","Different Region"))
+  ) 
 
 #Do RRs stratified by adjacency plot (single plot)
 age_plot_by_state <- age_state_rr  %>% 
   filter(!age_censor) %>%
-  ggplot(aes(x = x, colour = sameState)) +
+  ggplot(aes(x = x, colour = state_region_flag)) +
   geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = sameState)) +
-  #geom_linerange(aes(ymin = ci_lb, ymax = ci_ub,group = sameState)) +
+  geom_line(aes(y = RR, group = state_region_flag)) +
   geom_hline(yintercept = 1) +
   facet_wrap(. ~ y, ncol = 10, scales = 'free_y') + #y here refers to age group, not y-axis
   scale_x_discrete(name = 'Age Group', breaks = age_breaks) +
-  scale_y_continuous(name = expression(RR["identical sequences"])) +
-  scale_color_brewer(type="qual", name = "Within State",palette = "Paired") + 
+  scale_y_continuous(name = expression(RR["identical sequences"]),transform = "log10") +
+  scale_color_brewer(type="qual", name = "Within State",palette = "Dark2") + 
   theme_classic() +
   ggtitle(paste0("Age-wise RR for ",scenario)) +
   theme(axis.title.x = element_text(size = 12),
@@ -151,9 +159,9 @@ ggsave(fn_age_state_plot,
 age_same_plot_by_state  <- age_state_rr  %>%
   filter(x==y) %>% #Only look at RR within the same 
   filter(!age_censor) %>%
-  ggplot(aes(x = x, colour = sameState)) +
+  ggplot(aes(x = x, colour = state_region_flag)) +
   geom_point(aes(y = RR)) +
-  geom_line(aes(y = RR, group = sameState)) +
+  geom_line(aes(y = RR, group = state_region_flag)) +
   #geom_linerange(aes(ymin = ci_lb, ymax = ci_ub,group = sameState)) +
   geom_hline(yintercept = 1) +
   scale_x_discrete(name = 'Age Group', breaks = age_breaks) +
@@ -162,23 +170,25 @@ age_same_plot_by_state  <- age_state_rr  %>%
                      breaks = c(1E-1, 8E-1, 1, 5, 2, 1E1, 1E2),
                      labels = c(0.1,0.8,1,5,2,10,100),
                      expand = expansion(mult = c(0.18, 0.13)),
-                     limits = c(10^(-0.05),10^(1.2))) +
-  scale_color_brewer(type="qual", name = "Within State",palette = "Paired") + 
+                     limits = c(10^(-0.1),10^(1.8))) +
+  scale_color_brewer(type="qual", name = "State/Region Status",palette = "Dark2") + 
   theme_classic() +
-  ggtitle(paste0("Same Age RR for ",scenario)) +
+  ggtitle(paste0("Same Age RR")) +
   theme(axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 13),
-        axis.text = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        axis.text = element_text(size = 8),
         axis.text.x = element_text(angle = 45, hjust = 1.),
         strip.text = element_text(size = 12),
         strip.background = element_rect(colour = 'white'),
-        plot.title=element_text(hjust=0.5))
+        plot.title=element_text(hjust=0.5),
+        legend.position = "bottom"
+      )
 
 fn_age_same_state_plot <- paste0("figs/",scenario,"/age_same_lineplot_by_state.jpg") 
 ggsave(fn_age_same_state_plot,
        plot=age_same_plot_by_state,
        device = "jpeg",
-       dpi = 192,
-       width = 8,
-       height = 6
+       dpi = 300,
+       width = 7,
+       height = 4
 )

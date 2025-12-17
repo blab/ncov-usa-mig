@@ -51,6 +51,9 @@ seq_by_div <- meta_tbl |>
   left_join(division_pop,by = join_by(division == division)) |>
   mutate(seq_effort = num_seq / population * 1E5)
 
+STATE_LINE <- 0.5
+BOX_LINE <- 1.5 * STATE_LINE
+
 seq_map <- plot_cam_choropleth(cam_map,
                     data = seq_by_div,
                     state_col = division,
@@ -58,7 +61,22 @@ seq_map <- plot_cam_choropleth(cam_map,
                     fill_mapper = log10,
                     scale_fun = log_seq_scale,
                     title = "Sequence Counts",
-                    bottom_legend = TRUE)   
+                    bottom_legend = TRUE,
+                    line_size = STATE_LINE,
+                    box_size = BOX_LINE) +
+  guides(fill = guide_colorbar(barheight = unit(0.5, "cm"),
+                                barwidth = unit(8, "cm")))   
+
+FN_PATH <- paste0("figs/",scenario,"/desc/")
+
+ggsave(paste0(FN_PATH,"seq_map.png"),
+  seq_map, 
+  height = 7, 
+  width = 6, 
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
 
 effort_cap <- function(x,UB = 5000){
   pmin(x,UB)
@@ -71,7 +89,20 @@ seq_eff_map <- plot_cam_choropleth(cam_map,
                     fill_mapper = effort_cap,
                     scale_fun = effort_scale,
                     title = "Sequencing per Capita",
-                    bottom_legend = TRUE) 
+                    bottom_legend = TRUE,
+                    line_size = STATE_LINE,
+                    box_size = BOX_LINE) +
+  guides(fill = guide_colorbar(barheight = unit(0.5, "cm"),
+                                barwidth = unit(8, "cm"))) 
+
+ggsave(paste0(FN_PATH,"seq_eff_map.png"),
+  seq_eff_map, 
+  height = 7, 
+  width = 6, 
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
 
 #Effort calculations
 week_start_template <- seq.Date(from=as.Date("2020-01-01"),to=as.Date("2024-12-31"),by="week")
@@ -90,6 +121,7 @@ natl_week_effort <- meta_tbl |>
   mutate(sma_seq = rollmean(num_seq,k=3,fill=NA,align="center")) |>
   mutate(seq_effort = sma_seq/natl_pop * 1E5) |>
   ungroup()
+
   
 division_quarter_effort <- meta_tbl |>
   mutate(date = ymd(date)) |>
@@ -111,9 +143,17 @@ plot_natl_effort <- ggplot(natl_week_effort,
   scale_x_date(date_breaks = "4 months",name = "Date") +
   scale_y_continuous(name = "Weekly Sequences (per 100,000)") +
   theme_bw()  +
-  ggtitle("Country Sequences Per Capita") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   country_color_scale()
+
+ggsave(paste0(FN_PATH,"natl_effort.png"),
+  plot_natl_effort, 
+  height = 3.5, 
+  width = 7, 
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
 
 plot_effort_box <- ggplot(division_quarter_effort %>% filter(country != "Mexico"), 
        aes(x = quarter, y = seq_effort,fill=country,group = interaction(country, quarter))) +
@@ -128,6 +168,15 @@ plot_effort_box <- ggplot(division_quarter_effort %>% filter(country != "Mexico"
   scale_y_continuous(name = "Quarterly Sequences (per 100,000)",
                      limits = c(0,1000)) +
   country_fill_scale()
+
+ggsave(paste0(FN_PATH,"effort_box.png"),
+  plot_effort_box, 
+  height = 7, 
+  width = 12, 
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
 
 age_sex_seq <- meta_tbl |>
   group_by(sex,age_adj) |>
@@ -146,7 +195,9 @@ plot_age_sex <- ggplot(
       y = ifelse(sex == "Male",num_seq,-num_seq))) +
   geom_bar(stat="identity") +
   scale_x_continuous(
-    limits = c(0,90),
+    limits = c(-1,91),
+    n.breaks = 9,
+    expand=c(0,0),
     name = "Age"
   ) +
   scale_y_continuous(
@@ -158,6 +209,15 @@ plot_age_sex <- ggplot(
   coord_flip() +
   theme_bw()  + 
   theme(legend.position = "bottom")
+
+ggsave(paste0(FN_PATH,"age_sex.png"),
+  plot_age_sex, 
+  height = 4, 
+  width = 3, 
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
 
 sex_seq <- age_sex_seq %>%
   filter(!is.na(sex)) %>%
@@ -175,6 +235,15 @@ plot_age_region <- ggplot(
   labs(x="Age",y="Region") +
   scale_x_continuous(limits=c(0,100)) +
   region_fill_scale()
+
+ggsave(paste0(FN_PATH,"age_region.png"),
+  plot_age_region, 
+  height = 4, 
+  width = 5, 
+  units = "in",
+  dpi = 300,
+  create.dir = TRUE
+)
 
 reg_clade_prop <- meta_tbl %>%
   group_by(bea_reg) %>%
@@ -233,18 +302,19 @@ reposition_legend(plot_clade_reg_time,
                   panel="panel-2-6")
 
 #Stitch the main figures together
-combined_fig <- seq_map + seq_eff_map + 
-  plot_age_sex + (plot_natl_effort / plot_effort_box) + 
+combined_fig <- seq_map + seq_eff_map +
+  plot_age_sex + (plot_natl_effort / plot_effort_box) +
   plot_layout(ncol=2,
-            byrow = TRUE) +
+            byrow = TRUE,
+            heights = c(1, 0.6)) +
   plot_annotation(tag_levels = "a") &
   theme(
     plot.tag = element_text(face = "bold", size = 12),
-    plot.tag.position = c(0.02, 0.98)  
+    plot.tag.position = c(0.02, 0.98)
   )
 ggsave(combined_fig,
        filename=paste0("figs/",scenario,"/figure_1.jpg"),
        units = "in",
-       dpi = 192,
+       dpi = 300,
        height = 20,
        width = 18)

@@ -108,6 +108,84 @@ generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
   )
 }
 
+# Function to generate vaccine-period focused plots for elderly age groups
+generate_vaccine_period_plots <- function(df_data, fig_path, title_suffix = "") {
+  # Define age group order
+  age_order <- c("0-5y", "6-11y", "12-17y", "18-25y", "26-45y", "46-65y", "65-80y", "81y+")
+
+  # Filter to vaccine rollout period (Nov 2020 - May 2021) and elderly age groups as sources
+  vaccine_data <- df_data %>%
+    mutate(
+      x = factor(x, levels = age_order),
+      y = factor(y, levels = age_order)
+    ) %>%
+    filter(
+      date >= as.Date("2020-11-01") & date <= as.Date("2021-05-31"),
+      x %in% c("65-80y", "81y+")
+    )
+
+  # Plot 1: RR over time for elderly age groups
+  p1 <- ggplot(vaccine_data, aes(x = date, y = RR, color = y, group = y)) +
+    geom_line(alpha = 0.7, linewidth = 1) +
+    geom_point(size = 1.5, alpha = 0.7) +
+    geom_hline(yintercept = 1, linetype = "dotted", color = "black", alpha = 0.5) +
+    facet_wrap(~ x, nrow = 1) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+    scale_y_log10() +
+    labs(
+      title = paste0("Relative Risk During Vaccine Rollout", title_suffix),
+      subtitle = "Elderly age groups (65+) transmission to all age groups, Nov 2020 - May 2021",
+      x = "Date",
+      y = "RR (log scale)",
+      color = "To Age Group"
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.text = element_text(size = 11, face = "bold"),
+      legend.position = "right",
+      plot.subtitle = element_text(size = 9, color = "gray40")
+    )
+
+  ggsave(
+    filename = paste0(fig_path, "vaccine_period_RR_elderly.png"),
+    plot = p1,
+    width = 14,
+    height = 6,
+    dpi = 300
+  )
+
+  # Plot 2: nRR_fixed over time for elderly age groups
+  p2 <- ggplot(vaccine_data, aes(x = date, y = nRR_fixed, color = y, group = y)) +
+    geom_line(alpha = 0.7, linewidth = 1) +
+    geom_point(size = 1.5, alpha = 0.7) +
+    geom_hline(yintercept = 1, linetype = "dotted", color = "black", alpha = 0.5) +
+    facet_wrap(~ x, nrow = 1) +
+    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+    labs(
+      title = paste0("Baseline Normalized RR During Vaccine Rollout", title_suffix),
+      subtitle = "Elderly age groups (65+) transmission to all age groups (normalized to 26-45y baseline), Nov 2020 - May 2021",
+      x = "Date",
+      y = "nRR (normalized to 26-45y)",
+      color = "To Age Group"
+    ) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.text = element_text(size = 11, face = "bold"),
+      legend.position = "right",
+      plot.subtitle = element_text(size = 9, color = "gray40")
+    )
+
+  ggsave(
+    filename = paste0(fig_path, "vaccine_period_nRR_fixed_elderly.png"),
+    plot = p2,
+    width = 14,
+    height = 6,
+    dpi = 300
+  )
+}
+
 args <- collect_args()
 scenario <- args$scenario
 
@@ -154,6 +232,24 @@ if (file.exists(data_path_countries)) {
 } else {
   cat("Country-specific data not found at:", data_path_countries, "\n")
   cat("Skipping country-specific plots.\n")
+}
+
+# 3. Generate vaccine-period focused plots for all countries combined
+cat("Generating vaccine-period plots for elderly age groups (all countries)...\n")
+generate_vaccine_period_plots(df_age_time_all, fig_path_all, title_suffix = " (All Countries)")
+
+# 4. Generate vaccine-period plots for each country (if data exists)
+if (file.exists(data_path_countries)) {
+  for (ctry in countries) {
+    cat("  Generating vaccine-period plots for country:", ctry, "\n")
+
+    df_country <- df_age_time_countries %>%
+      filter(country == ctry)
+
+    fig_path_country <- paste0("figs/", scenario, "/age_time/", ctry, "/")
+
+    generate_vaccine_period_plots(df_country, fig_path_country, title_suffix = paste0(" (", ctry, ")"))
+  }
 }
 
 cat("\nAll plots completed.\n")
