@@ -10,11 +10,13 @@ library(lubridate)
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = 'CAM_1000', help = 'Scenario name')
+  parser$add_argument('--days', type = 'integer', default = 3, help = "Maximum interval of days for duplicate")
   return(parser$parse_args())
 }
 
 args <- collect_args()
 scenario <- args$scenario
+days_interval <- args$days
 
 fn_db <- paste0("db_files/db_", scenario, ".duckdb")
 con <- DBI::dbConnect(duckdb(), fn_db)
@@ -48,7 +50,7 @@ df_duplicates <- tbl(con, "pairs") %>%
     n_mutations == 0,                           # Identical sequences
     division_1 == division_2,                   # Same division (state/province)
     age_adj_1 == age_adj_2,                     # Same age
-    abs(date_1 - date_2) <= 28,                 # Within 28 days
+    abs(date_1 - date_2) <= days_interval,                 # Within certain number of days
     (sex_1 == sex_2) | (is.na(sex_1) & is.na(sex_2)),           # Sex matches or both NA
     (location_1 == location_2) | (is.na(location_1) & is.na(location_2))  # Location (sub-state/province) matches or both NA
   ) %>%
