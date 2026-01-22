@@ -23,7 +23,7 @@ CBSA_DISTANCE <- fread("data/state_cbsa_dist.tsv")
 
 collect_args <- function(){
   parser <- ArgumentParser()
-  parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--scenario', default = "CAM_1000", type = 'character', help = 'Which scenario to perform the analysis on')
   parser$add_argument('--ci', type = 'logical', default = TRUE, help = "Whether to calculate CIs, default is TRUE")
   parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
   return(parser$parse_args())

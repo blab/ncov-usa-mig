@@ -14,20 +14,30 @@
 #time_bounds: Date range (as vector of two Date values) for time analyses (NEEDS TO BE ADDED)
 #exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
 
-calculate_rr_ci <- function(db_con,exp_var,samp_cov = 0.8, k = 200, interval_width = 0.95, exclude_duplicates = FALSE){
-  RR_dist <- matrix()
-  for(x in 1:k){
-    RR_samp <- bind_pairs_exp(db_con,exp_var,sub_samp = TRUE,samp_cov, exclude_duplicates = exclude_duplicates) %>%
-      calculate_rr_matrix %>%
-      collect
-    if(x == 1){
-      CI_keys <- RR_samp %>% select(c(x,y))
-      RR_dist <- RR_samp$RR
-    }else{
-      RR_dist <- cbind(RR_dist,RR_samp$RR)
-    }
+calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 200,
+                            interval_width = 0.95, exclude_duplicates = FALSE) {
+
+  rr_list <- vector("list", k)
+
+  for (i in 1:k) {
+    rr_list[[i]] <- bind_pairs_exp(db_con, exp_var, sub_samp = TRUE, samp_cov,
+                                   exclude_duplicates = exclude_duplicates) %>%
+      calculate_rr_matrix() %>%
+      collect() %>%
+      select(x, y, RR) %>%
+      rename(!!paste0("RR_", i) := RR)
   }
-  ci_lb <- apply(RR_dist,1,quantile,probs=(1-interval_width)/2)
-  ci_ub <- apply(RR_dist,1,quantile,probs=(1+interval_width)/2)
-  return(cbind(CI_keys,ci_lb,ci_ub))
+
+  # Join all iterations by (x, y) key
+  rr_combined <- reduce(rr_list, full_join, by = c("x", "y"))
+
+  # Calculate quantiles across columns
+  rr_matrix <- rr_combined %>% select(starts_with("RR_")) %>% as.matrix()
+
+  rr_combined %>%
+    mutate(
+      ci_lb = apply(rr_matrix, 1, quantile, probs = (1 - interval_width) / 2, na.rm = TRUE),
+      ci_ub = apply(rr_matrix, 1, quantile, probs = (1 + interval_width) / 2, na.rm = TRUE)
+    ) %>%
+    select(x, y, ci_lb, ci_ub)
 }
