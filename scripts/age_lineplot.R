@@ -184,11 +184,40 @@ age_same_plot_by_state  <- age_state_rr  %>%
         legend.position = "bottom"
       )
 
-fn_age_same_state_plot <- paste0("figs/",scenario,"/age_same_lineplot_by_state.jpg") 
+fn_age_same_state_plot <- paste0("figs/",scenario,"/age_same_lineplot_by_state.jpg")
 ggsave(fn_age_same_state_plot,
        plot=age_same_plot_by_state,
        device = "jpeg",
        dpi = 300,
        width = 7,
        height = 4
+)
+
+## Boxplot of same age RR by region status
+age_same_boxplot_by_state <- age_state_rr %>%
+  filter(x==y) %>% #Only look at RR within the same age
+  filter(!age_censor) %>%
+  ggplot(aes(x = state_region_flag, y = RR, fill = state_region_flag)) +
+  geom_boxplot(outlier.alpha = 0.3) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  scale_y_continuous(transform = 'log10',
+                     name = expression(RR["identical sequences"])) +
+  scale_x_discrete(name = "") +
+  scale_fill_brewer(type = "qual", palette = "Dark2") +
+  theme_classic() +
+  ggtitle("Same Age RR") +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_text(size = 12),
+        axis.text = element_text(size = 10),
+        axis.text.x = element_text(angle = 45, hjust = 1.),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = "none")
+
+fn_age_same_boxplot <- paste0("figs/",scenario,"/age_same_boxplot_by_state.jpg")
+ggsave(fn_age_same_boxplot,
+       plot = age_same_boxplot_by_state,
+       device = "jpeg",
+       dpi = 300,
+       width = 3,
+       height = 5
 )

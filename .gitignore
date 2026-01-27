@@ -24,6 +24,7 @@ scripts/nondb_versions/*
 figs/*
 pubs/*
 lit/*
+docs/*
 
 .Rdata
 .Rhistory

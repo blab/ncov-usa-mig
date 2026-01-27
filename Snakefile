@@ -21,6 +21,8 @@ all_outputs = expand([
     "figs/{scenario}/age_lineplot_by_state.jpg",
     "figs/{scenario}/age_lineplot_abridged.jpg",
     "figs/{scenario}/age_same_lineplot_by_state.jpg",
+    # Age-gender sensitivity analysis
+    "figs/{scenario}/age_gender/same_rr_age_gender.png",
     # State analyses
     "results/{scenario}/df_RR_by_state.tsv",
     "figs/{scenario}/state_heatmap.jpg",
@@ -39,6 +41,7 @@ all_outputs = expand([
     "figs/{scenario}/age_time/school_share_RR_correlation.jpg",
     # Age time visualizations
     "figs/{scenario}/age_time/USA/age_RR_time_faceted.png",
+    "figs/{scenario}/age_time/all_countries/vaccine_period_RR_elderly.png",
     # State time visualizations
     "figs/{scenario}/time/state_pair_nRR_heatmap.png",
     "figs/{scenario}/clust/htree.jpg",
@@ -161,6 +164,25 @@ rule age_heatmap:
     shell:
         """
         Rscript ./scripts/age_heatmap.R --scenario {wildcards.scenario}
+        """
+
+rule age_gender_sensitivity:
+    input:
+        "results/{scenario}/data_cleaned.txt"
+    output:
+        "figs/{scenario}/age_gender/same_rr_age_gender.png",
+        "figs/{scenario}/age_gender/same_age_gender_boxplot.png",
+        "figs/{scenario}/age_gender/rr_age_gender_corr.png",
+        "figs/{scenario}/age_gender/same_gender_age_heatmap.png",
+        "figs/{scenario}/age_gender/different_gender_age_heatmap.png",
+        "figs/{scenario}/age_gender/gender_rr_over_age.png",
+        "figs/{scenario}/age_gender/gender_rr_by_lifestage.png"
+    group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
+    shell:
+        """
+        Rscript ./scripts/age_gender_sensitivity_analysis.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 # ============================================================================
@@ -377,7 +399,9 @@ rule age_time_plots:
     output:
         "figs/{scenario}/age_time/USA/age_RR_time_faceted.png",
         "figs/{scenario}/age_time/USA/age_nRR_time_faceted.png",
-        "figs/{scenario}/age_time/USA/age_nRR_fixed_time_faceted_all.png"
+        "figs/{scenario}/age_time/USA/age_nRR_fixed_time_faceted_all.png",
+        "figs/{scenario}/age_time/all_countries/vaccine_period_RR_elderly.png",
+        "figs/{scenario}/age_time/all_countries/vaccine_period_nRR_fixed_elderly.png"
     shell:
         """
         Rscript ./scripts/age_time_plot.R --scenario {wildcards.scenario}
