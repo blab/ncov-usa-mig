@@ -25,7 +25,7 @@ bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bound
   
   if(sub_samp){ #Slice up the metadata for subsampling
     k <- floor(meta_tbl %>% summarize(n()) %>% collect() %>% as.numeric() * samp_cov)  #Yes this is poor grammar
-    meta_tbl <- meta_tbl %>% slice_sample(n=k,replace = FALSE) %>% compute()  # Materialize to avoid re-sampling on repeated access
+    meta_tbl <- meta_tbl %>% slice_sample(n=k,replace = FALSE) %>% compute(name = "temp_subsample", overwrite = TRUE)  # Materialize to avoid re-sampling on repeated access
   }
   if(!is.null(time_bounds)){
     time_LB <- time_bounds[1]

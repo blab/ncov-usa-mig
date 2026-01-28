@@ -14,19 +14,29 @@
 #time_bounds: Date range (as vector of two Date values) for time analyses (NEEDS TO BE ADDED)
 #exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
 
-calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 200,
-                            interval_width = 0.95, exclude_duplicates = FALSE) {
+calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 25,
+                            interval_width = 0.95, exclude_duplicates = TRUE) {
 
   rr_list <- vector("list", k)
 
   for (i in 1:k) {
-    rr_list[[i]] <- bind_pairs_exp(db_con, exp_var, sub_samp = TRUE, samp_cov,
-                                   exclude_duplicates = exclude_duplicates) %>%
+    tictoc::tic()
+    iteration_pairs <- bind_pairs_exp(db_con, exp_var, sub_samp = TRUE, samp_cov,
+                                   exclude_duplicates = exclude_duplicates)
+    iteration_rr <- iteration_pairs %>% 
       calculate_rr_matrix() %>%
-      collect() %>%
+      collect()
+    iteration_rr_cleaned <- iteration_rr %>% 
       select(x, y, RR) %>%
       rename(!!paste0("RR_", i) := RR)
+    rr_list[[i]] <- iteration_rr_cleaned
+    if (i %% 10 == 0) {
+      gc()
+      message(sprintf("Completed bootstrap iteration %d/%d", i, k))
+    }
+    tictoc::toc()
   }
+
 
   # Join all iterations by (x, y) key
   rr_combined <- reduce(rr_list, full_join, by = c("x", "y"))

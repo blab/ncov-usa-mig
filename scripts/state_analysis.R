@@ -2,10 +2,11 @@
 #Author(s): Amin Bemanian
 #Date: 8/13/24
 #Description: Calculate the relative risks across states
-#Arguments: 
+#Arguments:
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
 #--threads: Number of threads for the parallelization, default is 1 if no parallelization
 
+options(python_cmd = "C:/Users/magus/miniconda3/python.exe")
 library(argparse)
 library(tidyverse)
 library(data.table)
@@ -34,12 +35,9 @@ scenario <- args$scenario
 ci_flag <- args$ci
 exclude_duplicates <- args$exclude_duplicates
 
-#Debugging shortcuts
-#scenario <- "CAM_10"
-#ci_flag <- FALSE
-
 fn_db <- paste0("db_files/db_",scenario,".duckdb")
-con <- DBI::dbConnect(duckdb(),fn_db)
+drv <- duckdb(config = list(threads = "15"))
+con <- DBI::dbConnect(drv,fn_db)
 
 state_rr <- con %>%
   bind_pairs_exp("division", exclude_duplicates = exclude_duplicates) %>%
