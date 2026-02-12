@@ -10,15 +10,16 @@ source("scripts/color_schemes.R")
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--sd_threshold', type = 'double', default = 2, help = 'Number of standard deviations for significance threshold')
-  parser$add_argument('--min_occurrences', type = 'integer', default = 3, help = 'Minimum number of time points a connection must appear in')
+  parser$add_argument('--percentile_threshold', type = 'double', default = 0.98, help = 'Percentile threshold for significance (default is 0.9)')
+  parser$add_argument('--min_occurrences', type = 'integer', default = 5, help = 'Minimum number of time points a connection must appear in')
   return(parser$parse_args())
 }
 
 args <- collect_args()
 scenario <- args$scenario
-sd_threshold <- args$sd_threshold
+percentile_threshold <- args$percentile_threshold
 min_occurrences <- args$min_occurrences
+label_threshold <- round(100 * percentile_threshold)
 
 select <- dplyr::select
 
@@ -42,7 +43,7 @@ state_centroids <- cam_map %>%
   select(state = NAME_En, lon, lat)
 
 # Read the significant connections
-fn_in <- paste0("results/", scenario, "/time_state/df_significant_connections_", sd_threshold, "sd.tsv")
+fn_in <- paste0("results/", scenario, "/time_state/df_significant_connections_", label_threshold, "_percentile.tsv")
 sig_connections <- fread(fn_in)
 
 # Create edge pairs (unordered, so A-B is same as B-A)
@@ -60,22 +61,21 @@ edge_counts <- sig_connections %>%
     last_date = max(date),
     mean_nRR = mean(nRR, na.rm = TRUE),
     median_nRR = median(nRR, na.rm = TRUE),
-    mean_z_x = mean(abs(z_score_x), na.rm = TRUE),
-    mean_z_y = mean(abs(z_score_y), na.rm = TRUE),
-    max_z = max(pmin(abs(z_score_x), abs(z_score_y))),
+    max_nRR = max(nRR, na.rm = TRUE),
     .groups = "drop"
   ) %>%
   filter(n_occurrences >= min_occurrences) %>%
-  arrange(desc(n_occurrences), desc(max_z))
+  arrange(desc(n_occurrences), desc(mean_nRR))
 
 cat("\n=== Conserved Connection Analysis ===\n")
+cat("Percentile threshold:", label_threshold, "%\n")
 cat("Connections appearing in", min_occurrences, "or more time points:", nrow(edge_counts), "\n")
 cat("\nTop 10 most conserved connections:\n")
 print(head(edge_counts %>% select(x, y, n_occurrences, first_date, last_date, mean_nRR), 10))
 
 # Create edges for the conserved network
 conserved_edges <- edge_counts %>%
-  select(x, y, n_occurrences, mean_nRR, mean_z_x, mean_z_y, max_z)
+  select(x, y, n_occurrences, mean_nRR, max_nRR)
 
 # Create graph from edge list
 g <- graph_from_data_frame(conserved_edges, directed = FALSE)
@@ -114,7 +114,7 @@ layout_matrix <- as.matrix(node_coords[, c("lon", "lat")])
 
 # Edge weights based on number of occurrences
 E(g)$weight <- conserved_edges$n_occurrences
-E(g)$max_z <- conserved_edges$max_z
+E(g)$max_nRR <- conserved_edges$max_nRR
 
 # Create the plot
 p <- ggraph(g, layout = layout_matrix) +
@@ -127,7 +127,7 @@ p <- ggraph(g, layout = layout_matrix) +
                                breaks = c(2, 5, 10, 15)) +
   scale_edge_alpha_continuous(range = c(0.4, 0.95), guide = "none") +
   labs(title = "Conserved Significant Inter-State Connections",
-       subtitle = paste0("Connections appearing in ", min_occurrences, "+ time points (out of 19 quarters)\n",
+       subtitle = paste0("Connections above ", label_threshold, "th percentile in ", min_occurrences, "+ time points\n",
                         "Total conserved connections: ", nrow(conserved_edges), " | States involved: ", vcount(g))) +
   theme_graph() +
   theme(
@@ -138,13 +138,13 @@ p <- ggraph(g, layout = layout_matrix) +
 
 # Save plot
 fn_out_path <- paste0("figs/", scenario, "/time_state_networks/")
-fn_out <- paste0(fn_out_path, "network_conserved_", min_occurrences, "plus.jpg")
+fn_out <- paste0(fn_out_path, "network_conserved_", label_threshold, "pct_", min_occurrences, "plus.jpg")
 ggsave(fn_out, plot = p, width = 14, height = 9, dpi = 300,create.dir=TRUE)
 
 cat("\nConserved network plot saved to:", fn_out, "\n")
 
 # Save the conserved edges data
-fn_out_data <- paste0("results/", scenario, "/time_state/df_conserved_connections_", min_occurrences, "plus.tsv")
+fn_out_data <- paste0("results/", scenario, "/time_state/df_conserved_connections_", label_threshold, "pct_", min_occurrences, "plus.tsv")
 write_tsv(edge_counts, fn_out_data)
 
 cat("Conserved connections data saved to:", fn_out_data, "\n")
@@ -251,7 +251,7 @@ p_map <- ggplot() +
   guides(fill = "none") +  # Remove BEA region fill legend
   coord_sf(expand = FALSE) +  # Remove whitespace
   labs(title = "Conserved Significant Inter-Region Connections",
-       subtitle = paste0("Connections appearing in ", min_occurrences, "+ time points (out of 20 quarters)\n",
+       subtitle = paste0("Connections above ", label_threshold, "th percentile in ", min_occurrences, "+ time points\n",
                         "Network overlaid on BEA regions")) +
   theme_minimal() +
   theme(
@@ -266,9 +266,135 @@ p_map <- ggplot() +
   )
 
 # Save map plot
-fn_out_map <- paste0(fn_out_path, "network_conserved_", min_occurrences, "plus_map.jpg")
+fn_out_map <- paste0(fn_out_path, "network_conserved_", label_threshold, "pct_", min_occurrences, "plus_map.jpg")
 ggsave(fn_out_map, plot = p_map, width = 16, height = 10, dpi = 300)
 
 cat("Map with network overlay saved to:", fn_out_map, "\n")
+
+# ============================================================================
+# QUARTERLY NETWORK VISUALIZATIONS
+# ============================================================================
+cat("\n=== Creating Quarterly Network Maps ===\n")
+
+# Define states to exclude from quarterly maps (non-continental US)
+EXCLUDE_STATES <- c("Hawaii", "Alaska", "Mexico", "Canada",
+                    "Alberta", "British Columbia", "Manitoba", "New Brunswick",
+                    "Newfoundland and Labrador", "Northwest Territories", "Nova Scotia",
+                    "Nunavut", "Ontario", "Prince Edward Island", "Quebec",
+                    "Saskatchewan", "Yukon")
+
+# Add quarter to significant connections and filter to continental US
+sig_connections_q <- sig_connections %>%
+  filter(!(x %in% EXCLUDE_STATES | y %in% EXCLUDE_STATES)) %>%
+  mutate(quarter = paste0("Q", quarter(date)))
+
+# Define quarter labels
+quarter_labels <- c("Q1" = "Q1 (Jan-Mar)", "Q2" = "Q2 (Apr-Jun)",
+                    "Q3" = "Q3 (Jul-Sep)", "Q4" = "Q4 (Oct-Dec)")
+
+# Minimum occurrences for quarterly analysis
+min_occ_quarterly <- 2
+
+# Pre-filter map to continental US for quarterly plots
+cam_map_conus <- cam_map %>%
+  left_join(REGION_DATA %>% select(state, bea_reg), by = c("NAME_En" = "state")) %>%
+  filter(!(NAME_En %in% EXCLUDE_STATES))
+
+# Loop through each quarter
+for (q in c("Q1", "Q2", "Q3", "Q4")) {
+  cat("\nProcessing", q, "...\n")
+
+  # Filter to this quarter and count edge occurrences
+  edge_counts_q <- sig_connections_q %>%
+    filter(quarter == q) %>%
+    group_by(edge_pair, x, y, region_x, region_y, country_x, country_y) %>%
+    summarise(
+      n_occurrences = n(),
+      mean_nRR = mean(nRR, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    filter(n_occurrences >= min_occ_quarterly) %>%
+    arrange(desc(n_occurrences), desc(mean_nRR))
+
+  cat("  Connections in", q, "appearing", min_occ_quarterly, "+ times:", nrow(edge_counts_q), "\n")
+
+  if (nrow(edge_counts_q) == 0) {
+    cat("  Skipping - no connections meet threshold\n")
+    next
+  }
+
+  # Get states involved in this quarter
+  states_involved_q <- unique(c(edge_counts_q$x, edge_counts_q$y))
+
+  # Prepare edges for plotting (deduplicate)
+  edges_for_plot_q <- edge_counts_q %>%
+    left_join(state_centroids, by = c("x" = "state")) %>%
+    rename(lon_x = lon, lat_x = lat) %>%
+    left_join(state_centroids, by = c("y" = "state")) %>%
+    rename(lon_y = lon, lat_y = lat) %>%
+    group_by(edge_pair) %>%
+    slice_min(lon_x, n = 1, with_ties = FALSE) %>%
+    ungroup()
+
+  # Create curved paths
+  edges_with_paths_q <- edges_for_plot_q %>%
+    rowwise() %>%
+    mutate(
+      path = list(generate_curved_path(lon_x, lat_x, lon_y, lat_y, n = 50, curvature = 0.15))
+    ) %>%
+    ungroup()
+
+  edges_paths_long_q <- edges_with_paths_q %>%
+    select(edge_pair, n_occurrences, path) %>%
+    unnest(path) %>%
+    group_by(edge_pair) %>%
+    mutate(path_order = row_number()) %>%
+    ungroup()
+
+  # Prepare nodes
+  nodes_for_plot_q <- state_centroids %>%
+    filter(state %in% states_involved_q) %>%
+    left_join(REGION_DATA %>% select(state, bea_reg), by = "state")
+
+  # Use pre-filtered continental US map
+  cam_map_q <- cam_map_conus
+
+  # Create quarterly map plot
+  p_q <- ggplot() +
+    geom_sf(data = cam_map_q, aes(fill = bea_reg), color = "black", linewidth = 0.5) +
+    region_fill_scale() +
+    geom_path(data = edges_paths_long_q,
+              aes(x = lon, y = lat, group = edge_pair,
+                  linewidth = n_occurrences, alpha = n_occurrences),
+              color = "black") +
+    geom_point(data = nodes_for_plot_q,
+               aes(x = lon, y = lat, fill = bea_reg),
+               size = 5, shape = 21, color = "black", stroke = 1.5) +
+    scale_linewidth_continuous(range = c(0.5, 3),
+                               name = "# Years",
+                               breaks = c(2, 3, 4, 5)) +
+    scale_alpha_continuous(range = c(0.4, 0.9), guide = "none") +
+    guides(fill = "none") +
+    coord_sf(expand = FALSE) +
+    labs(title = paste0("Conserved Connections (Continental US): ", quarter_labels[q]),
+         subtitle = paste0("Connections above ", label_threshold, "th percentile in ", min_occ_quarterly, "+ years\n",
+                          "Total connections: ", nrow(edges_for_plot_q), " | States involved: ", length(states_involved_q))) +
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 11),
+      legend.position = "bottom",
+      legend.box = "horizontal",
+      panel.grid = element_blank(),
+      axis.text = element_blank(),
+      axis.title = element_blank(),
+      plot.margin = margin(5, 5, 5, 5)
+    )
+
+  # Save quarterly plot
+  fn_out_q <- paste0(fn_out_path, "network_conserved_", label_threshold, "pct_", q, "_map.jpg")
+  ggsave(fn_out_q, plot = p_q, width = 16, height = 10, dpi = 300)
+  cat("  Saved:", fn_out_q, "\n")
+}
 
 cat("\n=== Analysis Complete ===\n")

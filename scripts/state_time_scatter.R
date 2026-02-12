@@ -37,27 +37,35 @@ df_regions <- read_csv("data/us_states_regions.csv") %>%
 df_dist <- read_tsv("data/nb_dist_states.tsv")
 
 PAIR_LIST <- tribble(
-  ~x,                    ~y,
-  "Mexico",              "Texas",
-  "Mexico",              "California",
-  "Mexico",              "Arizona",
-  "British Columbia",    "Washington",
-  "Ontario",             "Michigan",
-  "Ontario",             "New York",
-  "Ontario",             "Quebec",
-  "Ontario",             "British Columbia",
-  "Ontario",             "Alberta",
-  "Quebec",              "New York",
-  "Quebec",              "Vermont",
-  "California",          "New York",
-  "California",          "Arizona",
-  "California",          "Texas",
-  "California",          "Washington",
-  "Michigan",            "Illinois",
-  "Alberta",             "Montana",
-  "Manitoba",            "North Dakota",
-  "Manitoba",            "Alberta",
-  "Vermont",             "New York" 
+  ~x,                    ~y,                  ~pair_category,
+  # Intra-Regional Domestic pairs (6)
+  "California",          "Nevada",            "Intra-Regional Domestic",
+  "Illinois",            "Michigan",          "Intra-Regional Domestic",
+  "New Jersey",          "New York",          "Intra-Regional Domestic",
+  "Oklahoma",            "Texas",             "Intra-Regional Domestic",
+  "Ontario",             "Quebec",            "Intra-Regional Domestic",
+  "New York",            "Pennsylvania",      "Intra-Regional Domestic",
+  # Inter-Regional Domestic pairs (6)
+  "British Columbia",    "Ontario",           "Inter-Regional Domestic",
+  "British Columbia",    "Quebec",            "Inter-Regional Domestic",
+  "California",          "New York",          "Inter-Regional Domestic",
+  "California",          "Texas",             "Inter-Regional Domestic",
+  "Michigan",            "New York",          "Inter-Regional Domestic",
+  "New York",            "Texas",             "Inter-Regional Domestic",
+  # Border international pairs (6)
+  "British Columbia",    "Washington",        "Border",
+  "California",          "Mexico",            "Border",
+  "Mexico",              "Texas",             "Border",
+  "Michigan",            "Ontario",           "Border",
+  "New York",            "Ontario",           "Border",
+  "New York",            "Quebec",            "Border",
+  # Non-border international pairs (6)
+  "British Columbia",    "Oregon",            "Non-Border International",
+  "Florida",             "Mexico",            "Non-Border International",
+  "Illinois",            "Ontario",           "Non-Border International",
+  "Massachusetts",       "Quebec",            "Non-Border International",
+  "Mexico",              "Nevada",            "Non-Border International",
+  "New Jersey",          "Ontario",           "Non-Border International"
 )
 
 #Make quarter labels
@@ -75,9 +83,11 @@ sub_RR_snap <- state_rr_snap %>%
   left_join(ref_nRR,by=c("x","y")) %>%
   inner_join(PAIR_LIST, by=c("x","y")) %>%
   mutate(pair_name = paste0(x,"-",y)) %>%
-  mutate(is_intl = pair_type == "International") %>%
+  mutate(pair_category = factor(pair_category,
+                                levels = c("Intra-Regional Domestic", "Inter-Regional Domestic",
+                                          "Border", "Non-Border International"))) %>%
   # Create separate factor levels for each facet with alphabetical order (reversed for plotting)
-  group_by(is_intl) %>%
+  group_by(pair_category) %>%
   arrange(pair_name, .by_group = TRUE) %>%
   mutate(pair_name = factor(pair_name, levels = rev(unique(pair_name)))) %>%
   # Add fold change calculation
@@ -95,8 +105,9 @@ common_fill_scale <- scale_fill_distiller(
   labels = function(x) format(10^x, digits = 1)
 )
 
-# Create separate plots for each facet
-p1 <- ggplot(sub_RR_snap %>% filter(!is_intl),
+# Create separate plots for each category (2x2 layout: domestic left, international right)
+# Top left: Intra-Regional Domestic
+p1 <- ggplot(sub_RR_snap %>% filter(pair_category == "Intra-Regional Domestic"),
        aes(x=date, y=pair_name, fill = log10(nRR_fold))) +
   geom_tile(color="#555") +
   geom_vline(xintercept = as.numeric(REF_DATE),
@@ -106,18 +117,38 @@ p1 <- ggplot(sub_RR_snap %>% filter(!is_intl),
     labels = function(x) format_quarters(x),
     expand = expansion(0.01)
   ) +
-  labs(x = "Date", y = "Domestic Pairs") +
-  common_fill_scale +  # Use common scale
+  labs(x = "Date", y = "Intra-Regional Domestic") +
+  common_fill_scale +
   theme_minimal() +
   theme(
     axis.text.x = element_blank(),
     axis.title.x = element_blank(),
-    legend.position = "right",
-    legend.justification = "center",
+    legend.position = "none",
     panel.grid.major = element_blank()
   )
 
-p2 <- ggplot(sub_RR_snap %>% filter(is_intl),
+# Bottom left: Inter-Regional Domestic
+p2 <- ggplot(sub_RR_snap %>% filter(pair_category == "Inter-Regional Domestic"),
+       aes(x=date, y=pair_name, fill = log10(nRR_fold))) +
+  geom_tile(color="#555") +
+  geom_vline(xintercept = as.numeric(REF_DATE),
+             color = "black", linewidth = 1.5, linetype = "dotted") +
+  scale_x_date(
+    date_breaks = "3 months",
+    labels = function(x) format_quarters(x),
+    expand = expansion(0.01)
+  ) +
+  labs(x = "Date", y = "Inter-Regional Domestic") +
+  common_fill_scale +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size=8),
+    legend.position = "none",
+    panel.grid.major = element_blank()
+  )
+
+# Top right: Border International
+p3 <- ggplot(sub_RR_snap %>% filter(pair_category == "Border"),
        aes(x=date, y=pair_name, fill=log10(nRR_fold))) +
   geom_tile(color="#555") +
   geom_vline(xintercept = as.numeric(REF_DATE),
@@ -127,24 +158,49 @@ p2 <- ggplot(sub_RR_snap %>% filter(is_intl),
     labels = function(x) format_quarters(x),
     expand = expansion(0.01)
   ) +
-  labs(x = "Date", y = "International Pairs") +
-  common_fill_scale +  # Use common scale
+  labs(x = "Date", y = "Border International") +
+  common_fill_scale +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title.x = element_blank(),
+    legend.position = "right",
+    legend.justification = "center",
+    panel.grid.major = element_blank()
+  )
+
+# Bottom right: Non-Border International
+p4 <- ggplot(sub_RR_snap %>% filter(pair_category == "Non-Border International"),
+       aes(x=date, y=pair_name, fill=log10(nRR_fold))) +
+  geom_tile(color="#555") +
+  geom_vline(xintercept = as.numeric(REF_DATE),
+             color = "black", linewidth = 1.5, linetype = "dotted") +
+  scale_x_date(
+    date_breaks = "3 months",
+    labels = function(x) format_quarters(x),
+    expand = expansion(0.01)
+  ) +
+  labs(x = "Date", y = "Non-Border International") +
+  common_fill_scale +
   theme_minimal() +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size=8),
     legend.position = "none",
     panel.grid.major = element_blank()
-  ) 
-# Combine plots using patchwork
-sub_pair_plot <- p1 / p2 +
+  )
+
+# Combine plots using patchwork (2x2: domestic left, international right)
+sub_pair_plot <- ((p1 / p2) | (p3 / p4)) +
+  plot_layout(guides = "collect") +
   plot_annotation(
-    title = "Normalized RR Over Time by State/Province Pair",
-    theme = theme_minimal())
+    title = "Fold Change in nRR Over Time",
+    theme = theme_minimal(base_size = 16))
 
 ggsave(filename = paste0(fig_path,"state_pair_nRR_heatmap.png"),plot = sub_pair_plot,
-       width=8,
+       width=16,
        height=5,
-       dpi=192)
+       dpi=300,
+       scale=1.3)
 
 
 full_pair_snap <- state_rr_snap %>%

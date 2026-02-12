@@ -1,0 +1,81 @@
+\documentclass[11pt, letterpaper, oneside]{article}
+
+% === Load Packages and Update Formating===
+% --- Encoding and Fonts ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+% --- Page Layout ---
+\usepackage[margin=1in]{geometry}
+
+% --- Math ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% --- Citations ---
+\usepackage[
+    backend=biber,          % Use biber to process bibliography (modern, handles unicode)
+    style=nature
+]{biblatex}
+\addbibresource{references.bib}   % Your .bib file from Zotero
+
+% --- Typography ---
+\usepackage{microtype}   % Subtle spacing adjustments for better line breaks
+\usepackage{csquotes}    % Proper quotation marks (recommended with biblatex)
+
+% ---Figures and tables ---
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+% --- Cross-references & Links ---
+\usepackage{hyperref}   % Makes citations, refs, URLs clickable
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    citecolor=blue,
+    urlcolor=blue
+}
+\usepackage{cleveref}   % Smart references: \cref{fig:x} -> "Figure 1"
+
+% === METADATA ===
+\title{Exploring Transmission Patterns of SARS-CoV-2 from Identical Sequences Across Canada, Mexico, and the United States}
+\author{
+    Amin Bemanian$^{1,2,3*}$, 
+    Cécile Tran Kiem$^{1}$, 
+    Trevor Bedford$^{1,4}$\\[1ex]
+    \small $^1$Vaccine and Infectious Diseases Division, Fred Hutchinson Cancer Center\\
+    \small $^2$Division of Infectious Diseases, Seattle Children's Hospital\\
+    \small $^3$Department of Pediatrics, University of Washington\\
+    \small $^4$Howard Hughes Medical Institute\\[1ex]
+    \small $^*$Corresponding author: bemanian@uw.edu
+}
+\date{\today}
+
+% === DOCUMENT BODY ===
+\begin{document}
+
+\maketitle
+\begin{abstract}
+    Reserved space for abstract
+\end{abstract}
+
+\section{Introduction}
+
+Phylodynamic methods have been important tools for the understanding the spread and evolution of pathogens. This work typically involves reconstruction of an ancestral tree using sequence data, with the most common approaches in viral phylodynamics being probibilisitc reconstruction (i.e. Maximum Likelihood and Bayesian techniques).\autocite{volzViralPhylodynamics2013} These trees have the benefit of describing the full transmission history between sequences and finding ancestral states of an outbreak or epidemic, which can then be used by trait analyses to estimate mixing patterns between populations. These mixing patterns are then used for the construction of epidemiological models. Such methods have been instrumental in expanding our understanding past and ongoing epidemics such as the SARS-CoV-2 pandemic, waves of seasonal influenza, and the mpox epidemic.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015,paredesUnderdetectedDispersalExtensive2024}
+
+A major drawback of traditional tree-based approaches however is how computationally intensive they are. The potential number of possible phylogenetic trees scales factorically with the number of genomes included. As a results Bayesian and ML based trees typically are limited in size to thousands or tens of thousands of sequences. For the SARS-CoV-2 pandemic, genomic surveillance programs sequenced pathogen genomes at an unprecedented rate. From December 2019 through December 2024, 16.7 million genomes were submitted to GISAID's EpiCoV database.\autocite{khareGISAIDsRolePandemic2021a} Analysis of such a large volume of sequences has led to innovation in phylogenetic methods such as UShER and Nextclade making large-scale real-time analyses more feasible.\autocite{turakhiaUltrafastSamplePlacement2021,aksamentovNextcladeCladeAssignment2021} Other analyses have used statistical methods not reliant on reconstructing a full phylogenetic tree such as similiarity matricies, clustering techniques, and dimensionarlity reduction to identify patterns and structures across geneomes.\autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024}
+
+One tree-free method is using pairwise distances between genomes to identify likely transmission pairs. We have previously shown that clusters of identical pathogen sequences can be used to estimate the epidemiological characteristics of outbreaks.\autocite{tran-kiemEstimatingReproductionNumber2024a} This principle was then extended to develop a method of calculating the relative risk of identical sequences shared between two populations.\autocite{tran-kiemFinescalePatternsSARSCoV22025} Our group has previously shown this approach is able to identify county-level geographic patterns of SARS-CoV-2 spread in Washington State using 114,298 SARS-CoV-2 sequences from March 2021 to December 2022. Given that this approach is a simple relative risk calculation, it has the potential to scale well with even larger datasets and be used to measure relationships across space and time as well. We extend this framework to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period. This framework is used to look at spatial relationships of SARS-CoV-2 at multiple scales (interstate, inter-regional, and international) and time periods. Furthermore we use this set of sequences to identify high-resolution relationships across age groups to compare against existing age contact matrices.
+
+\section{Methods}
+
+\section{Results}
+
+\section{Discussion}
+
+\subsection{Conclusions}
+
+\printbibliography
+
+\end{document}

@@ -6,6 +6,7 @@
 *.jpg
 *.pdf
 *.png
+*.html
 
 
 cluster-analysis/*
@@ -39,3 +40,31 @@ Thumbs.db
 .Rproj.user
 core
 *.Rproj
+
+# LaTeX temporary files
+*.aux
+*.log
+*.toc
+*.lof
+*.lot
+*.out
+*.bbl
+*.blg
+*.bcf
+*.run.xml
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.nav
+*.snm
+*.vrb
+*.dvi
+*.latexmkrc
+
+# Quarto
+.quarto/
+_quarto/
+*_files/
+*_cache/
+_freeze/
+/.luarc.json
