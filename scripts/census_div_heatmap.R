@@ -16,7 +16,7 @@ source("scripts/color_schemes.R")
 
 collect_args <- function(){
   parser <- ArgumentParser()
-  parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on', default = "CAM_1000")
   return(parser$parse_args())
 }
 
@@ -25,7 +25,7 @@ scenario <- args$scenario
 #Manual ordering for labels
 #DIV_ORDER<- c("Pacific","Mountain","West North Central","East North Central","Middle Atlantic",
 #"New England","South Atlantic","East South Central","West South Central","Alaska","Hawaii","Pacific Territories","Caribbean Territories")
-DIV_ORDER <- c("Far West","Rocky Mountain","Southwest","Southeast","Plains","Great Lakes","Mideast","New England","Mexico","Western Canada","Eastern Canada")
+DIV_ORDER <- c("Far West","Rocky Mountain","Mexico","Southwest","Southeast","Plains","Great Lakes","Mideast","New England","Western Canada","Eastern Canada")
 
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
 
@@ -51,14 +51,14 @@ div_heatmap <- div_rr %>% rowwise %>% mutate(fill_RR = fill_bound(RR)) %>%
                   size=2,
                   bg.color="white",bg.r=0.1,
                   force = 0)+
-  labs(x="Regions",y="Regions",title=scenario) +
+  labs(x="Region",y="Region") +
   theme(axis.text.x = element_text(angle = 45, hjust=1))
-fn_div_plot <- paste0("figs/",scenario,"/census_divisions_heatmap.jpg") 
+fn_div_plot <- paste0("figs/",scenario,"/census_divisions_heatmap.pdf") 
 
 ggsave(fn_div_plot,
        plot=div_heatmap,
-       device = "jpeg",
-       dpi = 192,
+       device = "pdf",
+       dpi = 300,
        width = 7,
        height = 6
 )

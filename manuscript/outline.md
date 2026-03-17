@@ -1,3 +1,4 @@
+<!-- LTeX: enabled=false -->
 ## Introduction 
 
 * Review of prior work at pandemic transmission trends over large areas  

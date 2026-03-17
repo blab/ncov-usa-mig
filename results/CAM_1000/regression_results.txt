@@ -1,0 +1,2200 @@
+
+================================================================================
+MODEL: NHTS Trips
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ log10(RR_trips + zero_corrections$trips), 
+    data = df_model_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.8628 -0.1246  0.0182  0.1396  0.8577 
+
+Coefficients:
+                                         Estimate Std. Error t value Pr(>|t|)
+(Intercept)                              0.535517   0.014007   38.23   <2e-16
+log10(RR_trips + zero_corrections$trips) 0.308815   0.006175   50.01   <2e-16
+                                            
+(Intercept)                              ***
+log10(RR_trips + zero_corrections$trips) ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2129 on 2254 degrees of freedom
+Multiple R-squared:  0.5259,	Adjusted R-squared:  0.5257 
+F-statistic:  2501 on 1 and 2254 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 4.5765, df = 1, p-value = 0.03241
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                         Estimate Std. Error t value  Pr(>|t|)
+(Intercept)                              0.535517   0.012427  43.094 < 2.2e-16
+log10(RR_trips + zero_corrections$trips) 0.308815   0.005568  55.462 < 2.2e-16
+                                            
+(Intercept)                              ***
+log10(RR_trips + zero_corrections$trips) ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                             2.5 %    97.5 %
+(Intercept)                              0.5111481 0.5598863
+log10(RR_trips + zero_corrections$trips) 0.2978963 0.3197343
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                         original    bootBias    bootSE bootMed
+(Intercept)                               0.53552 -0.00096362 0.0123093 0.53496
+log10(RR_trips + zero_corrections$trips)  0.30882 -0.00035970 0.0055519 0.30818
+Bootstrap percent confidence intervals
+
+                                             2.5 %    97.5 %
+(Intercept)                              0.5110243 0.5578935
+log10(RR_trips + zero_corrections$trips) 0.2969936 0.3196853
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-574.3483 
+
+================================================================================
+MODEL: NHTS Trips - Spline
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ bs(log10(RR_trips + zero_corrections$trips), 
+    df = 6), data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.87190 -0.12357  0.02091  0.13602  0.87436 
+
+Coefficients:
+                                                      Estimate Std. Error
+(Intercept)                                            -0.5872     0.1089
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1   0.2682     0.1511
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2   0.1836     0.1022
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3   0.4361     0.1124
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4   0.8013     0.1123
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5   1.1717     0.1391
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6   1.4768     0.1429
+                                                      t value Pr(>|t|)    
+(Intercept)                                            -5.393 7.67e-08 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1   1.775 0.076086 .  
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2   1.797 0.072453 .  
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3   3.881 0.000107 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4   7.132 1.33e-12 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5   8.424  < 2e-16 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6  10.338  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2127 on 2249 degrees of freedom
+Multiple R-squared:  0.5278,	Adjusted R-squared:  0.5266 
+F-statistic:   419 on 6 and 2249 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 17.902, df = 6, p-value = 0.006482
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                                       Estimate Std. Error
+(Intercept)                                           -0.587202   0.085221
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1  0.268195   0.120093
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2  0.183604   0.081289
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3  0.436123   0.088428
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4  0.801262   0.091597
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5  1.171713   0.116092
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6  1.476832   0.113739
+                                                      t value  Pr(>|t|)    
+(Intercept)                                           -6.8903 7.200e-12 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1  2.2332   0.02563 *  
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2  2.2587   0.02400 *  
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3  4.9320 8.737e-07 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4  8.7477 < 2.2e-16 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5 10.0930 < 2.2e-16 ***
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6 12.9844 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                                            2.5 %     97.5 %
+(Intercept)                                           -0.75432199 -0.4200817
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1  0.03269104  0.5036993
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2  0.02419535  0.3430135
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3  0.26271413  0.6095327
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4  0.62163858  0.9808861
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5  0.94405457  1.3993705
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6  1.25378753  1.6998768
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                                      original  bootBias
+(Intercept)                                           -0.58720 -0.021323
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1  0.26820  0.032257
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2  0.18360  0.018352
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3  0.43612  0.020962
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4  0.80126  0.024172
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5  1.17171  0.011679
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6  1.47683  0.032205
+                                                       bootSE  bootMed
+(Intercept)                                           0.11408 -0.58384
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1 0.15822  0.28394
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2 0.10518  0.17565
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3 0.11633  0.43629
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4 0.12557  0.80663
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5 0.13103  1.16227
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6 0.15315  1.48904
+Bootstrap percent confidence intervals
+
+                                                            2.5 %     97.5 %
+(Intercept)                                           -0.88683740 -0.4386607
+bs(log10(RR_trips + zero_corrections$trips), df = 6)1  0.03339808  0.6611209
+bs(log10(RR_trips + zero_corrections$trips), df = 6)2  0.03642018  0.4668394
+bs(log10(RR_trips + zero_corrections$trips), df = 6)3  0.28247056  0.7231310
+bs(log10(RR_trips + zero_corrections$trips), df = 6)4  0.62045065  1.1537438
+bs(log10(RR_trips + zero_corrections$trips), df = 6)5  0.96216638  1.4446387
+bs(log10(RR_trips + zero_corrections$trips), df = 6)6  1.25349998  1.9089695
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-573.3118 
+
+================================================================================
+MODEL: Safegraph Mobility
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ log10(RR_move + zero_corrections$move), 
+    data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.08161 -0.11214  0.03801  0.16794  0.75986 
+
+Coefficients:
+                                       Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                             0.35035    0.01437   24.38   <2e-16 ***
+log10(RR_move + zero_corrections$move)  0.54460    0.01525   35.71   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2471 on 2254 degrees of freedom
+Multiple R-squared:  0.3614,	Adjusted R-squared:  0.3611 
+F-statistic:  1276 on 1 and 2254 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 88.037, df = 1, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                       Estimate Std. Error t value  Pr(>|t|)
+(Intercept)                            0.350353   0.016562  21.154 < 2.2e-16
+log10(RR_move + zero_corrections$move) 0.544596   0.015959  34.124 < 2.2e-16
+                                          
+(Intercept)                            ***
+log10(RR_move + zero_corrections$move) ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                           2.5 %    97.5 %
+(Intercept)                            0.3178741 0.3828312
+log10(RR_move + zero_corrections$move) 0.5133000 0.5758922
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                       original    bootBias   bootSE bootMed
+(Intercept)                             0.35035 -3.6549e-04 0.017035 0.35072
+log10(RR_move + zero_corrections$move)  0.54460 -1.7516e-05 0.016672 0.54389
+Bootstrap percent confidence intervals
+
+                                           2.5 %    97.5 %
+(Intercept)                            0.3214356 0.3822804
+log10(RR_move + zero_corrections$move) 0.5160541 0.5776504
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+97.8975 
+
+================================================================================
+MODEL: Safegraph Mobility - Spline
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ bs(log10(RR_move + zero_corrections$move), 
+    df = 6), data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.07414 -0.11252  0.03471  0.16176  0.75395 
+
+Coefficients:
+                                                     Estimate Std. Error
+(Intercept)                                         -0.264260   0.056171
+bs(log10(RR_move + zero_corrections$move), df = 6)1 -0.101199   0.088194
+bs(log10(RR_move + zero_corrections$move), df = 6)2 -0.006328   0.053939
+bs(log10(RR_move + zero_corrections$move), df = 6)3  0.115801   0.061231
+bs(log10(RR_move + zero_corrections$move), df = 6)4  0.281772   0.072474
+bs(log10(RR_move + zero_corrections$move), df = 6)5  1.264019   0.124034
+bs(log10(RR_move + zero_corrections$move), df = 6)6  0.858796   0.140343
+                                                    t value Pr(>|t|)    
+(Intercept)                                          -4.705 2.70e-06 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)1  -1.147 0.251315    
+bs(log10(RR_move + zero_corrections$move), df = 6)2  -0.117 0.906619    
+bs(log10(RR_move + zero_corrections$move), df = 6)3   1.891 0.058723 .  
+bs(log10(RR_move + zero_corrections$move), df = 6)4   3.888 0.000104 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)5  10.191  < 2e-16 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)6   6.119 1.11e-09 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2452 on 2249 degrees of freedom
+Multiple R-squared:  0.3725,	Adjusted R-squared:  0.3708 
+F-statistic: 222.5 on 6 and 2249 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 143.27, df = 6, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                                     Estimate Std. Error
+(Intercept)                                         -0.264260   0.024265
+bs(log10(RR_move + zero_corrections$move), df = 6)1 -0.101199   0.049229
+bs(log10(RR_move + zero_corrections$move), df = 6)2 -0.006328   0.025576
+bs(log10(RR_move + zero_corrections$move), df = 6)3  0.115801   0.033410
+bs(log10(RR_move + zero_corrections$move), df = 6)4  0.281772   0.062788
+bs(log10(RR_move + zero_corrections$move), df = 6)5  1.264019   0.114794
+bs(log10(RR_move + zero_corrections$move), df = 6)6  0.858796   0.079724
+                                                     t value  Pr(>|t|)    
+(Intercept)                                         -10.8908 < 2.2e-16 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)1  -2.0557  0.039928 *  
+bs(log10(RR_move + zero_corrections$move), df = 6)2  -0.2474  0.804610    
+bs(log10(RR_move + zero_corrections$move), df = 6)3   3.4661  0.000538 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)4   4.4877 7.564e-06 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)5  11.0112 < 2.2e-16 ***
+bs(log10(RR_move + zero_corrections$move), df = 6)6  10.7721 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                                          2.5 %       97.5 %
+(Intercept)                                         -0.31184297 -0.216676531
+bs(log10(RR_move + zero_corrections$move), df = 6)1 -0.19773674 -0.004660553
+bs(log10(RR_move + zero_corrections$move), df = 6)2 -0.05648392  0.043827958
+bs(log10(RR_move + zero_corrections$move), df = 6)3  0.05028421  0.181318610
+bs(log10(RR_move + zero_corrections$move), df = 6)4  0.15864293  0.404900938
+bs(log10(RR_move + zero_corrections$move), df = 6)5  1.03890573  1.489133074
+bs(log10(RR_move + zero_corrections$move), df = 6)6  0.70245583  1.015136527
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+68.4274 
+
+================================================================================
+MODEL: Air Travel
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ log10(RR_air + zero_corrections$air), 
+    data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.10393 -0.19199 -0.02254  0.17619  1.11766 
+
+Coefficients:
+                                      Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                          -0.135712   0.006955 -19.513   <2e-16 ***
+log10(RR_air + zero_corrections$air) -0.042390   0.013887  -3.053   0.0023 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.3085 on 2254 degrees of freedom
+Multiple R-squared:  0.004117,	Adjusted R-squared:  0.003675 
+F-statistic: 9.318 on 1 and 2254 DF,  p-value: 0.002296
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 109.68, df = 1, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                       Estimate Std. Error  t value Pr(>|t|)
+(Intercept)                          -0.1357115  0.0064825 -20.9352  < 2e-16
+log10(RR_air + zero_corrections$air) -0.0423904  0.0186797  -2.2693  0.02334
+                                        
+(Intercept)                          ***
+log10(RR_air + zero_corrections$air) *  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                           2.5 %       97.5 %
+(Intercept)                          -0.14842374 -0.122999313
+log10(RR_air + zero_corrections$air) -0.07902152 -0.005759287
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                     original    bootBias    bootSE   bootMed
+(Intercept)                          -0.13571 -3.5975e-05 0.0067397 -0.136053
+log10(RR_air + zero_corrections$air) -0.04239  2.6998e-03 0.0187591 -0.039951
+Bootstrap percent confidence intervals
+
+                                           2.5 %       97.5 %
+(Intercept)                          -0.14729364 -0.123030963
+log10(RR_air + zero_corrections$air) -0.07574132 -0.002426187
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+1100.298 
+
+================================================================================
+MODEL: Air Travel - Spline
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ bs(log10(RR_air + zero_corrections$air), 
+    df = 6), data = df_model_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-1.0622 -0.1585 -0.0061  0.1401  1.1252 
+
+Coefficients:
+                                                  Estimate Std. Error t value
+(Intercept)                                        0.12180    0.13986   0.871
+bs(log10(RR_air + zero_corrections$air), df = 6)1  0.83101    0.24629   3.374
+bs(log10(RR_air + zero_corrections$air), df = 6)2 -0.47893    0.13839  -3.461
+bs(log10(RR_air + zero_corrections$air), df = 6)3 -0.34747    0.14276  -2.434
+bs(log10(RR_air + zero_corrections$air), df = 6)4  0.03714    0.14223   0.261
+bs(log10(RR_air + zero_corrections$air), df = 6)5 -0.19536    0.17239  -1.133
+bs(log10(RR_air + zero_corrections$air), df = 6)6 -0.08275    0.19024  -0.435
+                                                  Pr(>|t|)    
+(Intercept)                                       0.383895    
+bs(log10(RR_air + zero_corrections$air), df = 6)1 0.000753 ***
+bs(log10(RR_air + zero_corrections$air), df = 6)2 0.000549 ***
+bs(log10(RR_air + zero_corrections$air), df = 6)3 0.015017 *  
+bs(log10(RR_air + zero_corrections$air), df = 6)4 0.794013    
+bs(log10(RR_air + zero_corrections$air), df = 6)5 0.257215    
+bs(log10(RR_air + zero_corrections$air), df = 6)6 0.663624    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2871 on 2249 degrees of freedom
+Multiple R-squared:  0.1396,	Adjusted R-squared:  0.1373 
+F-statistic: 60.81 on 6 and 2249 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 118.29, df = 6, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                                   Estimate Std. Error t value
+(Intercept)                                        0.121802   0.081130  1.5013
+bs(log10(RR_air + zero_corrections$air), df = 6)1  0.831011   0.203764  4.0783
+bs(log10(RR_air + zero_corrections$air), df = 6)2 -0.478933   0.117063 -4.0913
+bs(log10(RR_air + zero_corrections$air), df = 6)3 -0.347467   0.083341 -4.1692
+bs(log10(RR_air + zero_corrections$air), df = 6)4  0.037141   0.088999  0.4173
+bs(log10(RR_air + zero_corrections$air), df = 6)5 -0.195364   0.114900 -1.7003
+bs(log10(RR_air + zero_corrections$air), df = 6)6 -0.082751   0.113793 -0.7272
+                                                   Pr(>|t|)    
+(Intercept)                                         0.13341    
+bs(log10(RR_air + zero_corrections$air), df = 6)1 4.695e-05 ***
+bs(log10(RR_air + zero_corrections$air), df = 6)2 4.442e-05 ***
+bs(log10(RR_air + zero_corrections$air), df = 6)3 3.172e-05 ***
+bs(log10(RR_air + zero_corrections$air), df = 6)4   0.67648    
+bs(log10(RR_air + zero_corrections$air), df = 6)5   0.08921 .  
+bs(log10(RR_air + zero_corrections$air), df = 6)6   0.46718    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                                        2.5 %      97.5 %
+(Intercept)                                       -0.03729517  0.28089883
+bs(log10(RR_air + zero_corrections$air), df = 6)1  0.43142535  1.23059600
+bs(log10(RR_air + zero_corrections$air), df = 6)2 -0.70849541 -0.24937143
+bs(log10(RR_air + zero_corrections$air), df = 6)3 -0.51090057 -0.18403428
+bs(log10(RR_air + zero_corrections$air), df = 6)4 -0.13738670  0.21166913
+bs(log10(RR_air + zero_corrections$air), df = 6)5 -0.42068468  0.02995613
+bs(log10(RR_air + zero_corrections$air), df = 6)6 -0.30590114  0.14039962
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+780.4103 
+
+================================================================================
+MODEL: Air Travel : Flight Length
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ log10(RR_air + zero_corrections$air):flight_length, 
+    data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-1.02394 -0.15084 -0.01174  0.14457  1.08985 
+
+Coefficients:
+                                                          Estimate Std. Error
+(Intercept)                                              -0.114745   0.006225
+log10(RR_air + zero_corrections$air):flight_lengthShort  -0.308360   0.016165
+log10(RR_air + zero_corrections$air):flight_lengthMedium  0.169982   0.022631
+log10(RR_air + zero_corrections$air):flight_lengthLong    0.389860   0.025368
+                                                         t value Pr(>|t|)    
+(Intercept)                                              -18.432  < 2e-16 ***
+log10(RR_air + zero_corrections$air):flight_lengthShort  -19.076  < 2e-16 ***
+log10(RR_air + zero_corrections$air):flight_lengthMedium   7.511 8.41e-14 ***
+log10(RR_air + zero_corrections$air):flight_lengthLong    15.368  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.27 on 2252 degrees of freedom
+Multiple R-squared:  0.2377,	Adjusted R-squared:  0.2367 
+F-statistic:   234 on 3 and 2252 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 14.622, df = 3, p-value = 0.00217
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                                           Estimate Std. Error
+(Intercept)                                              -0.1147449  0.0067648
+log10(RR_air + zero_corrections$air):flight_lengthShort  -0.3083604  0.0221435
+log10(RR_air + zero_corrections$air):flight_lengthMedium  0.1699823  0.0230621
+log10(RR_air + zero_corrections$air):flight_lengthLong    0.3898596  0.0444562
+                                                          t value  Pr(>|t|)    
+(Intercept)                                              -16.9620 < 2.2e-16 ***
+log10(RR_air + zero_corrections$air):flight_lengthShort  -13.9255 < 2.2e-16 ***
+log10(RR_air + zero_corrections$air):flight_lengthMedium   7.3706 2.372e-13 ***
+log10(RR_air + zero_corrections$air):flight_lengthLong     8.7695 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                                              2.5 %     97.5 %
+(Intercept)                                              -0.1280109 -0.1014790
+log10(RR_air + zero_corrections$air):flight_lengthShort  -0.3517843 -0.2649365
+log10(RR_air + zero_corrections$air):flight_lengthMedium  0.1247571  0.2152075
+log10(RR_air + zero_corrections$air):flight_lengthLong    0.3026802  0.4770389
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                                         original    bootBias
+(Intercept)                                              -0.11474  0.00066883
+log10(RR_air + zero_corrections$air):flight_lengthShort  -0.30836 -0.00051702
+log10(RR_air + zero_corrections$air):flight_lengthMedium  0.16998  0.00154230
+log10(RR_air + zero_corrections$air):flight_lengthLong    0.38986  0.01058720
+                                                            bootSE  bootMed
+(Intercept)                                              0.0070678 -0.11430
+log10(RR_air + zero_corrections$air):flight_lengthShort  0.0226681 -0.30832
+log10(RR_air + zero_corrections$air):flight_lengthMedium 0.0236823  0.17033
+log10(RR_air + zero_corrections$air):flight_lengthLong   0.0453147  0.39553
+Bootstrap percent confidence intervals
+
+                                                              2.5 %     97.5 %
+(Intercept)                                              -0.1271592 -0.1014139
+log10(RR_air + zero_corrections$air):flight_lengthShort  -0.3560964 -0.2686406
+log10(RR_air + zero_corrections$air):flight_lengthMedium  0.1280153  0.2187969
+log10(RR_air + zero_corrections$air):flight_lengthLong    0.3113835  0.4825111
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+501.3526 
+
+================================================================================
+MODEL: Air Travel x CBSA Distance - Spline
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ bs(log10(RR_air + zero_corrections$air), 
+    df = 6) * bs(min_cbsa_dist, df = 6), data = df_model_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.7767 -0.1125  0.0178  0.1235  0.7464 
+
+Coefficients:
+                                                                               Estimate
+(Intercept)                                                                    -0.02367
+bs(log10(RR_air + zero_corrections$air), df = 6)1                               1.25579
+bs(log10(RR_air + zero_corrections$air), df = 6)2                               0.52077
+bs(log10(RR_air + zero_corrections$air), df = 6)3                               0.52217
+bs(log10(RR_air + zero_corrections$air), df = 6)4                               0.13090
+bs(log10(RR_air + zero_corrections$air), df = 6)5                               0.65824
+bs(log10(RR_air + zero_corrections$air), df = 6)6                               0.11434
+bs(min_cbsa_dist, df = 6)1                                                      1.57293
+bs(min_cbsa_dist, df = 6)2                                                     -7.78188
+bs(min_cbsa_dist, df = 6)3                                                      2.73615
+bs(min_cbsa_dist, df = 6)4                                                     -5.56286
+bs(min_cbsa_dist, df = 6)5                                                     11.70711
+bs(min_cbsa_dist, df = 6)6                                                     -6.93830
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1   -3.38725
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1   -1.96943
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1   -1.92969
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1   -1.57368
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1   -1.71652
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1   -1.23095
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2   10.17938
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2    5.88228
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2    7.14736
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2    7.70183
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2    7.28248
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2    6.66257
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3   -5.19323
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3   -3.09391
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3   -3.48806
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3   -2.89132
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3   -3.30341
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3   -2.35405
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4    7.09233
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4    3.43692
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4    4.67867
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4    5.20549
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4    4.34439
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4    5.10053
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5  -16.31901
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5  -13.21399
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5  -12.10479
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5  -14.02180
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5  -16.41003
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   11.91507
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6    6.47238
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6    6.78904
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6    5.52932
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6    8.43039
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   10.28869
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 -244.17525
+                                                                             Std. Error
+(Intercept)                                                                     0.51785
+bs(log10(RR_air + zero_corrections$air), df = 6)1                               0.79466
+bs(log10(RR_air + zero_corrections$air), df = 6)2                               0.46657
+bs(log10(RR_air + zero_corrections$air), df = 6)3                               0.52909
+bs(log10(RR_air + zero_corrections$air), df = 6)4                               0.52747
+bs(log10(RR_air + zero_corrections$air), df = 6)5                               0.72671
+bs(log10(RR_air + zero_corrections$air), df = 6)6                               0.82104
+bs(min_cbsa_dist, df = 6)1                                                      2.57859
+bs(min_cbsa_dist, df = 6)2                                                      7.14417
+bs(min_cbsa_dist, df = 6)3                                                      5.47515
+bs(min_cbsa_dist, df = 6)4                                                      7.48255
+bs(min_cbsa_dist, df = 6)5                                                      8.13947
+bs(min_cbsa_dist, df = 6)6                                                      5.73119
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1    3.66727
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1    2.36102
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1    2.60454
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1    2.55020
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1    2.81200
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1    3.17778
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2    9.28100
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2    6.83948
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2    7.16292
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2    7.11384
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2    7.21700
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2    7.16617
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3    7.25416
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3    5.22378
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3    5.49705
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3    5.43755
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3    5.56524
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3    5.58060
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4   10.37452
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4    7.06409
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4    7.52180
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4    7.40630
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4    7.67267
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4    7.80368
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5   11.29497
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5    7.60882
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5    8.20891
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5    7.97614
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5    9.89509
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   22.39683
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6    8.44535
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6    5.23944
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6    5.82146
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6    5.63645
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   27.02946
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6  198.09724
+                                                                             t value
+(Intercept)                                                                   -0.046
+bs(log10(RR_air + zero_corrections$air), df = 6)1                              1.580
+bs(log10(RR_air + zero_corrections$air), df = 6)2                              1.116
+bs(log10(RR_air + zero_corrections$air), df = 6)3                              0.987
+bs(log10(RR_air + zero_corrections$air), df = 6)4                              0.248
+bs(log10(RR_air + zero_corrections$air), df = 6)5                              0.906
+bs(log10(RR_air + zero_corrections$air), df = 6)6                              0.139
+bs(min_cbsa_dist, df = 6)1                                                     0.610
+bs(min_cbsa_dist, df = 6)2                                                    -1.089
+bs(min_cbsa_dist, df = 6)3                                                     0.500
+bs(min_cbsa_dist, df = 6)4                                                    -0.743
+bs(min_cbsa_dist, df = 6)5                                                     1.438
+bs(min_cbsa_dist, df = 6)6                                                    -1.211
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1  -0.924
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1  -0.834
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1  -0.741
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1  -0.617
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1  -0.610
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1  -0.387
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2   1.097
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2   0.860
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2   0.998
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2   1.083
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2   1.009
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2   0.930
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3  -0.716
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3  -0.592
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3  -0.635
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3  -0.532
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3  -0.594
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3  -0.422
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4   0.684
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4   0.487
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4   0.622
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4   0.703
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4   0.566
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4   0.654
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5  -1.445
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5  -1.737
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5  -1.475
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5  -1.758
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5  -1.658
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   0.532
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6   0.766
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6   1.296
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6   0.950
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6   1.496
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   0.381
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6  -1.233
+                                                                             Pr(>|t|)
+(Intercept)                                                                    0.9635
+bs(log10(RR_air + zero_corrections$air), df = 6)1                              0.1142
+bs(log10(RR_air + zero_corrections$air), df = 6)2                              0.2645
+bs(log10(RR_air + zero_corrections$air), df = 6)3                              0.3238
+bs(log10(RR_air + zero_corrections$air), df = 6)4                              0.8040
+bs(log10(RR_air + zero_corrections$air), df = 6)5                              0.3652
+bs(log10(RR_air + zero_corrections$air), df = 6)6                              0.8893
+bs(min_cbsa_dist, df = 6)1                                                     0.5419
+bs(min_cbsa_dist, df = 6)2                                                     0.2762
+bs(min_cbsa_dist, df = 6)3                                                     0.6173
+bs(min_cbsa_dist, df = 6)4                                                     0.4573
+bs(min_cbsa_dist, df = 6)5                                                     0.1505
+bs(min_cbsa_dist, df = 6)6                                                     0.2262
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1   0.3558
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1   0.4043
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1   0.4588
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1   0.5372
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1   0.5416
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1   0.6985
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2   0.2728
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2   0.3899
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2   0.3185
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2   0.2791
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2   0.3131
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2   0.3526
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3   0.4741
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3   0.5537
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3   0.5258
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3   0.5950
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3   0.5529
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3   0.6732
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4   0.4943
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4   0.6266
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4   0.5340
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4   0.4822
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4   0.5713
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4   0.5134
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5   0.1487
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5   0.0826
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5   0.1405
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5   0.0789
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5   0.0974
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   0.5948
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6   0.4435
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6   0.1952
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6   0.3423
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6   0.1349
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   0.7035
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6   0.2179
+                                                                              
+(Intercept)                                                                   
+bs(log10(RR_air + zero_corrections$air), df = 6)1                             
+bs(log10(RR_air + zero_corrections$air), df = 6)2                             
+bs(log10(RR_air + zero_corrections$air), df = 6)3                             
+bs(log10(RR_air + zero_corrections$air), df = 6)4                             
+bs(log10(RR_air + zero_corrections$air), df = 6)5                             
+bs(log10(RR_air + zero_corrections$air), df = 6)6                             
+bs(min_cbsa_dist, df = 6)1                                                    
+bs(min_cbsa_dist, df = 6)2                                                    
+bs(min_cbsa_dist, df = 6)3                                                    
+bs(min_cbsa_dist, df = 6)4                                                    
+bs(min_cbsa_dist, df = 6)5                                                    
+bs(min_cbsa_dist, df = 6)6                                                    
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1  
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1  
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1  
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1  
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1  
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1  
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2  
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2  
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2  
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2  
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2  
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2  
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3  
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3  
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3  
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3  
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3  
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3  
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4  
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4  
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4  
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4  
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4  
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4  
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5  
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5 .
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5  
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5 .
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5 .
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5  
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6  
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6  
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6  
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6  
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6  
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1882 on 2207 degrees of freedom
+Multiple R-squared:  0.6373,	Adjusted R-squared:  0.6294 
+F-statistic:  80.8 on 48 and 2207 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+                                                                                   GVIF
+bs(log10(RR_air + zero_corrections$air), df = 6)                           1.775585e+08
+bs(min_cbsa_dist, df = 6)                                                  1.186808e+25
+bs(log10(RR_air + zero_corrections$air), df = 6):bs(min_cbsa_dist, df = 6) 4.416866e+31
+                                                                           Df
+bs(log10(RR_air + zero_corrections$air), df = 6)                            6
+bs(min_cbsa_dist, df = 6)                                                   6
+bs(log10(RR_air + zero_corrections$air), df = 6):bs(min_cbsa_dist, df = 6) 36
+                                                                           GVIF^(1/(2*Df))
+bs(log10(RR_air + zero_corrections$air), df = 6)                                  4.869060
+bs(min_cbsa_dist, df = 6)                                                       122.894287
+bs(log10(RR_air + zero_corrections$air), df = 6):bs(min_cbsa_dist, df = 6)        2.751158
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 69.766, df = 48, p-value = 0.02172
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                                                                Estimate
+(Intercept)                                                                    -0.023674
+bs(log10(RR_air + zero_corrections$air), df = 6)1                               1.255787
+bs(log10(RR_air + zero_corrections$air), df = 6)2                               0.520768
+bs(log10(RR_air + zero_corrections$air), df = 6)3                               0.522170
+bs(log10(RR_air + zero_corrections$air), df = 6)4                               0.130899
+bs(log10(RR_air + zero_corrections$air), df = 6)5                               0.658238
+bs(log10(RR_air + zero_corrections$air), df = 6)6                               0.114342
+bs(min_cbsa_dist, df = 6)1                                                      1.572928
+bs(min_cbsa_dist, df = 6)2                                                     -7.781877
+bs(min_cbsa_dist, df = 6)3                                                      2.736154
+bs(min_cbsa_dist, df = 6)4                                                     -5.562859
+bs(min_cbsa_dist, df = 6)5                                                     11.707115
+bs(min_cbsa_dist, df = 6)6                                                     -6.938302
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1   -3.387249
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1   -1.969428
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1   -1.929689
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1   -1.573680
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1   -1.716517
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1   -1.230949
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2   10.179383
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2    5.882276
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2    7.147356
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2    7.701828
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2    7.282480
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2    6.662566
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3   -5.193232
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3   -3.093910
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3   -3.488064
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3   -2.891316
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3   -3.303407
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3   -2.354050
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4    7.092332
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4    3.436919
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4    4.678667
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4    5.205495
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4    4.344387
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4    5.100529
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5  -16.319010
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5  -13.213995
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5  -12.104792
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5  -14.021803
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5  -16.410029
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   11.915074
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6    6.472375
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6    6.789036
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6    5.529322
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6    8.430392
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   10.288689
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 -244.175254
+                                                                              Std. Error
+(Intercept)                                                                     0.245639
+bs(log10(RR_air + zero_corrections$air), df = 6)1                               0.456055
+bs(log10(RR_air + zero_corrections$air), df = 6)2                               0.214704
+bs(log10(RR_air + zero_corrections$air), df = 6)3                               0.268436
+bs(log10(RR_air + zero_corrections$air), df = 6)4                               0.300662
+bs(log10(RR_air + zero_corrections$air), df = 6)5                               0.661328
+bs(log10(RR_air + zero_corrections$air), df = 6)6                               0.599368
+bs(min_cbsa_dist, df = 6)1                                                      1.316975
+bs(min_cbsa_dist, df = 6)2                                                      6.380347
+bs(min_cbsa_dist, df = 6)3                                                      4.494147
+bs(min_cbsa_dist, df = 6)4                                                      6.686545
+bs(min_cbsa_dist, df = 6)5                                                      7.222742
+bs(min_cbsa_dist, df = 6)6                                                      5.080932
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1    2.028445
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1    1.157747
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1    1.350392
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1    1.306737
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1    1.726418
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1    2.267418
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2    8.163451
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2    6.139189
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2    6.392200
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2    6.363954
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2    6.440063
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2    6.465528
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3    6.026397
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3    4.302836
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3    4.514816
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3    4.462171
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3    4.598871
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3    4.660424
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4    9.487280
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4    6.348307
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4    6.723681
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4    6.614563
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4    6.881431
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4    6.993242
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5   10.440514
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5    6.641520
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5    7.319091
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5    6.953136
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5   10.177278
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   21.814666
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6    7.637270
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6    4.592145
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6    5.174081
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6    4.832639
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   19.007267
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6  140.408619
+                                                                             t value
+(Intercept)                                                                  -0.0964
+bs(log10(RR_air + zero_corrections$air), df = 6)1                             2.7536
+bs(log10(RR_air + zero_corrections$air), df = 6)2                             2.4255
+bs(log10(RR_air + zero_corrections$air), df = 6)3                             1.9452
+bs(log10(RR_air + zero_corrections$air), df = 6)4                             0.4354
+bs(log10(RR_air + zero_corrections$air), df = 6)5                             0.9953
+bs(log10(RR_air + zero_corrections$air), df = 6)6                             0.1908
+bs(min_cbsa_dist, df = 6)1                                                    1.1943
+bs(min_cbsa_dist, df = 6)2                                                   -1.2197
+bs(min_cbsa_dist, df = 6)3                                                    0.6088
+bs(min_cbsa_dist, df = 6)4                                                   -0.8319
+bs(min_cbsa_dist, df = 6)5                                                    1.6209
+bs(min_cbsa_dist, df = 6)6                                                   -1.3656
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1 -1.6699
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1 -1.7011
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1 -1.4290
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1 -1.2043
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1 -0.9943
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1 -0.5429
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2  1.2469
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2  0.9582
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2  1.1181
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2  1.2102
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2  1.1308
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2  1.0305
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3 -0.8617
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3 -0.7190
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3 -0.7726
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3 -0.6480
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3 -0.7183
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3 -0.5051
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4  0.7476
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4  0.5414
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4  0.6958
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4  0.7870
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4  0.6313
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4  0.7294
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5 -1.5630
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5 -1.9896
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5 -1.6539
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5 -2.0166
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5 -1.6124
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5  0.5462
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6  0.8475
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6  1.4784
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6  1.0687
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6  1.7445
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6  0.5413
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 -1.7390
+                                                                             Pr(>|t|)
+(Intercept)                                                                  0.923229
+bs(log10(RR_air + zero_corrections$air), df = 6)1                            0.005943
+bs(log10(RR_air + zero_corrections$air), df = 6)2                            0.015366
+bs(log10(RR_air + zero_corrections$air), df = 6)3                            0.051874
+bs(log10(RR_air + zero_corrections$air), df = 6)4                            0.663337
+bs(log10(RR_air + zero_corrections$air), df = 6)5                            0.319687
+bs(log10(RR_air + zero_corrections$air), df = 6)6                            0.848722
+bs(min_cbsa_dist, df = 6)1                                                   0.232470
+bs(min_cbsa_dist, df = 6)2                                                   0.222723
+bs(min_cbsa_dist, df = 6)3                                                   0.542702
+bs(min_cbsa_dist, df = 6)4                                                   0.405528
+bs(min_cbsa_dist, df = 6)5                                                   0.105189
+bs(min_cbsa_dist, df = 6)6                                                   0.172217
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1 0.095086
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1 0.089067
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1 0.153150
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1 0.228610
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1 0.320203
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1 0.587263
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2 0.212550
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2 0.338091
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2 0.263630
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2 0.226322
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2 0.258258
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2 0.302900
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3 0.388920
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3 0.472193
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3 0.439853
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3 0.517077
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3 0.472643
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3 0.613528
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4 0.454804
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4 0.588292
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4 0.486597
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4 0.431381
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4 0.527896
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4 0.465864
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5 0.118185
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5 0.046758
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5 0.098297
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5 0.043857
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5 0.107014
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5 0.584987
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6 0.396824
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6 0.139443
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6 0.285341
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6 0.081216
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6 0.588353
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 0.082168
+                                                                               
+(Intercept)                                                                    
+bs(log10(RR_air + zero_corrections$air), df = 6)1                            **
+bs(log10(RR_air + zero_corrections$air), df = 6)2                            * 
+bs(log10(RR_air + zero_corrections$air), df = 6)3                            . 
+bs(log10(RR_air + zero_corrections$air), df = 6)4                              
+bs(log10(RR_air + zero_corrections$air), df = 6)5                              
+bs(log10(RR_air + zero_corrections$air), df = 6)6                              
+bs(min_cbsa_dist, df = 6)1                                                     
+bs(min_cbsa_dist, df = 6)2                                                     
+bs(min_cbsa_dist, df = 6)3                                                     
+bs(min_cbsa_dist, df = 6)4                                                     
+bs(min_cbsa_dist, df = 6)5                                                     
+bs(min_cbsa_dist, df = 6)6                                                     
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1 . 
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1 . 
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1   
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1   
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1   
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1   
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2   
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2   
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2   
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2   
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2   
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2   
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3   
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3   
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3   
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3   
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3   
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3   
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4   
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4   
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4   
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4   
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4   
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4   
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5   
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5 * 
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5 . 
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5 * 
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5   
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5   
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6   
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6   
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6   
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6 . 
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6   
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 . 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                                                                     2.5 %
+(Intercept)                                                                  -5.053816e-01
+bs(log10(RR_air + zero_corrections$air), df = 6)1                             3.614450e-01
+bs(log10(RR_air + zero_corrections$air), df = 6)2                             9.972491e-02
+bs(log10(RR_air + zero_corrections$air), df = 6)3                            -4.244012e-03
+bs(log10(RR_air + zero_corrections$air), df = 6)4                            -4.587109e-01
+bs(log10(RR_air + zero_corrections$air), df = 6)5                            -6.386534e-01
+bs(log10(RR_air + zero_corrections$air), df = 6)6                            -1.061043e+00
+bs(min_cbsa_dist, df = 6)1                                                   -1.009712e+00
+bs(min_cbsa_dist, df = 6)2                                                   -2.029399e+01
+bs(min_cbsa_dist, df = 6)3                                                   -6.077046e+00
+bs(min_cbsa_dist, df = 6)4                                                   -1.867544e+01
+bs(min_cbsa_dist, df = 6)5                                                   -2.456967e+00
+bs(min_cbsa_dist, df = 6)6                                                   -1.690221e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1 -7.365110e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1 -4.239815e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1 -4.577860e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1 -4.136244e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1 -5.102091e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1 -5.677444e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2 -5.829468e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2 -6.156916e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2 -5.388000e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2 -4.778138e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2 -5.346738e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2 -6.016589e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3 -1.701123e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3 -1.153194e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3 -1.234180e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3 -1.164181e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3 -1.232197e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3 -1.149333e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4 -1.151260e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4 -9.012361e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4 -8.506737e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4 -7.765925e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4 -9.150370e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4 -8.613494e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5 -3.679327e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5 -2.623828e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5 -2.645782e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5 -2.765718e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5 -3.636807e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5 -3.086435e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6 -8.504612e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6 -2.216342e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6 -4.617254e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6 -1.046604e+00
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6 -2.698531e+01
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 -5.195221e+02
+                                                                                 97.5 %
+(Intercept)                                                                   0.4580332
+bs(log10(RR_air + zero_corrections$air), df = 6)1                             2.1501290
+bs(log10(RR_air + zero_corrections$air), df = 6)2                             0.9418103
+bs(log10(RR_air + zero_corrections$air), df = 6)3                             1.0485837
+bs(log10(RR_air + zero_corrections$air), df = 6)4                             0.7205087
+bs(log10(RR_air + zero_corrections$air), df = 6)5                             1.9551287
+bs(log10(RR_air + zero_corrections$air), df = 6)6                             1.2897274
+bs(min_cbsa_dist, df = 6)1                                                    4.1555682
+bs(min_cbsa_dist, df = 6)2                                                    4.7302349
+bs(min_cbsa_dist, df = 6)3                                                   11.5493543
+bs(min_cbsa_dist, df = 6)4                                                    7.5497183
+bs(min_cbsa_dist, df = 6)5                                                   25.8711963
+bs(min_cbsa_dist, df = 6)6                                                    3.0256061
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)1  0.5906130
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)1  0.3009588
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)1  0.7184825
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)1  0.9888835
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)1  1.6690580
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)1  3.2155473
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)2 26.1882329
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)2 17.9214682
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)2 19.6827124
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)2 20.1817931
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)2 19.9116970
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)2 19.3417216
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)3  6.6247701
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)3  5.3441218
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)3  5.3656688
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)3  5.8591771
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)3  5.7151606
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)3  6.7852246
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)4 25.6972632
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)4 15.8861989
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)4 17.8640713
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)4 18.1769145
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)4 17.8391439
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)4 18.8145519
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)5  4.1552498
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)5 -0.1897118
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)5  2.2482343
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)5 -0.3864291
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)5  3.5480135
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)5 54.6944955
+bs(log10(RR_air + zero_corrections$air), df = 6)1:bs(min_cbsa_dist, df = 6)6 21.4493623
+bs(log10(RR_air + zero_corrections$air), df = 6)2:bs(min_cbsa_dist, df = 6)6 15.7944135
+bs(log10(RR_air + zero_corrections$air), df = 6)3:bs(min_cbsa_dist, df = 6)6 15.6758981
+bs(log10(RR_air + zero_corrections$air), df = 6)4:bs(min_cbsa_dist, df = 6)6 17.9073872
+bs(log10(RR_air + zero_corrections$air), df = 6)5:bs(min_cbsa_dist, df = 6)6 47.5626889
+bs(log10(RR_air + zero_corrections$air), df = 6)6:bs(min_cbsa_dist, df = 6)6 31.1715880
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-1084.586 
+
+================================================================================
+MODEL: Euclidean Distance
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ euclid_dist, data = df_model_data)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-0.8139 -0.1446  0.0076  0.1490  0.8631 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  2.315e-01  9.998e-03   23.15   <2e-16 ***
+euclid_dist -2.162e-04  5.237e-06  -41.29   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2333 on 2254 degrees of freedom
+Multiple R-squared:  0.4307,	Adjusted R-squared:  0.4304 
+F-statistic:  1705 on 1 and 2254 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 11.403, df = 1, p-value = 0.0007331
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+               Estimate  Std. Error t value  Pr(>|t|)    
+(Intercept)  2.3147e-01  1.1256e-02  20.565 < 2.2e-16 ***
+euclid_dist -2.1624e-04  5.8049e-06 -37.251 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                    2.5 %        97.5 %
+(Intercept)  0.2093986192  0.2535433500
+euclid_dist -0.0002276237 -0.0002048566
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+               original    bootBias     bootSE     bootMed
+(Intercept)  0.23147098  1.1569e-04 1.1344e-02  0.23055386
+euclid_dist -0.00021624 -7.0776e-08 5.7771e-06 -0.00021611
+Bootstrap percent confidence intervals
+
+                   2.5 %        97.5 %
+(Intercept)  0.213350312  0.2561888705
+euclid_dist -0.000227976 -0.0002063763
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-161.2387 
+
+================================================================================
+MODEL: Euclidean Distance - Spline
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ bs(euclid_dist, df = 6), data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.84566 -0.12599  0.02644  0.13841  0.73544 
+
+Coefficients:
+                         Estimate Std. Error t value Pr(>|t|)    
+(Intercept)               0.62597    0.05039  12.422  < 2e-16 ***
+bs(euclid_dist, df = 6)1 -0.23059    0.07928  -2.909  0.00366 ** 
+bs(euclid_dist, df = 6)2 -0.71175    0.04708 -15.118  < 2e-16 ***
+bs(euclid_dist, df = 6)3 -0.78364    0.05795 -13.523  < 2e-16 ***
+bs(euclid_dist, df = 6)4 -1.09979    0.05779 -19.030  < 2e-16 ***
+bs(euclid_dist, df = 6)5 -0.93819    0.07607 -12.334  < 2e-16 ***
+bs(euclid_dist, df = 6)6 -1.05401    0.07658 -13.763  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2076 on 2249 degrees of freedom
+Multiple R-squared:  0.5499,	Adjusted R-squared:  0.5487 
+F-statistic:   458 on 6 and 2249 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 34.741, df = 6, p-value = 4.838e-06
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                          Estimate Std. Error  t value  Pr(>|t|)    
+(Intercept)               0.625969   0.046622  13.4265 < 2.2e-16 ***
+bs(euclid_dist, df = 6)1 -0.230593   0.075288  -3.0628  0.002219 ** 
+bs(euclid_dist, df = 6)2 -0.711750   0.044982 -15.8232 < 2.2e-16 ***
+bs(euclid_dist, df = 6)3 -0.783639   0.053578 -14.6261 < 2.2e-16 ***
+bs(euclid_dist, df = 6)4 -1.099787   0.054226 -20.2817 < 2.2e-16 ***
+bs(euclid_dist, df = 6)5 -0.938193   0.069454 -13.5082 < 2.2e-16 ***
+bs(euclid_dist, df = 6)6 -1.054012   0.058613 -17.9824 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                              2.5 %      97.5 %
+(Intercept)               0.5345427  0.71739521
+bs(euclid_dist, df = 6)1 -0.3782351 -0.08295149
+bs(euclid_dist, df = 6)2 -0.7999594 -0.62354022
+bs(euclid_dist, df = 6)3 -0.8887071 -0.67857175
+bs(euclid_dist, df = 6)4 -1.2061247 -0.99344967
+bs(euclid_dist, df = 6)5 -1.0743927 -0.80199251
+bs(euclid_dist, df = 6)6 -1.1689540 -0.93906970
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-681.4803 
+
+================================================================================
+MODEL: CBSA Distance
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ min_cbsa_dist, data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.76614 -0.14350  0.00035  0.15029  0.85180 
+
+Coefficients:
+                Estimate Std. Error t value Pr(>|t|)    
+(Intercept)    1.432e-01  8.243e-03   17.37   <2e-16 ***
+min_cbsa_dist -2.155e-04  5.250e-06  -41.04   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2339 on 2254 degrees of freedom
+Multiple R-squared:  0.4277,	Adjusted R-squared:  0.4275 
+F-statistic:  1685 on 1 and 2254 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 9.9748, df = 1, p-value = 0.001587
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                 Estimate  Std. Error t value  Pr(>|t|)    
+(Intercept)    1.4322e-01  9.2034e-03  15.562 < 2.2e-16 ***
+min_cbsa_dist -2.1548e-04  5.8166e-06 -37.045 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                      2.5 %        97.5 %
+(Intercept)    0.1251724785  0.1612684028
+min_cbsa_dist -0.0002268858 -0.0002040727
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                 original    bootBias     bootSE    bootMed
+(Intercept)    0.14322044  7.9888e-05 9.2605e-03  0.1424778
+min_cbsa_dist -0.00021548 -7.0133e-08 5.7834e-06 -0.0002152
+Bootstrap percent confidence intervals
+
+                      2.5 %        97.5 %
+(Intercept)    0.1276689040  0.1649646329
+min_cbsa_dist -0.0002267295 -0.0002056178
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-149.5279 
+
+================================================================================
+MODEL: CBSA Distance - Spline
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ bs(min_cbsa_dist, df = 6), data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.84102 -0.11911  0.01773  0.13200  0.69704 
+
+Coefficients:
+                           Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                 0.50769    0.01923   26.40   <2e-16 ***
+bs(min_cbsa_dist, df = 6)1 -0.40866    0.03960  -10.32   <2e-16 ***
+bs(min_cbsa_dist, df = 6)2 -0.57377    0.02585  -22.20   <2e-16 ***
+bs(min_cbsa_dist, df = 6)3 -0.68434    0.02951  -23.19   <2e-16 ***
+bs(min_cbsa_dist, df = 6)4 -0.98007    0.03972  -24.68   <2e-16 ***
+bs(min_cbsa_dist, df = 6)5 -0.82058    0.05602  -14.65   <2e-16 ***
+bs(min_cbsa_dist, df = 6)6 -0.98042    0.06065  -16.16   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2006 on 2249 degrees of freedom
+Multiple R-squared:  0.5801,	Adjusted R-squared:  0.5789 
+F-statistic: 517.7 on 6 and 2249 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+VIF not shown: model has fewer than 2 predictors.
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 28.415, df = 6, p-value = 7.848e-05
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                            Estimate Std. Error t value  Pr(>|t|)    
+(Intercept)                 0.507691   0.020809  24.398 < 2.2e-16 ***
+bs(min_cbsa_dist, df = 6)1 -0.408659   0.039143 -10.440 < 2.2e-16 ***
+bs(min_cbsa_dist, df = 6)2 -0.573769   0.026448 -21.694 < 2.2e-16 ***
+bs(min_cbsa_dist, df = 6)3 -0.684341   0.029604 -23.117 < 2.2e-16 ***
+bs(min_cbsa_dist, df = 6)4 -0.980071   0.038942 -25.168 < 2.2e-16 ***
+bs(min_cbsa_dist, df = 6)5 -0.820582   0.054693 -15.003 < 2.2e-16 ***
+bs(min_cbsa_dist, df = 6)6 -0.980420   0.039863 -24.595 < 2.2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                2.5 %     97.5 %
+(Intercept)                 0.4668852  0.5484969
+bs(min_cbsa_dist, df = 6)1 -0.4854185 -0.3318987
+bs(min_cbsa_dist, df = 6)2 -0.6256352 -0.5219034
+bs(min_cbsa_dist, df = 6)3 -0.7423946 -0.6262870
+bs(min_cbsa_dist, df = 6)4 -1.0564359 -0.9037053
+bs(min_cbsa_dist, df = 6)5 -0.9278365 -0.7133265
+bs(min_cbsa_dist, df = 6)6 -1.0585927 -0.9022469
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-837.7849 
+
+================================================================================
+MODEL: Multivariate Model (normalized)
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ zlog_RR_trips + zlog_RR_move + zlog_RR_air:flight_length, 
+    data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.87517 -0.12475  0.02064  0.13875  0.85191 
+
+Coefficients:
+                                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                     -0.125298   0.005038 -24.868   <2e-16 ***
+zlog_RR_trips                    0.278740   0.010277  27.124   <2e-16 ***
+zlog_RR_move                     0.022597   0.011440   1.975   0.0484 *  
+zlog_RR_air:flight_lengthShort  -0.006871   0.007549  -0.910   0.3629    
+zlog_RR_air:flight_lengthMedium  0.016330   0.008731   1.870   0.0616 .  
+zlog_RR_air:flight_lengthLong   -0.004509   0.012581  -0.358   0.7201    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2126 on 2250 degrees of freedom
+Multiple R-squared:  0.5278,	Adjusted R-squared:  0.5267 
+F-statistic: 502.9 on 5 and 2250 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+                              GVIF Df GVIF^(1/(2*Df))
+zlog_RR_trips             2.988673  1        1.728778
+zlog_RR_move              2.842222  1        1.685889
+zlog_RR_air:flight_length 1.192058  3        1.029713
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 211.17, df = 5, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                  Estimate Std. Error  t value Pr(>|t|)    
+(Intercept)                     -0.1252975  0.0057523 -21.7823  < 2e-16 ***
+zlog_RR_trips                    0.2787396  0.0114377  24.3703  < 2e-16 ***
+zlog_RR_move                     0.0225967  0.0133161   1.6969  0.08985 .  
+zlog_RR_air:flight_lengthShort  -0.0068706  0.0053959  -1.2733  0.20304    
+zlog_RR_air:flight_lengthMedium  0.0163303  0.0093266   1.7509  0.08009 .  
+zlog_RR_air:flight_lengthLong   -0.0045092  0.0133310  -0.3383  0.73521    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                       2.5 %       97.5 %
+(Intercept)                     -0.136577825 -0.114017252
+zlog_RR_trips                    0.256310069  0.301169070
+zlog_RR_move                    -0.003516443  0.048709923
+zlog_RR_air:flight_lengthShort  -0.017451930  0.003710806
+zlog_RR_air:flight_lengthMedium -0.001959282  0.034619856
+zlog_RR_air:flight_lengthLong   -0.030651486  0.021633060
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                  original    bootBias    bootSE    bootMed
+(Intercept)                     -0.1252975  3.5987e-05 0.0055107 -0.1249505
+zlog_RR_trips                    0.2787396 -3.3114e-04 0.0115583  0.2784981
+zlog_RR_move                     0.0225967  2.0451e-04 0.0135382  0.0235348
+zlog_RR_air:flight_lengthShort  -0.0068706  6.3647e-04 0.0050430 -0.0062093
+zlog_RR_air:flight_lengthMedium  0.0163303 -3.0483e-04 0.0095202  0.0155233
+zlog_RR_air:flight_lengthLong   -0.0045092  1.3993e-03 0.0146431 -0.0026132
+Bootstrap percent confidence intervals
+
+                                       2.5 %      97.5 %
+(Intercept)                     -0.135300551 -0.11526274
+zlog_RR_trips                    0.254509405  0.30061272
+zlog_RR_move                    -0.006141664  0.05044622
+zlog_RR_air:flight_lengthShort  -0.016606239  0.00364620
+zlog_RR_air:flight_lengthMedium -0.004699931  0.03547378
+zlog_RR_air:flight_lengthLong   -0.035023659  0.02593836
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-574.9619 
+
+================================================================================
+MODEL: Multivariate Model - Robust (anomalies removed)
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ zlog_RR_trips + zlog_RR_move + zlog_RR_air:flight_length, 
+    data = df_model_robust)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.87198 -0.12363  0.02177  0.14092  0.85444 
+
+Coefficients:
+                                 Estimate Std. Error t value Pr(>|t|)    
+(Intercept)                     -0.130372   0.005192 -25.112   <2e-16 ***
+zlog_RR_trips                    0.277229   0.010624  26.095   <2e-16 ***
+zlog_RR_move                     0.020539   0.011765   1.746    0.081 .  
+zlog_RR_air:flight_lengthShort  -0.009522   0.007792  -1.222    0.222    
+zlog_RR_air:flight_lengthMedium  0.019272   0.008927   2.159    0.031 *  
+zlog_RR_air:flight_lengthLong   -0.005239   0.012976  -0.404    0.686    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.2132 on 2125 degrees of freedom
+Multiple R-squared:  0.5225,	Adjusted R-squared:  0.5214 
+F-statistic:   465 on 5 and 2125 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+                              GVIF Df GVIF^(1/(2*Df))
+zlog_RR_trips             2.989669  1        1.729066
+zlog_RR_move              2.829386  1        1.682078
+zlog_RR_air:flight_length 1.198516  3        1.030641
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 208.7, df = 5, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                  Estimate Std. Error  t value Pr(>|t|)    
+(Intercept)                     -0.1303724  0.0059521 -21.9037  < 2e-16 ***
+zlog_RR_trips                    0.2772288  0.0119024  23.2918  < 2e-16 ***
+zlog_RR_move                     0.0205394  0.0137237   1.4966  0.13464    
+zlog_RR_air:flight_lengthShort  -0.0095217  0.0054485  -1.7476  0.08068 .  
+zlog_RR_air:flight_lengthMedium  0.0192718  0.0097077   1.9852  0.04725 *  
+zlog_RR_air:flight_lengthLong   -0.0052388  0.0139629  -0.3752  0.70755    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                        2.5 %       97.5 %
+(Intercept)                     -0.1420448817 -0.118699907
+zlog_RR_trips                    0.2538871357  0.300570427
+zlog_RR_move                    -0.0063738979  0.047452608
+zlog_RR_air:flight_lengthShort  -0.0202066514  0.001163152
+zlog_RR_air:flight_lengthMedium  0.0002341565  0.038309408
+zlog_RR_air:flight_lengthLong   -0.0326211949  0.022143540
+
+ -------------------------------------------------------------------------------- 
+BOOTSTRAPPED CONFIDENCE INTERVALS FOR COEFFICIENTS
+-------------------------------------------------------------------------------- 
+
+Number of bootstrap replications R = 200 
+                                  original    bootBias    bootSE    bootMed
+(Intercept)                     -0.1303724  3.2636e-04 0.0058280 -0.1297257
+zlog_RR_trips                    0.2772288 -1.1679e-03 0.0111052  0.2775151
+zlog_RR_move                     0.0205394  1.7248e-03 0.0127531  0.0229114
+zlog_RR_air:flight_lengthShort  -0.0095217  4.6633e-04 0.0051891 -0.0088272
+zlog_RR_air:flight_lengthMedium  0.0192718  6.2915e-05 0.0094096  0.0188897
+zlog_RR_air:flight_lengthLong   -0.0052388 -7.6748e-04 0.0140055 -0.0054715
+Bootstrap percent confidence intervals
+
+                                        2.5 %       97.5 %
+(Intercept)                     -0.1426677090 -0.119889130
+zlog_RR_trips                    0.2531077361  0.295144082
+zlog_RR_move                    -0.0024269219  0.047568117
+zlog_RR_air:flight_lengthShort  -0.0193738383  0.002265141
+zlog_RR_air:flight_lengthMedium -0.0002265849  0.038582730
+zlog_RR_air:flight_lengthLong   -0.0344364510  0.024714719
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-531.3717 
+
+================================================================================
+MODEL: Multivariate Model - Spline (normalized)
+================================================================================
+
+-------------------------------------------------------------------------------- 
+STANDARD LINEAR MODEL SUMMARY
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = log10(RR_seq) ~ zlog_RR_trips + zlog_RR_move + bs(zlog_RR_air, 
+    df = 6) * bs(min_cbsa_dist, df = 6), data = df_model_data)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.74995 -0.10884  0.01521  0.12351  0.77572 
+
+Coefficients:
+                                                      Estimate Std. Error
+(Intercept)                                           -0.46228    0.51594
+zlog_RR_trips                                          0.09604    0.01342
+zlog_RR_move                                          -0.01293    0.01065
+bs(zlog_RR_air, df = 6)1                               1.50295    0.78607
+bs(zlog_RR_air, df = 6)2                               0.74651    0.46275
+bs(zlog_RR_air, df = 6)3                               0.79557    0.52461
+bs(zlog_RR_air, df = 6)4                               0.42054    0.52323
+bs(zlog_RR_air, df = 6)5                               0.82868    0.71879
+bs(zlog_RR_air, df = 6)6                               0.35466    0.81209
+bs(min_cbsa_dist, df = 6)1                             3.24439    2.56310
+bs(min_cbsa_dist, df = 6)2                            -7.89294    7.06249
+bs(min_cbsa_dist, df = 6)3                             3.05295    5.41342
+bs(min_cbsa_dist, df = 6)4                            -4.19799    7.39696
+bs(min_cbsa_dist, df = 6)5                            11.22721    8.04722
+bs(min_cbsa_dist, df = 6)6                            -5.20641    5.66911
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)1   -5.63708    3.64149
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)1   -3.23142    2.34411
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)1   -3.45718    2.58659
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)1   -3.10241    2.53348
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)1   -3.21404    2.79071
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)1   -2.98930    3.15191
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)2   10.98973    9.17750
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)2    5.96439    6.76098
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)2    7.45955    7.08135
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)2    7.85609    7.03270
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)2    7.68487    7.13476
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)2    7.17033    7.08494
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)3   -5.36256    7.17134
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)3   -3.02574    5.16435
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)3   -3.61642    5.43462
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)3   -3.00521    5.37615
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)3   -3.43052    5.50180
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)3   -2.57229    5.51665
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)4    5.69718   10.25465
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)4    2.37742    6.98267
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)4    3.53538    7.43512
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)4    3.90770    7.32168
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)4    3.08672    7.58446
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)4    4.09126    7.71283
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)5  -15.35041   11.16538
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)5  -12.32177    7.52404
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)5  -11.45931    8.11540
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)5  -13.42174    7.88723
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)5  -13.53265    9.78720
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)5    9.41800   22.13692
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)6    4.36288    8.35178
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)6    5.50633    5.18165
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)6    3.96663    5.75749
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)6    7.11957    5.57509
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)6    5.39687   26.71968
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)6 -267.90107  195.97237
+                                                    t value Pr(>|t|)    
+(Intercept)                                          -0.896    0.370    
+zlog_RR_trips                                         7.157 1.11e-12 ***
+zlog_RR_move                                         -1.214    0.225    
+bs(zlog_RR_air, df = 6)1                              1.912    0.056 .  
+bs(zlog_RR_air, df = 6)2                              1.613    0.107    
+bs(zlog_RR_air, df = 6)3                              1.516    0.130    
+bs(zlog_RR_air, df = 6)4                              0.804    0.422    
+bs(zlog_RR_air, df = 6)5                              1.153    0.249    
+bs(zlog_RR_air, df = 6)6                              0.437    0.662    
+bs(min_cbsa_dist, df = 6)1                            1.266    0.206    
+bs(min_cbsa_dist, df = 6)2                           -1.118    0.264    
+bs(min_cbsa_dist, df = 6)3                            0.564    0.573    
+bs(min_cbsa_dist, df = 6)4                           -0.568    0.570    
+bs(min_cbsa_dist, df = 6)5                            1.395    0.163    
+bs(min_cbsa_dist, df = 6)6                           -0.918    0.359    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)1  -1.548    0.122    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)1  -1.379    0.168    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)1  -1.337    0.181    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)1  -1.225    0.221    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)1  -1.152    0.250    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)1  -0.948    0.343    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)2   1.197    0.231    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)2   0.882    0.378    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)2   1.053    0.292    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)2   1.117    0.264    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)2   1.077    0.282    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)2   1.012    0.312    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)3  -0.748    0.455    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)3  -0.586    0.558    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)3  -0.665    0.506    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)3  -0.559    0.576    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)3  -0.624    0.533    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)3  -0.466    0.641    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)4   0.556    0.579    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)4   0.340    0.734    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)4   0.475    0.634    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)4   0.534    0.594    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)4   0.407    0.684    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)4   0.530    0.596    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)5  -1.375    0.169    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)5  -1.638    0.102    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)5  -1.412    0.158    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)5  -1.702    0.089 .  
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)5  -1.383    0.167    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)5   0.425    0.671    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)6   0.522    0.601    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)6   1.063    0.288    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)6   0.689    0.491    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)6   1.277    0.202    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)6   0.202    0.840    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)6  -1.367    0.172    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1859 on 2205 degrees of freedom
+Multiple R-squared:  0.6462,	Adjusted R-squared:  0.6381 
+F-statistic: 80.53 on 50 and 2205 DF,  p-value: < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+VARIANCE INFLATION FACTORS (VIF)
+-------------------------------------------------------------------------------- 
+                                                          GVIF Df
+zlog_RR_trips                                     6.663939e+00  1
+zlog_RR_move                                      3.221289e+00  1
+bs(zlog_RR_air, df = 6)                           1.864775e+08  6
+bs(min_cbsa_dist, df = 6)                         1.210419e+25  6
+bs(zlog_RR_air, df = 6):bs(min_cbsa_dist, df = 6) 5.441305e+31 36
+                                                  GVIF^(1/(2*Df))
+zlog_RR_trips                                            2.581461
+zlog_RR_move                                             1.794795
+bs(zlog_RR_air, df = 6)                                  4.888987
+bs(min_cbsa_dist, df = 6)                              123.096203
+bs(zlog_RR_air, df = 6):bs(min_cbsa_dist, df = 6)        2.759139
+
+ -------------------------------------------------------------------------------- 
+BREUSCH-PAGAN TEST FOR HETEROSKEDASTICITY
+-------------------------------------------------------------------------------- 
+
+	studentized Breusch-Pagan test
+
+data:  m
+BP = 219.08, df = 50, p-value < 2.2e-16
+
+
+ -------------------------------------------------------------------------------- 
+ROBUST COEFFICIENT TEST (HC1 ROBUST SEs)
+-------------------------------------------------------------------------------- 
+
+t test of coefficients:
+
+                                                       Estimate  Std. Error
+(Intercept)                                           -0.462275    0.252010
+zlog_RR_trips                                          0.096036    0.014306
+zlog_RR_move                                          -0.012929    0.013442
+bs(zlog_RR_air, df = 6)1                               1.502955    0.436500
+bs(zlog_RR_air, df = 6)2                               0.746508    0.212178
+bs(zlog_RR_air, df = 6)3                               0.795575    0.265677
+bs(zlog_RR_air, df = 6)4                               0.420537    0.296708
+bs(zlog_RR_air, df = 6)5                               0.828681    0.576042
+bs(zlog_RR_air, df = 6)6                               0.354659    0.585416
+bs(min_cbsa_dist, df = 6)1                             3.244385    1.318202
+bs(min_cbsa_dist, df = 6)2                            -7.892940    6.136105
+bs(min_cbsa_dist, df = 6)3                             3.052949    4.405139
+bs(min_cbsa_dist, df = 6)4                            -4.197989    6.604099
+bs(min_cbsa_dist, df = 6)5                            11.227214    7.095373
+bs(min_cbsa_dist, df = 6)6                            -5.206413    5.015189
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)1   -5.637083    2.005780
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)1   -3.231423    1.149708
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)1   -3.457177    1.343242
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)1   -3.102411    1.310678
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)1   -3.214038    1.674647
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)1   -2.989302    2.435557
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)2   10.989733    7.869427
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)2    5.964385    5.901310
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)2    7.459545    6.147841
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)2    7.856091    6.119155
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)2    7.684873    6.190250
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)2    7.170335    6.246580
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)3   -5.362559    5.902886
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)3   -3.025735    4.216202
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)3   -3.616416    4.425135
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)3   -3.005206    4.374926
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)3   -3.430524    4.492533
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)3   -2.572287    4.607354
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)4    5.697181    9.383837
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)4    2.377422    6.265997
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)4    3.535385    6.639203
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)4    3.907703    6.533282
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)4    3.086716    6.781964
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)4    4.091257    6.948288
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)5  -15.350408   10.281180
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)5  -12.321774    6.526524
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)5  -11.459308    7.186449
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)5  -13.421740    6.836762
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)5  -13.532651   10.215915
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)5    9.417996   22.449579
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)6    4.362885    7.579406
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)6    5.506333    4.520492
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)6    3.966625    5.107863
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)6    7.119574    4.770192
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)6    5.396871   19.353878
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)6 -267.901073  138.764657
+                                                    t value  Pr(>|t|)    
+(Intercept)                                         -1.8344 0.0667366 .  
+zlog_RR_trips                                        6.7129 2.418e-11 ***
+zlog_RR_move                                        -0.9619 0.3362245    
+bs(zlog_RR_air, df = 6)1                             3.4432 0.0005856 ***
+bs(zlog_RR_air, df = 6)2                             3.5183 0.0004431 ***
+bs(zlog_RR_air, df = 6)3                             2.9945 0.0027793 ** 
+bs(zlog_RR_air, df = 6)4                             1.4173 0.1565241    
+bs(zlog_RR_air, df = 6)5                             1.4386 0.1504123    
+bs(zlog_RR_air, df = 6)6                             0.6058 0.5446947    
+bs(min_cbsa_dist, df = 6)1                           2.4612 0.0139226 *  
+bs(min_cbsa_dist, df = 6)2                          -1.2863 0.1984695    
+bs(min_cbsa_dist, df = 6)3                           0.6930 0.4883558    
+bs(min_cbsa_dist, df = 6)4                          -0.6357 0.5250614    
+bs(min_cbsa_dist, df = 6)5                           1.5823 0.1137179    
+bs(min_cbsa_dist, df = 6)6                          -1.0381 0.2993239    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)1 -2.8104 0.0049914 ** 
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)1 -2.8106 0.0049879 ** 
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)1 -2.5738 0.0101249 *  
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)1 -2.3670 0.0180175 *  
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)1 -1.9192 0.0550838 .  
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)1 -1.2274 0.2198188    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)2  1.3965 0.1627015    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)2  1.0107 0.3122765    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)2  1.2134 0.2251221    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)2  1.2839 0.1993285    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)2  1.2414 0.2145724    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)2  1.1479 0.2511419    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)3 -0.9085 0.3637325    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)3 -0.7176 0.4730524    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)3 -0.8172 0.4138771    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)3 -0.6869 0.4922081    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)3 -0.7636 0.4451839    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)3 -0.5583 0.5766961    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)4  0.6071 0.5438291    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)4  0.3794 0.7044153    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)4  0.5325 0.5944324    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)4  0.5981 0.5498196    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)4  0.4551 0.6490562    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)4  0.5888 0.5560456    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)5 -1.4931 0.1355648    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)5 -1.8880 0.0591634 .  
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)5 -1.5946 0.1109513    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)5 -1.9632 0.0497517 *  
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)5 -1.3247 0.1854200    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)5  0.4195 0.6748787    
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)6  0.5756 0.5649284    
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)6  1.2181 0.2233229    
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)6  0.7766 0.4374944    
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)6  1.4925 0.1357077    
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)6  0.2789 0.7803844    
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)6 -1.9306 0.0536588 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+95% Confidence Intervals (Robust SEs):
+                                                            2.5 %      97.5 %
+(Intercept)                                           -0.95647703  0.03192697
+zlog_RR_trips                                          0.06798152  0.12409141
+zlog_RR_move                                          -0.03928827  0.01343049
+bs(zlog_RR_air, df = 6)1                               0.64695981  2.35894988
+bs(zlog_RR_air, df = 6)2                               0.33041967  1.16259725
+bs(zlog_RR_air, df = 6)3                               0.27457191  1.31657792
+bs(zlog_RR_air, df = 6)4                              -0.16131965  1.00239411
+bs(zlog_RR_air, df = 6)5                              -0.30096070  1.95832205
+bs(zlog_RR_air, df = 6)6                              -0.79336625  1.50268336
+bs(min_cbsa_dist, df = 6)1                             0.65933740  5.82943273
+bs(min_cbsa_dist, df = 6)2                           -19.92609006  4.14020976
+bs(min_cbsa_dist, df = 6)3                            -5.58570636 11.69160407
+bs(min_cbsa_dist, df = 6)4                           -17.14889442  8.75291736
+bs(min_cbsa_dist, df = 6)5                            -2.68710030 25.14152785
+bs(min_cbsa_dist, df = 6)6                           -15.04140100  4.62857597
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)1   -9.57049889 -1.70366645
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)1   -5.48604681 -0.97679989
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)1   -6.09132987 -0.82302425
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)1   -5.67270271 -0.53211946
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)1   -6.49808895  0.07001232
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)1   -7.76552709  1.78692353
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)2   -4.44253076 26.42199730
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)2   -5.60832286 17.53709307
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)2   -4.59661907 19.51570951
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)2   -4.14381877 19.85600022
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)2   -4.45445749 19.82420359
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)2   -5.07946068 19.42013042
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)3  -16.93835619  6.21323907
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)3  -11.29387755  5.24240750
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)3  -12.29428423  5.06145174
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)3  -11.58461202  5.57420100
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)3  -12.24056214  5.37951379
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)3  -11.60749525  6.46292128
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)4  -12.70490220 24.09926333
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)4   -9.91045175 14.66529483
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)4   -9.48436064 16.55513064
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)4   -8.90432758 16.71973403
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)4  -10.21299050 16.38642236
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)4   -9.53461621 17.71713044
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)5  -35.51221730  4.81140075
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)5  -25.12055205  0.47700428
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)5  -25.55222434  2.63360783
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)5  -26.82890715 -0.01457213
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)5  -33.56647257  6.50117155
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)5  -34.60653537 53.44252763
+bs(zlog_RR_air, df = 6)1:bs(min_cbsa_dist, df = 6)6  -10.50063734 19.22640645
+bs(zlog_RR_air, df = 6)2:bs(min_cbsa_dist, df = 6)6   -3.35853518 14.37120063
+bs(zlog_RR_air, df = 6)3:bs(min_cbsa_dist, df = 6)6   -6.05010126 13.98335157
+bs(zlog_RR_air, df = 6)4:bs(min_cbsa_dist, df = 6)6   -2.23496519 16.47411303
+bs(zlog_RR_air, df = 6)5:bs(min_cbsa_dist, df = 6)6  -32.55686613 43.35060739
+bs(zlog_RR_air, df = 6)6:bs(min_cbsa_dist, df = 6)6 -540.02417439  4.22202820
+
+ -------------------------------------------------------------------------------- 
+AKAIKE INFORMATION CRITERION (AIC)
+-------------------------------------------------------------------------------- 
+-1136.208 
