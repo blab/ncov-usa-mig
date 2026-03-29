@@ -17,6 +17,7 @@ library(ggrepel)
 library(ggdendro)
 library(cluster)
 library(patchwork)
+library(dendextend)
 source("scripts/color_schemes.R")
 
 collect_args <- function(){
@@ -223,3 +224,101 @@ ggsave(fn_combined,
        create.dir = TRUE)
 
 message(paste("Combined dendrogram + heatmap saved to:", fn_combined))
+
+# =============================================================================
+# Subset heatmap: New England, Mideast & Southeast ("Acela" corridor + Southeast)
+# =============================================================================
+
+subset_regions <- c("New England", "Mideast", "Southeast")
+subset_states <- df_regions %>%
+  filter(bea_reg %in% subset_regions) %>%
+  pull(state)
+
+# Prune dendrogram to subset states only
+dend_full <- as.dendrogram(hc_agnes_full)
+leaves_to_remove <- setdiff(labels(dend_full), subset_states)
+dend_subset <- prune(dend_full, leaves_to_remove)
+hc_subset <- as.hclust(dend_subset)
+
+# Get subset state order from pruned dendrogram
+dendro_data_subset <- dendro_data(hc_subset, type = "rectangle")
+subset_state_order <- dendro_data_subset$labels %>%
+  arrange(x) %>%
+  pull(label)
+
+# Build subset dendrogram plot
+gg_dendro_subset <- ggplot() +
+  geom_segment(data = dendro_data_subset$segments,
+               aes(x = y, y = x, xend = yend, yend = xend)) +
+  scale_x_reverse(expand = expansion(mult = c(0.15, 0))) +
+  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
+  theme_void() +
+  theme(
+    plot.margin = unit(c(0.5, 0, 1, 0.2), "cm")
+  )
+
+# Prepare y-axis label data with region-colored backgrounds
+y_label_subset <- df_regions %>%
+  filter(state %in% subset_states) %>%
+  mutate(state = factor(state, levels = subset_state_order)) %>%
+  arrange(state) %>%
+  mutate(region = get_region(.),
+         color = REGION_SCALE[as.character(region)],
+         y_pos = as.numeric(state),
+         x_pos = 0.5)
+
+# Filter heatmap data to subset states
+state_rr_subset <- state_rr_labeled %>%
+  filter(x %in% subset_states, y %in% subset_states) %>%
+  mutate(x = factor(x, levels = subset_state_order),
+         y = factor(y, levels = subset_state_order))
+
+# Build subset heatmap
+state_heatmap_subset <- state_rr_subset %>%
+  rowwise() %>%
+  mutate(fill_RR = fill_bound(RR, LB, UB)) %>%
+  ggplot(aes(x = y, y = x, fill = fill_RR)) +
+  geom_tile() +
+  # Colored region labels on y-axis
+  geom_label(data = y_label_subset,
+             aes(x = x_pos - 0.2, y = state, label = state),
+             fill = y_label_subset$color,
+             color = "white",
+             size = 2.5,
+             fontface = "bold",
+             hjust = 1,
+             linewidth = 0,
+             label.padding = unit(0.15, "lines"),
+             inherit.aes = FALSE) +
+  RR_log_grad(LB, UB) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+    legend.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+    axis.text.y = element_blank(),
+    axis.title.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    plot.margin = unit(c(0.5, 0.2, 1, 0.1), "cm")
+  ) +
+  labs(x = "State",
+       y = NULL,
+       title = "Identical Sequence RR: New England, Mideast & Southeast") +
+  coord_fixed(clip = "off")
+
+# Combine and save
+combined_plot_subset <- gg_dendro_subset + state_heatmap_subset +
+  plot_layout(widths = c(1, 4))
+
+fn_subset <- paste0("figs/", scenario, "/state_heatmap_clustered_acela.jpg")
+
+ggsave(fn_subset,
+       plot = combined_plot_subset,
+       device = "jpeg",
+       dpi = 192,
+       width = 12,
+       height = 10,
+       create.dir = TRUE)
+
+message(paste("Subset dendrogram + heatmap saved to:", fn_subset))
