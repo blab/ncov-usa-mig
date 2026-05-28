@@ -216,32 +216,57 @@ full_pair_snap <- state_rr_snap %>%
   mutate(nRR_fold = nRR / nRR_ref) %>%
   ungroup()
 
-# Create all pairs plot with faceting by pair_type
+# Create all pairs plot with faceting by pair_type (horizontal layout: 2020 top -> 2024 bottom)
+date_breaks_seq <- seq(min(full_pair_snap$date, na.rm=TRUE),
+                       max(full_pair_snap$date, na.rm=TRUE),
+                       by = "3 months")
+
 p_all_fold <- ggplot(full_pair_snap,
-       aes(x=date, y=pair_name, fill = log10(nRR_fold))) +
+       aes(x=pair_name, y = -as.numeric(date), fill = log10(nRR_fold))) +
   geom_tile(color="#555", linewidth=0) +
-  scale_x_date(
-    date_breaks = "3 months",
-    labels = function(x) format_quarters(x),
+  scale_y_continuous(
+    breaks = -as.numeric(date_breaks_seq),
+    labels = format_quarters(date_breaks_seq),
     expand = expansion(0.01)
   ) +
-  facet_grid(rows = vars(pair_type), scales = "free_y", space = "free_y") +
+  facet_grid(cols = vars(pair_type), scales = "free_x",
+             labeller = as_labeller({
+               counts <- full_pair_snap %>%
+                 distinct(pair_type, pair_name) %>%
+                 count(pair_type)
+               short <- c(
+                 "Different States, Same Region"   = "Same Region",
+                 "Different Regions, Same Country" = "Different Regions",
+                 "International"                   = "International"
+               )
+               setNames(
+                 paste0(short[as.character(counts$pair_type)],
+                        " (n = ", counts$n, ")"),
+                 as.character(counts$pair_type)
+               )
+             })) +
   common_fill_scale +
-  labs(x = "Date", y = "State/Province Pairs") +
+  guides(fill = guide_colorbar(title = "nRR Fold Change")) +
+  labs(x = NULL, y = "Date") +
   theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size=8),
-    axis.text.y = element_blank(),
-    legend.position = "right",
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_text(size=8),
+    legend.position = "bottom",
     panel.grid.major = element_blank(),
-    strip.text.y = element_text(angle = 270, hjust = 0.5)
+    strip.text.x = element_text(hjust = 0.5)
   )
 
 ggsave(paste0(fig_path,"all_pairs_fold_heatmap.png"),
        plot = p_all_fold,
-       width=8,
-       height=20,
-       dpi=192)
+       width=7,
+       height=4,
+       dpi=300)
+ggsave(paste0(fig_path,"all_pairs_fold_heatmap.svg"),
+       plot = p_all_fold,
+       width=7,
+       height=4)
 
 # Create boxplot version of fold change by quarters with significance testing
 # Time on horizontal axis, fold change on vertical axis
@@ -323,7 +348,7 @@ ggsave(paste0(fig_path,"all_pairs_fold_boxplot_quarters.png"),
        plot = p_fold_boxplot_quarters,
        width = 12,
        height = 6,
-       dpi = 192)
+       dpi = 300)
 
 full_pair_snap_dist <- full_pair_snap %>%
   left_join(df_dist,
@@ -368,7 +393,7 @@ ggplot(unique_series,
 ggsave(paste0(fig_path,"rr_series.png"),
        width=8,
        height=8,
-       dpi=192)
+       dpi = 300)
 
 # Create poster version with all categories in one plot (2:1 aspect ratio, no outliers)
 # Use rr_snap instead of rr_series to reduce clutter
@@ -402,10 +427,9 @@ rr_series_poster <- ggplot(unique_snap_filtered,
   scale_x_date(date_breaks = "3 months",
                labels = function(x) format_quarters(x),
                expand = expansion(mult = 0.02)) +
-  labs(x = "Date", y = "nRR", title = "Normalized Identical Sequence RR Over Time") +
+  labs(x = "Date", y = "nRR") +
   theme_classic(base_size = 11) +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 13, face = "bold"),
     legend.position = "bottom",
     legend.title = element_text(size = 10, face = "bold"),
     legend.text = element_text(size = 9),
@@ -415,9 +439,13 @@ rr_series_poster <- ggplot(unique_snap_filtered,
 
 ggsave(paste0(fig_path,"rr_series_poster.png"),
        plot = rr_series_poster,
-       width = 10,
-       height = 5,
-       dpi = 192)
+       width = 7,
+       height = 4,
+       dpi = 300)
+ggsave(paste0(fig_path,"rr_series_poster.svg"),
+       plot = rr_series_poster,
+       width = 7,
+       height = 4)
 
 # ============================================================================
 # Correlation time series poster (using snap data)
@@ -550,7 +578,7 @@ ggsave(paste0(fig_path,"correlations_poster.png"),
        plot = correlation_poster,
        width = 10,
        height = 5,
-       dpi = 192)
+       dpi = 300)
 
 ts_nRR_df <- unique_series %>%
   mutate(
@@ -635,7 +663,7 @@ state_nrr_timeline <- function(state_name){
         filename=fn_plot,
         width=8,
         height=5,
-        dpi=192,
+        dpi = 300,
         create.dir = TRUE)
     return(plot)
 }

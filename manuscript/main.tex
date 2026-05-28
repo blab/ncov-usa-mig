@@ -66,46 +66,103 @@
 
 \section{Introduction}
 
-Phylodynamic methods have been important tools for understanding the spread and evolution of pathogens. This work typically involves reconstruction of an ancestral tree using sequence data, with the most common approaches in viral phylodynamics being probabilistic reconstruction (i.e. Maximum Likelihood and Bayesian techniques).\autocite{volzViralPhylodynamics2013} These trees have the benefit of describing the full transmission history between sequences and inferring ancestral states of an outbreak or epidemic, which can then be used by trait analyses to estimate mixing patterns between populations. These mixing patterns are then used for the construction of epidemiological models. Such methods have been instrumental in expanding our understanding of past and ongoing epidemics such as the SARS-CoV-2 pandemic, waves of seasonal influenza, and the mpox epidemic.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015,paredesUnderdetectedDispersalExtensive2024}
+Phylodynamic methods have been important tools for understanding the spread and evolution of pathogens
+This work typically involves reconstruction of an ancestral tree using sequence data, with the most common approaches in viral phylodynamics being probabilistic reconstruction (i.e. Maximum Likelihood and Bayesian techniques).\autocite{volzViralPhylodynamics2013}
+These trees have the benefit of describing the full transmission history between sequences and inferring ancestral states of an outbreak or epidemic, which can then be used by trait analyses to estimate mixing patterns between populations.
+These mixing patterns are then used for the construction of epidemiological models. 
+Such methods have been instrumental in expanding our understanding of past and ongoing epidemics such as the SARS-CoV-2 pandemic, waves of seasonal influenza, and the mpox epidemic.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015,paredesUnderdetectedDispersalExtensive2024}
 
-A major drawback of traditional tree-based approaches, however, is how computationally intensive they are. The potential number of possible phylogenetic trees scales factorially with the number of genomes included. As a result Bayesian and ML-based trees typically are limited in size to thousands or tens of thousands of sequences. For the SARS-CoV-2 pandemic, genomic surveillance programs sequenced pathogen genomes at an unprecedented rate. From December 2019 through December 2024, 16.7 million genomes were submitted to GISAID's EpiCoV database.\autocite{khareGISAIDsRolePandemic2021} Analysis of such a large volume of sequences has led to innovation in phylogenetic methods such as UShER and Nextclade making large-scale real-time analyses more feasible.\autocite{turakhiaUltrafastSamplePlacement2021,aksamentovNextcladeCladeAssignment2021} Other analyses have used statistical methods not reliant on reconstructing a full phylogenetic tree such as similarity matrices, clustering techniques, and dimensionality reduction to identify patterns and structures across genomes.\autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024}
+A major drawback of traditional tree-based approaches, however, is the computational cost with their creation.
+The potential number of possible phylogenetic trees scales factorially with the number of genomes included.
+As a result Bayesian and ML-based trees typically are limited in size to thousands or tens of thousands of sequences.
+For the SARS-CoV-2 pandemic, genomic surveillance programs sequenced pathogen genomes at an unprecedented rate.
+From December 2019 through December 2024, 16.7 million genomes were submitted to GISAID's EpiCoV database.\autocite{khareGISAIDsRolePandemic2021}
+Analysis of such a large volume of sequences has led to innovation in phylogenetic methods such as UShER and Nextclade making large-scale real-time analyses more feasible.\autocite{turakhiaUltrafastSamplePlacement2021,aksamentovNextcladeCladeAssignment2021}
+Other analyses have used statistical methods not reliant on reconstructing a full phylogenetic tree such as similarity matrices, clustering techniques, and dimensionality reduction to identify patterns and structures across genomes.\autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024}
 
-One tree-free approach uses pairwise distances between genomes to identify likely transmission pairs. We have previously shown that clusters of identical pathogen sequences can be used to estimate the epidemiological characteristics of outbreaks.\autocite{tran-kiemEstimatingReproductionNumber2024a} This principle was then extended to develop a method of calculating the relative risk of identical sequences shared between two populations.\autocite{tran-kiemFinescalePatternsSARSCoV22025a} Our group used this approach to identify county-level geographic patterns of SARS-CoV-2 spread in Washington State using 114,298 SARS-CoV-2 sequences from March 2021 to December 2022. Given that this approach is a simple relative risk calculation, it has the potential to scale well with even larger datasets and be used to measure relationships across space and time. %--Insert some sentence regarding knowledge gap here --%
+One tree-free approach uses pairwise distances between genomes to identify likely transmission pairs.
+We have previously shown that clusters of identical pathogen sequences can be used to estimate the epidemiological characteristics of outbreaks.\autocite{tran-kiemEstimatingReproductionNumber2024a}
+This principle was then extended to develop a method of calculating the relative risk of identical sequences shared between two populations.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+Our group used this approach to identify county-level geographic patterns of SARS-CoV-2 spread in Washington State using 114,298 SARS-CoV-2 sequences from March 2021 to December 2022.
+Given that this approach is a simple relative risk calculation, it has the potential to scale well with even larger datasets and be used to measure relationships across space and time. %--Insert some sentence regarding knowledge gap here --%
 
-We extend this framework to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period. This framework is used to examine spatial relationships of SARS-CoV-2 at multiple spatial (interstate, interregional, and international) and temporal scales. Furthermore, we use this set of sequences to identify high-resolution relationships across age groups to compare with existing age contact matrices.
+We extend this framework to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period.
+This framework is used to examine spatial relationships of SARS-CoV-2 at multiple spatial (interstate, interregional, and international) and temporal scales.
+Furthermore, we use this set of sequences to identify high-resolution relationships across age groups to compare with existing age contact matrices.
 
 \section{Methods}
 
 \subsection{Data Sources and Processing}
-Human SARS-CoV-2 genomes were obtained from the EpiCoV database for Canada, Mexico, and the United States of America from January 2020 through December 2024.\autocite{khareGISAIDsRolePandemic2021} Genomes were required to be from human hosts, have a valid collection date, and a minimum of 90\% sequencing coverage. Additionally, for sequences from the United States and Canada, the division field needed to be filled with a valid US state or Canadian province name. Genomes coming from US territories other than the District of Columbia were excluded due to small sample size. Age metadata was checked to be numeric. Any age value greater than 125 years was set to be missing and ages greater than 99 were aggregated into a single age category.
+Human SARS-CoV-2 genomes were obtained from the EpiCoV database for Canada, Mexico, and the United States of America from January 2020 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
+Genomes were required to be from human hosts, have a valid collection date, and a minimum of 90\% sequencing coverage.
+Additionally, for sequences from the United States and Canada, the division field needed to be filled with a valid US state or Canadian province name.
+Genomes coming from US territories other than the District of Columbia were excluded due to small sample size.
+Age metadata was checked to be numeric.
+Any age value greater than 125 years treated as invalid and ages greater than 99 were aggregated into a single age category.
 
-Identical sequences were identified using a similar pipeline to our previous work.\autocite{tran-kiemFinescalePatternsSARSCoV22025a} This involves the creation of a pairwise distance matrix of the sequences. In order to minimize unnecessary comparisons, we only calculate distances for sequences within the same Nextstrain clade.\autocite{aksamentovNextcladeCladeAssignment2021} Within each clade, \texttt{pairsnp} was used to find all pairs of sequences with a Hamming distance equal to 0.\autocite{tonkin-hillGtonkinhillPairsnp2025} Sequences that had over 1,000 identical pairs were removed from the analysis due to being extreme outliers. Additionally, pairs where the sequences were collected within 3 days of each other and had the same host metadata (age, gender, division/location) were flagged as likely being sequences from the same host and excluded from the relative risk calculation. The final sequence metadata and full list of identical pairs are then stored in a DuckDB relational database to optimize storage space and computational speed. This database is accessed within the R programming environment using the \texttt{dbplyr} library.\autocite{rcoreteamLanguageEnvironmentStatistical2025,wickhamDbplyrDplyrBack2025}
+Identical sequences were identified using a similar pipeline to our previous work.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+First a pairwise distance matrix of sequences was created.
+In order to minimize unnecessary comparisons, we only calculated distances for sequences within the same Nextstrain clade.\autocite{aksamentovNextcladeCladeAssignment2021}
+Within each clade, \texttt{pairsnp} was used to find all pairs of sequences with a Hamming distance equal to 0.\autocite{tonkin-hillGtonkinhillPairsnp2025}
+Sequences that were found to have over 1,000 identical pairs were removed from the analysis due to being extreme outliers.
+These sequences likely had missing bases at high entropy sites and therefore had an inflated number of matching identical sequences.
+Additionally, pairs where the sequences were collected within 3 days of each other and had the same host metadata (age, gender, division/location) were flagged as likely being sequences from the same host and excluded from the relative risk calculation.
+The final sequence metadata and list of identical pairs are then stored in a DuckDB relational database, which allows for fast database operations without loading the full list into system memory.
+This database is accessed within the R programming environment using the \texttt{dbplyr} library.\autocite{rcoreteamLanguageEnvironmentStatistical2025,wickhamDbplyrDplyrBack2025}
 
 \subsection{Relative Risk Calculation}
-We use our previously described relative risk (RR) calculation to measure the genetic connectivity of SARS-CoV-2 between different geographic units and age groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a} We define $n_{A,B}$ to be the number of pairs of genomes with a Hamming distance of 0 where one sequence belongs to group $A$ and the other sequence belongs to group $B$. We can then define $n_{A,\bullet}= \sum_{\forall B}n_{A,B}$ (i.e. all pairs of identical sequences where at least one sequence is in group $A$)  and $n_{\bullet,\bullet} = \sum_{\forall A}n_{A,\bullet}$ (i.e. the total number of pairs of identical sequences). We then calculate the $RR_{A,B}$ as follows:
+We use our previously described relative risk (RR) calculation to measure the genetic connectivity of SARS-CoV-2 between different geographic units and age groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+We define $n_{A,B}$ to be the number of pairs of genomes with a Hamming distance of 0 where one sequence belongs to group $A$ and the other sequence belongs to group $B$.
+We can then define $n_{A,\bullet}= \sum_{\forall B}n_{A,B}$ (i.e. all pairs of identical sequences where at least one sequence is in group $A$) and $n_{\bullet,\bullet} = \sum_{\forall A}n_{A,\bullet}$ (i.e. the total number of pairs of identical sequences).
+We calculate the $RR_{A,B}$ as follows:
 
 \[RR_{A,B} = \frac{n_{A,B}/n_{A,\bullet}}{n_{B,\bullet}/n_{\bullet,\bullet}}\]
 
-Identical sequence RR scores were calculated for geography, age, and gender. Additionally, we are able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the RR of individuals with the same age within the same state/province compared to the RR of individuals with the same age not in the same state/province). We can measure uncertainty by creating an empiric distribution of RR scores through sampling sequences without replacement.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}  
+Identical sequence RR scores were calculated for geography, age, and gender.
+Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the RR of individuals with the same age within the same state/province compared to the RR of individuals with the same age not in the same state/province). 
+We calculated uncertainty through sampling sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}  
 
 \subsection{Extending Relative Risk over Time}
-We can extend this approach to calculate the RR for a time period starting at date $t$ with length $\Delta t$ by only using pairs where both sequences' collection date fall between $t$ and $t + \Delta t$. We will denote this relative risk as $RR_{A,B}(t)$ and calculate the time-dependent RR for each calendar quarter.  Comparing relative risks over time does make interpretation challenging, Changes in RR can be due to true changes in the transmission pattern between $A$ and $B$, but it can also be due to changes in the force of infection either in the pathogen (i.e. variants having differences in pathogenicity) or the host populations (i.e. behavioral/movement changes, immunizations). We therefore need to introduce normalization methods to account for these changes in the force of infection.
+We can extend this approach to calculate the RR for a time period starting at date $t$ with length $\Delta t$ by only using pairs where both sequences' collection date fall between $t$ and $t + \Delta t$. 
+We denote this relative risk as $RR_{A,B}(t)$ and calculate this time-dependent RR for each calendar quarter.
+Comparing relative risks over time can be challenging to interpret.
+Changes in RR can be due to true changes in the transmission pattern between groups $A$ and $B$, but it can also be due to changes in the force of infection either in the pathogen (i.e. variants having differences in pathogenicity) or the host populations (i.e. behavioral/movement changes, immunizations).
+We therefore needed to introduce normalization methods to account for these changes in the force of infection.
+For time analyses of the age RR, our objective was to detect changes in transmission across age groups due to changes in mobility and interaction from public health interventions and voluntary behavioral changes.
+Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18-40 year olds) tended to have lower levels of social isolation and mitigation behaviors compared to other age groups.\autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns}
+Therefore we used young adults as a reference group (designated as $Y$) for normalization. 
+We then normalized other RR scores over time using the following equation: $nRR_{A,B}(t) = RR_{A,B}(t)/RR_{Y,Y}(t)$.  
 
-For age and time analyses of RR, our objective is to detect changes in transmission across age groups due to changes in mobility and interaction from non-pharmaceutical interventions (NPIs) and voluntary behavioral changes. Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18-40 year olds) tended to have lower levels of social isolation and mitigation behaviors compared to other age groups.\autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns} Therefore we can use young adults as a reference group (designated as $Y$) for normalization. We then normalize other RR scores over time using the following equation: $nRR_{A,B}(t) = RR_{A,B}(t)/RR_{Y,Y}(t)$.  
-
-For time analyses of geographic RR, changes in circulating SARS-CoV-2 variants, NPIs, and sequence sampling effort over time are all factors that may affect the number of genomes collected from a specific area. There is no specific geographic area that we can use as a reference population in this case. Based on our prior work, we anticipate the within area RR to be enriched (i.e. greater than 1). Therefore, we seek to develop a metric that can capture temporal changes in mixing across different areas. For the RR of pairs of identical sequences in locations A and B we use the average of the within area RR for the two areas as the normalizing factor. This can be written as follows:
+For time analyses of geographic RR, changes in circulating SARS-CoV-2 variants, public health interventions, and sequence sampling effort over time are all factors that may affect the number of genomes collected from a specific area.
+There is no specific geographic area that we can use as a reference population in this case.
+Based on our prior work, we anticipate the within area RR to be enriched with identical sequences (i.e. greater than 1).
+We sought to develop a metric that can capture temporal changes in mixing across different areas.
+For the RR of pairs of identical sequences in locations A and B we use the average of the within area RR for the two areas as the normalizing factor. This can be written as follows:
 \begin{align*}
 nRR_{A,B}(t) &= \frac{RR_{A,B}(t)}{\frac{1}{2}(RR_{A,A}(t)+RR_{B,B}(t))} \\
              &= \frac{2\, RR_{A,B}(t)}{RR_{A,A}(t)+RR_{B,B}(t)}
 \end{align*}
 
-We used agent-based modeling with nucleotide mutation simulations to explore and validate this approach. This included scenario testing changes in movement between simulated demes. Further discussion of this validation approach can be found in the supplementary information.  
+We used agent-based modeling with nucleotide mutation simulations to explore and validate this approach. 
+This included scenario testing changes in movement between simulated demes.
+Further discussion of this validation approach can be found in the supplementary information.  
 
-\subsection{Cluster and Dimensionality Analysis}
+\subsection{Geographic Clustering and Regional Analysis}
 
-For clustering and dimensionality reduction, RR was converted to a dissimilarity measure: $D_{A,B} = \exp{(-RR_{A,B})}$. Hierarchical clustering of states and provinces was calculated using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} package.\autocite{maechlerClusterClusterAnalysis2026} Principal coordinate analysis (PCoA) was conducted on the dissimilarity matrix with the \texttt{cmdscale} function from the base \texttt{stats} package.\autocite{rcoreteamLanguageEnvironmentStatistical2025} The absolute eigenvalue proportion was used for estimating the percent variance.
+States/provinces were sorted using hierarchical clustering to assess if states/provinces tended to be most related to other states within the same region. 
+For clustering and dimensionality reduction, RR was converted to a dissimilarity measure: $D_{A,B} = \exp{(-RR_{A,B})}$.
+Hierarchical clustering of states and provinces was calculated using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} package.\autocite{maechlerClusterClusterAnalysis2026}
+Principal coordinate analysis (PCoA) was conducted on the dissimilarity matrix with the \texttt{cmdscale} function from the base \texttt{stats} package.\autocite{rcoreteamLanguageEnvironmentStatistical2025}
+The absolute eigenvalue proportion was used for estimating the percent variance of each principal coordinate.
+For the time-varying geographic RR analysis, inter-regional state/province pairs were ranked into percentiles.
+Pairs with five or more quarters of being ranked in the 98th percentile or higher were defined to be conserved high-ranking interregional pairs.
 
 \subsection{Distance/Mobility Regression Analysis}
+
+For the continental United States, identical sequence relative risk scores were compared to multiple measures of distance and movement.
+These included the minimum geographic distance between core-based statistical areas (CBSA distance), ground travel RR calculated using the 2017 National Household Travel Survey (NHTS), air travel RR calculated using the 2019 Airline Origin and Destination Survey (DB1B), and individual mobility calculated from SafeGraph data.
+Pearson's correlation coefficients between identical sequence RR and these distance/movement variables were calculated, where all RR variables were first transformed to base-10 logarithmic scale. 
+To test the effect of interactions, we constructed generalized additive models to predict the sequence $\log(RR)$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
 
 \section{Results}
 
@@ -118,9 +175,23 @@ For clustering and dimensionality reduction, RR was converted to a dissimilarity
     \label{fig:desc}
 \end{figure}
 
-The geographic distribution of sequences is shown in panel A of figure \ref{fig:desc}. California had the highest number of sequences with 935,874 sequences. Per capita sequencing effort varied across states/provinces with a median of 1468.7 (IQR: 934.9 - 2288.9).  Wyoming had the highest per capita sequences of any state/province (5,935.5 sequences per 100,000 persons) while Mexico had the lowest number of sequences per capita of any country or state/province (76.5 total sequences per 100,000 persons). We plot the sequencing effort for each country in \ref{fig:desc}B. Mexico consistently had the fewest sequences per capita of the three countries throughout the study period. The US and Canada have similar sequence count trajectories, with the number of sequences markedly increasing in early 2021 and peaking in late 2021/early 2022 following the Delta and Omicron waves. Sequence counts from Mexico also had similar relative increases during these time periods.
+The geographic distribution of sequences is shown in panel A of figure \ref{fig:desc}.
+California had the highest number of sequences with 935,874 sequences.
+Per capita sequencing effort varied across states/provinces with a median of 1468.7 sequences per 100,000 persons (IQR: 934.9 - 2288.9).
+Wyoming had the highest per capita sequences of any state/province (5,935.5 sequences per 100,000 persons) while Mexico had the lowest number of sequences per capita of any country or state/province (76.5 sequences per 100,000 persons).
+We plot the sequencing effort for each country in \ref{fig:desc}B.
+Mexico consistently had the fewest sequences per capita of the three countries throughout the study period.
+The US and Canada have similar sequence count trajectories, with the number of sequences markedly increasing in early 2021 and peaking in late 2021/early 2022 following the Delta and Omicron waves.
+Sequence counts from Mexico also had similar relative increases during these time periods.
 
-The age and gender distribution of sequences is shown in figure \ref{fig:desc} panels C and D. 42.1\% of sequences had missing or invalid sex/gender data.  Of sequences with valid gender data, the majority are from female individuals (54.0\%). We were unable to account for non-binary gender in this analysis as there were no standardized reporting practices in the metadata. 52.0\% of sequences had valid age data. Age reporting practices highly varied across geographies. The median valid age percentage for states/provinces was 66.8\% and ranged from 0\% (Alberta) to 97.9\% (Newfoundland and Labrador). Maps of age and sex reporting percentages are included in the supplemental figures. There were some differences in the age distribution across geography, shown in figure \ref{fig:desc}D, but all regions generally included a wide range of both pediatric and adult samples.                  
+The age and gender distribution of sequences is shown in figure \ref{fig:desc} panels C and D.
+42.1\% of sequences had missing or invalid sex/gender data.
+Of sequences with valid gender data, the majority are from female individuals (54.0\%).
+We were unable to account for non-binary gender in this analysis as there were no standardized reporting practices in the metadata.
+52.0\% of sequences had valid age data.
+Age reporting practices highly varied across geographies with the median valid age percentage for states/provinces was 66.8\% and ranged from 0\% (Alberta) to 97.9\% (Newfoundland and Labrador).
+Maps of age and sex reporting percentages are included in the supplemental figures.
+There were some differences in the age distribution across geography, shown in figure \ref{fig:desc}D, but all regions generally included a wide range of ages from young childhood through the elderly.                  
 
 \subsection{Relationship between Geography and Identical Sequences}
 \begin{figure}[tp]
@@ -130,7 +201,12 @@ The age and gender distribution of sequences is shown in figure \ref{fig:desc} p
     \label{fig:geo_clust}
 \end{figure}
 
-We investigated spatial relationships of identical sequences across Canada, Mexico, and the United States. From each geographic unit, relative risk scores were calculated to the other units. Relative risk (RR) maps for Ontario, New York State, and Mexico are shown fig \ref{fig:geo_clust}A. These maps show evidence that states and provinces tend to have higher RR scores with neighboring states and provinces. Cross-border neighbors between the US and Canada did not tend to have RR scores greater than 1, but Mexico did have RR scores greater than 1 with most of its neighboring states.  The full matrix of RRs were used to construct a heatmap (fig \ref{fig:geo_clust}C). The highest RR values are along the heatmap’s diagonal, showing that identical sequence pairs had the highest likelihood of occurring within the same geographical unit.  
+We investigated spatial relationships of identical sequences across Canada, Mexico, and the United States.
+Sequence relative risk scores were calculated between all geographic areas.
+Relative risk (RR) maps for Ontario, New York State, and Mexico are shown fig \ref{fig:geo_clust}A. 
+Generally these maps show that states and provinces tend to have higher RR scores with neighboring states and provinces.
+For New York and Ontario, cross-border neighbors between the US and Canada did not tend to have RR scores greater than 1, but Mexico did have RR scores greater than 1 with most of its neighboring states.
+The full matrix of RRs were used to construct a heatmap (fig \ref{fig:geo_clust}C). The highest RR values are along the heatmap’s diagonal, showing that identical sequence pairs had the highest likelihood of occurring within the same geographical unit.  
 
 This matrix of RRs was sorted using hierarchical clustering and then annotated by the geographic region (i.e. Bureau of Economic Analysis regions for the US, Eastern vs Western Canada, and Mexico)  (fig \ref{fig:geo_clust}B). The clustering reveals that the identical sequence RRs tended to sort along region definitions, with regions such as Eastern Canada, Western Canada, Mideast, and the Plains creating distinct and fully sorted clusters. Within the US, however, state clusters do not perfectly sort along regional definitions. For example, states from the Southeast are split into three different small clusters: (1) the District of Columbia (DC), Maryland, Virginia, and North Carolina were closest to the Mideast and New England clusters; (2) Arkansas, Louisiana, and Mississippi were closest to Southwest states and Mexico; and (3) the remainder of the states were mixed with the Great Lakes states. Similarly, we find that in the Far West that Alaska, Oregon and Washington are closer to certain Rocky Mountain states (Idaho and Utah), while California, Hawaii, and Nevada cluster with Arizona and Texas.  
 
@@ -138,15 +214,42 @@ The dissimilarity score was used for a principal coordinate analysis (fig \ref{f
 
 \subsection{Temporal and Seasonal Relationships for Geographic RR}
 
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=0.75\textwidth]{geo_time.pdf}
+    \caption{Changes in geographic identical sequence RR over time. A: Distribution of normalized RR scores for each calendar quarter stratified by within region, domestic between region, and international pairings. B: Heatmap of fold change for nRR scores with each column representing one state/province pairing. Fold change set relative to 2023 Q1.  C: Between region nRR scores staying in the top 98\%ile across multiple quarters (left side) and across multiple years for the same quarter (right side).}
+    \label{fig:geo_time}
+\end{figure}
+
+Quarterly identical sequence RR scores were calculated and normalized against the mean same state RR for comparisons over time. Normalized RR scores showed a broad range in Q1 2020 and then rapidly decreased to a nadir in 2020 Q4 (fig \ref{fig:geo_time}A). Normalized RR increased during 2021 and 2022 and then stabilized in late 2023 and 2024. Throughout all time periods, state pairs within the same region had the highest normalized RR compared to inter-region and international state pairs. Fold-change of geographic nRRs were also calculated with respect to 2023 Q1 to track how individual pairs changed over time (fig \ref{fig:geo_time}B). We see a sharp decrease across most state/provincial pairs from 2020 Q1 to 2020 Q2 and this decrease persists through the remainder of 2020 across all geographies. The nRR begin to increase in a gradated fashion during 2021 as within region nRR scores increased in early 2021 and across region nRR scores increased in late 2021. International nRR scores remained low throughout 2021 and started to increase in 2022.
+
+Geographic nRR scores were also used to find pairs of states/provinces with consistently higher nRR scores across multiple time points. Within region pairs tended to be consistently higher than between region pairs, so we investigated conserved highly enriched connections between regions. These were state-province pairs that were in the upper 95th percentile of for at least five of the twenty quarters during the study time period (fig \ref{fig:geo_time}C). There were 21 state pairings that had at least 5 quarters within the upper 95th percentile. All of these conserved connections were between US states and there were no international connections. Florida had the highest involvement (9 connections) followed by New York and New Jersey (both with 6 connections). Florida - New Jersey and Florida - Pennsylvania were the most common conserved connections with each having 10 quarters of nRR within the top 98th percentile, followed by Florida - Texas, Florida - New York, California - Florida, and California - New Jersey having 8 quarters.  We further investigated conserved connections stratified by quarters. Florida acts as the main hub with the most conserved connections across all four quarters. The majority of these connections tend to be with Mideast states (New Jersey, Pennsylvania, and New York), but Texas and California also have conserved connections with Florida in multiple years. We also find that the number of conserved connection vary by season with Q1 (January - March) and Q3 (July - September) having the most conserved connections and Q2 (April - June) having the least. 
+
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\textwidth]{geo_dist.pdf}
+    \caption{Relationship between US identical sequence RR scores with distance/travel patterns. A: Clockwise, box/correlation plots between identical sequence RR and: neighbor order, geographic distance, cell phone mobility timeshare, and transportation diary trips. Blue points indicate within state RR and best fit curve using LOESS for all scatter plots. B: Correlation plots between airline trips and identical sequence RRs stratified by geographic distance  C: Pearson correlation over time between nRR and distance/travel with 95\% confidence band.}
+    \label{fig:geo_dist}
+\end{figure}
+
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\textwidth]{age.pdf}
+    \caption{Investigation of identical sequences with age. A: Heatmap of all identical sequence RR from age 0 to 80 years old. B: Identical sequence RR heatmaps stratified by same state/province pairs, intraregional but different state/province pairs, and different region pairs. C: RR deviance by age at different geographies where higher deviance indicates greater evidence of non-random mixing. D:  Correlation scatter plot for the sequence age RR versus synthetic contact matrix age RR in Canada and the US. E: Age normalized relative risks for 65-80 yo and 81 yo+ during the time period of the initial SARS-CoV-2 vaccine release.}
+    \label{fig:age}
+\end{figure}
+
+
 \subsection{Geographical Predictors of Identical Sequence RR}
 
 \section{Discussion}
 
 \subsection{Geography and Scale of Transmission}
-The benefit of our approach is the ability to do high resolution geographic analyses even across a large study area. Traditional phylogeographic approaches would not be able to process a sufficient number of sequences to describe the relationships for all fifty United States and ten Canadian provinces. Instead, approaches have typically needed to either focus on a smaller area study area and capture higher resolution data within that area or subsample data from a larger area and then aggregate the locations for there to be sufficient signal. Aggregation implicitly assumes a degree of homogeneity within that population and can miss relationships. In our example we found heterogeneity in the clustering of the Southeast and Far West states. When repeating the RR analysis at the regional level instead of state/province (fig \ref{fig:reg_hmap}) the Far West had no RR > 1 with any other regions despite individual states having relationships outside the region with RR greater than 1 (e.g. Washington and Idaho, California and Mexico). 
+The benefit of our approach is the ability to do high resolution geographic analyses even across a large study area. Traditional phylogeographic approaches would not be able to process a sufficient number of sequences to describe the relationships for all fifty United States and ten Canadian provinces. Instead, approaches have typically needed to either focus on a smaller area study area and capture higher resolution data within that area or subsample data from a larger area and then aggregate the locations for there to be sufficient signal. Aggregation implicitly assumes a degree of homogeneity within that population and can miss relationships. In our example we found heterogeneity in the clustering of the Southeast and Far West states. When repeating the RR analysis at the regional level instead of state/province (supplemental fig \ref{fig:reg_hmap}) the Far West had no RR > 1 with any other regions despite individual states having relationships outside the region with RR greater than 1 (e.g. Washington and Idaho, California and Mexico). 
 
-An important example of the significance of scale can be seen with the "Acela Corridor" in the United States, where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD; and Washington DC. We expect Connecticut (within the New England region) to have high levels of transmission with New York (within the Mideast) due to having a large commuting population to New York City. Similarly we expect Maryland (within the Mideast) to have high levels of transmission with Virginia (within the Southeast)  Both of these relationships are confirmed in our state level heatmap, and we find that the states from Connecticut through North Carolina sit on closely linked branches of the hierarchical tree. Interestingly, we find that despite Connecticut's geographical proximity to the New England states, its RR pattern more closely aligns with the New York and Washington metro areas.           
+Another important example of the significance of scale can be seen with the "Acela Corridor" in the United States. This is where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD; and Washington DC. Since US metropolitan areas often cross state boundaries, this can also lead them to span several regions as well. We expect Connecticut (within the New England region) to have high levels of transmission with New York (within the Mideast) due to having a large commuting population to New York City. Similarly, we expect Maryland (within the Mideast) to have high levels of transmission with Virginia (within the Southeast)  Both of these relationships are confirmed in our state level heatmap. If we zoom our clustering tree to focus on the New England, Mideast, and Southeast region (supplemental fig \ref{fig:hclust_subset}), we find that the states from Connecticut through South Carolina sit on closely linked branches of the hierarchical tree. Interestingly, we find that despite Connecticut's geographical proximity to the New England states, its RR pattern more closely aligns with the New York and Philadelphia metro areas. Similarly, Virginia, North Carolina and South Carolina are linked more closely to the Washington metro states rather than the other Southeastern states.  This demonstrates the risk of missing important relationships depending on how geographical boundaries and regions are defined.
 
+Ultimately, the strongest geographical relationships found in our analysis tended to be intraregional or interregional with neighboring states/provinces. Geographical distance, mobility data, and vehicle trips all were strong predictors of geographic RR. This provides evidence that the bulk of transmission are local, shorter distance events. However, we were able to capture some signal of longer distance interregional and international transmission using our time normalized RR metric.      
 
 
 \subsection{Limitations}
@@ -163,7 +266,7 @@ In this paper, we propose a framework to understand the identical sequence RR ac
 \subsection{Validating Relative Risk Simulations}
 To test the nRR approach, we developed a simulation of an outbreak in a three population system: $O$, $A$, and $B$. Agent based simulation was done using \texttt{nosoi} to create a phylogenetic transmission tree.\autocite{lequimeNosoiStochasticAgentbased2020} Agents had a baseline movement probability of 0.02, with agents in $O$ having a 50\% chance of traveling to either $A$ or $B$ if they moved. Meanwhile, agents in $A$ and $B$ had an 80\% chance of going to $O$ and 20\% chance of going to either $B$ or $A$, respectively. Each population had a carrying capacity 500 infected agents. Infected agents had a mean of 1.5 contacts per time step drawn according to a Poisson distribution. The transmission probability for each contact was based on a Beta distribution with $\alpha = 4, \beta = 8$ with an incubation period drawn from a Gamma distribution. There was a 1 in 7 chance at each time step for an infected agent to exit the simulation (i.e. recover). 
 
-We completed 50 simulations where the movement probability for $A$ was set to 0 at $t=150$ for 200 time steps to simulate a lockdown condition. For each simulation, an outbreak would originate from an infected agent in $O$ and the simulation would continue until either 30,000 infections occurred or more than 1,000 time steps passed. From \texttt{nosoi} we were able to obtain a Newick transmission tree which was then passed to \texttt{phastSim} to simulate nucleotide evolution. We used a mutation rate of $2 \times 10^{-6}$ substitutions per site per unit of time to match a similar mutation rate as SARS-CoV-2. These simulated sequences were then fed into a similar pipeline as described earlier to calculate the RR and nRR between the three geographic areas over time.  The full results of this analysis can be seen in Supplemental Figure. 
+We completed 50 simulations where the movement probability for $A$ was set to 0 at $t=150$ for 200 time steps to simulate a lockdown condition. For each simulation, an outbreak would originate from an infected agent in $O$ and the simulation would continue until either 30,000 infections occurred or more than 1,000 time steps passed. From \texttt{nosoi} we were able to obtain a Newick transmission tree which was then passed to \texttt{phastSim} to simulate nucleotide evolution. We used a mutation rate of $2 \times 10^{-6}$ substitutions per site per day to match a similar rate as SARS-CoV-2. These simulated sequences were then fed into a similar pipeline as described earlier to calculate the RR and nRR between the three geographic areas over time.  The full results of this analysis can be seen in Supplemental Figure. 
 
 \subsection{Additional Geographic Analyses}
 \begin{figure}[htb]
@@ -173,6 +276,15 @@ We completed 50 simulations where the movement probability for $A$ was set to 0 
     \label{fig:reg_hmap}
 \end{figure}
 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{hclust_subset.pdf}
+    \caption{Subset of hierarchical clustering tree for the Southeast, Mideast, and New England regions. Original clustering used full Canada + US + Mexico dataset and branches with states outside the three regions were excluded from this figure. Colors represent different regions.}
+    \label{fig:hclust_subset}
+\end{figure}
+
 \subsection{Regression Model Selection and Validation}
+
+\subsection{Investigation of Virtual versus In-Person Schooling on Transmission}
 
 \end{document}

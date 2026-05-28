@@ -42,7 +42,7 @@ bea_map <- plot_cam_choropleth(cam_map,
                     title = "State/Provincial Regions")
 ggsave(plot=bea_map,
        filename=paste0("figs/",scenario,"/bea_region_map.jpg"),
-       height=7,width=7,dpi=192)
+       height=7,width=7,dpi = 300)
 
 seq_by_div <- meta_tbl |>
   group_by(division) |>
@@ -70,12 +70,10 @@ seq_map <- plot_cam_choropleth(cam_map,
 FN_PATH <- paste0("figs/",scenario,"/desc/")
 
 ggsave(paste0(FN_PATH,"seq_map.png"),
-  seq_map, 
-  height = 7, 
-  width = 6, 
-  units = "in",
-  dpi = 300,
-  create.dir = TRUE
+  seq_map, height = 7, width = 6, units = "in", dpi = 300, create.dir = TRUE
+)
+ggsave(paste0(FN_PATH,"seq_map.svg"),
+  seq_map, height = 7, width = 6, units = "in", device = "svg"
 )
 
 effort_cap <- function(x,UB = 5000){
@@ -96,12 +94,10 @@ seq_eff_map <- plot_cam_choropleth(cam_map,
                                 barwidth = unit(8, "cm"))) 
 
 ggsave(paste0(FN_PATH,"seq_eff_map.png"),
-  seq_eff_map, 
-  height = 7, 
-  width = 6, 
-  units = "in",
-  dpi = 300,
-  create.dir = TRUE
+  seq_eff_map, height = 3, width = 6, units = "in", dpi = 300, create.dir = TRUE
+)
+ggsave(paste0(FN_PATH,"seq_eff_map.svg"),
+  seq_eff_map, height = 3, width = 6, units = "in", device = "svg"
 )
 
 #Effort calculations
@@ -147,12 +143,10 @@ plot_natl_effort <- ggplot(natl_week_effort,
   country_color_scale()
 
 ggsave(paste0(FN_PATH,"natl_effort.png"),
-  plot_natl_effort, 
-  height = 3.5, 
-  width = 7, 
-  units = "in",
-  dpi = 300,
-  create.dir = TRUE
+  plot_natl_effort, height = 3, width = 6, units = "in", dpi = 300, create.dir = TRUE
+)
+ggsave(paste0(FN_PATH,"natl_effort.svg"),
+  plot_natl_effort, height = 3, width = 6, units = "in", device = "svg"
 )
 
 plot_effort_box <- ggplot(division_quarter_effort %>% filter(country != "Mexico"), 
@@ -211,12 +205,10 @@ plot_age_sex <- ggplot(
   theme(legend.position = "bottom")
 
 ggsave(paste0(FN_PATH,"age_sex.png"),
-  plot_age_sex, 
-  height = 4, 
-  width = 3, 
-  units = "in",
-  dpi = 300,
-  create.dir = TRUE
+  plot_age_sex, height = 4, width = 3, units = "in", dpi = 300, create.dir = TRUE
+)
+ggsave(paste0(FN_PATH,"age_sex.svg"),
+  plot_age_sex, height = 4, width = 3, units = "in", device = "svg"
 )
 
 sex_seq <- age_sex_seq %>%
@@ -237,12 +229,10 @@ plot_age_region <- ggplot(
   region_fill_scale()
 
 ggsave(paste0(FN_PATH,"age_region.png"),
-  plot_age_region, 
-  height = 4, 
-  width = 5, 
-  units = "in",
-  dpi = 300,
-  create.dir = TRUE
+  plot_age_region, height = 4, width = 5, units = "in", dpi = 300, create.dir = TRUE
+)
+ggsave(paste0(FN_PATH,"age_region.svg"),
+  plot_age_region, height = 4, width = 5, units = "in", device = "svg"
 )
 
 reg_clade_prop <- meta_tbl %>%

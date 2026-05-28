@@ -4,6 +4,9 @@
 *.o
 *.pdf
 *.html
+manuscript/figures/*.svg
+!manuscript/figures/*.pdf
+!manuscript/main.pdf
 
 
 cluster-analysis/*

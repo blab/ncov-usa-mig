@@ -21,11 +21,11 @@ df_ay <- read_tsv(fn_school_state_ay, show_col_types = FALSE)
 
 # Filter to only include school categories for X (facet), but keep all y categories
 df_plot <- df_ay %>%
-  filter(x %in% c("Pre-School", "Primary School", "Secondary School")) %>%
+  filter(x %in% c("Pre-School", "School Aged")) %>%
   # Set factor levels for ordering
   mutate(
-    x = factor(x, levels = c("Pre-School", "Primary School", "Secondary School")),
-    y = factor(y, levels = c("Pre-School", "Primary School", "Secondary School", "Adult", "Seniors", "NA")),
+    x = factor(x, levels = c("Pre-School", "School Aged")),
+    y = factor(y, levels = c("Pre-School", "School Aged", "Adult", "Seniors", "NA")),
     academic_year = factor(academic_year,
                           levels = c("2020-2021", "2021-2022", "2022-2023", "2023-2024"))
   )
@@ -118,18 +118,18 @@ message(paste0("nRR_fixed plot saved to ", fn_nrr_fixed))
 
 # Prepare data for ANOVA - filter to within-group RR (x == y) only
 df_anova <- df_ay %>%
-  filter(x %in% c("Pre-School", "Primary School", "Secondary School")) %>%
+  filter(x %in% c("Pre-School", "School Aged")) %>%
   filter(x == y) %>%  # Within-group transmission only
   mutate(log_RR = log(RR)) %>%
   filter(is.finite(log_RR)) %>%
   mutate(
-    x = factor(x, levels = c("Pre-School", "Primary School", "Secondary School")),
+    x = factor(x, levels = c("Pre-School", "School Aged")),
     academic_year = factor(academic_year, levels = c("2020-2021", "2021-2022", "2022-2023", "2023-2024")),
     state = factor(state)
   )
 
 # Fit separate models for each child age group to test temporal trends
-child_groups <- c("Pre-School", "Primary School", "Secondary School")
+child_groups <- c("Pre-School", "School Aged")
 anova_results <- list()
 
 for (child_group in child_groups) {
@@ -198,12 +198,12 @@ message("ANOVA RESULTS FOR nRR_fixed (ADULT BASELINE NORMALIZED)")
 message("========================================")
 
 df_anova_nrr_fixed <- df_ay %>%
-  filter(x %in% c("Pre-School", "Primary School", "Secondary School")) %>%
+  filter(x %in% c("Pre-School", "School Aged")) %>%
   filter(x == y) %>%
   mutate(log_nRR_fixed = log(nRR_fixed)) %>%
   filter(is.finite(log_nRR_fixed)) %>%
   mutate(
-    x = factor(x, levels = c("Pre-School", "Primary School", "Secondary School")),
+    x = factor(x, levels = c("Pre-School", "School Aged")),
     academic_year = factor(academic_year, levels = c("2020-2021", "2021-2022", "2022-2023", "2023-2024")),
     state = factor(state)
   )

@@ -53,8 +53,8 @@ df_rr_t100 <- left_join(t100_agg,t100_mirror,
   group_by(y) %>%
   mutate(pass_y = sum(pass_xy)) %>% ungroup() %>%
   mutate(RR_air = pass_xy * pass_total / pass_x / pass_y) %>%
-  select(x,y,RR_air)
-  
+  select(x, y, RR_air, pass_xy)
+
 write_csv(df_rr_t100,"data/rr_air_t100.csv")
 
 #Sample of 10% of all flight itineraries
@@ -97,7 +97,7 @@ df_rr_db1b <- left_join(t_DB1B_agg,t_DB1B_mirror,
   group_by(y) %>%
   mutate(pass_y = sum(pass_xy)) %>% ungroup() %>%
   mutate(RR_air = pass_xy * pass_total / pass_x / pass_y) %>%
-  select(x,y,RR_air)
+  select(x, y, RR_air, pass_xy)
 
 write_csv(df_rr_db1b,"data/rr_air_db1b.csv")
 
@@ -107,14 +107,41 @@ combo_set <- df_rr_t100 %>%
             by = join_by(x,y)) %>%
   rename(RR_db1b = RR_air) 
 
-ggplot(combo_set) + 
-  aes(x = RR_db1b,y=RR_t100) + 
-  geom_point() + 
-  geom_smooth() +
-  xlim(0,10) +
-  ylim(0,10)
+rho_air <- cor(log10(combo_set$RR_t100[combo_set$RR_t100 > 0 & combo_set$RR_db1b > 0]),
+               log10(combo_set$RR_db1b[combo_set$RR_t100 > 0 & combo_set$RR_db1b > 0]),
+               use = "complete.obs")
 
-#Quick summary of the datasets in comments: T100 has sine very extreme RR because it picks up small regional carriers doing commuter flights
+p_compare <- combo_set %>%
+  filter(RR_t100 > 0, RR_db1b > 0) %>%
+  ggplot(aes(x = RR_db1b, y = RR_t100)) +
+  geom_point(alpha = 0.15, size = 0.8) +
+  geom_abline(slope = 1,
+    intercept = 0,
+    color = "firebrick",
+    linewidth = 1,
+    linetype = "dashed" 
+  ) +
+  scale_x_continuous(transform = "log10",
+                     name = "DB1B RR (full itinerary)",
+                     breaks = c(0.001,0.01, 0.1, 1, 10, 100),
+                     labels = c(expression(10^{-3}),expression(10^{-2}), expression(10^{-1}),
+                               expression(10^{0}), expression(10^{1}), expression(10^{2}))) +
+  scale_y_continuous(transform = "log10",
+                     name = "T100 RR (individual legs)",
+                     breaks = c(1E-4,0.001,0.01, 0.1, 1, 10, 100,1E3),
+                     labels = c(expression(10^{-4}),expression(10^{-3}),expression(10^{-2}), expression(10^{-1}),
+                               expression(10^{0}), expression(10^{1}), expression(10^{2}),expression(10^{3}))) +
+  theme_classic() +
+  labs(title = "T100 vs DB1B Air Travel RR",
+       subtitle = paste0("r = ", round(rho_air, 2))) +
+  theme(plot.title    = element_text(hjust = 0.5, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  coord_fixed()
+
+ggsave("figs/CAM_1000/rr_t100_vs_db1b.jpg", plot = p_compare, device = "jpeg",
+       dpi = 300, width = 5,create.dir = TRUE)
+
+#Quick summary of the datasets in comments: T100 has some very extreme RR because it picks up small regional carriers doing commuter flights
 #These are not a significant sample of the DB1B set so we find that DB1B data tends to be more in line with expected patterns
 #Additionally flights to and from hubs play a much larger role in the T100 data since it divides up a single trip into all of its legs
 #For the purpose of identifying the travel patterns between states DB1B seems more helpful, although it will miss some of that within airport mixing

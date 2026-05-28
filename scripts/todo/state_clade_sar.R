@@ -306,7 +306,7 @@ ggsave(filename = paste0("figs/",scenario,"/time/moran_clade.jpg"),
       height = 30,
       width = 30,
       unit = "in",
-      dpi = 150)
+      dpi = 300)
 
 #Arrival analysis
 #Limit to clades that break 50%

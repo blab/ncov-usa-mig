@@ -292,7 +292,7 @@ ggsave(gg_tree_all,
        height = 1800,
        width = 1500,
        units = "px",
-       dpi = 150)
+       dpi = 300)
 
 
 set.seed(17)
@@ -327,7 +327,7 @@ ggsave(gg_var_explained,
        width = 800,
        height = 600,
        units = "px",
-       dpi = 150)
+       dpi = 300)
 
 # Use first 6 components for clustering
 state_kclust_pcoa <- kmeans(state_PCoA_final$points[, 1:6], centers = 6)$cluster %>%
@@ -461,8 +461,15 @@ base_dim <- 900
 ggsave(gg_pcoa_V2V1 + coord_fixed(ratio = 1,reverse="y"),
        filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.jpg"),
        width = base_dim,
+       height = base_dim * get_aspect(1, 2),
        units = "px",
        dpi = 300)
+ggsave(gg_pcoa_V2V1 + coord_fixed(ratio = 1,reverse="y"),
+       filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.svg"),
+       width = base_dim / 300,
+       height = base_dim * get_aspect(1, 2) / 300,
+       units = "in",
+       device = "svg")
 
 # V1 vs V3
 ggsave(gg_pcoa_V1V3 + coord_flip() + scale_x_reverse(),
@@ -478,21 +485,53 @@ ggsave(gg_pcoa_V1V4,
        width = base_dim,
        height = base_dim / get_aspect(1, 4),
        units = "px",
-       dpi = 192)
+       dpi = 300)
 
 # V2 vs V3
 ggsave(gg_pcoa_V2V3 + coord_fixed(ratio = 1,reverse="y"),
        filename = paste0("figs/", scenario, "/clust/pcoa_V2V3.jpg"),
        width = base_dim,
+       height = base_dim * get_aspect(3, 2),
        units = "px",
        dpi = 300)
+ggsave(gg_pcoa_V2V3 + coord_fixed(ratio = 1,reverse="y"),
+       filename = paste0("figs/", scenario, "/clust/pcoa_V2V3.svg"),
+       width = base_dim / 300,
+       height = base_dim * get_aspect(3, 2) / 300,
+       units = "in",
+       device = "svg")
 
 # V2 vs V3 (USA only)
 ggsave(gg_pcoa_V2V3_US + coord_fixed(ratio = 1,reverse="y"),
        filename = paste0("figs/", scenario, "/clust/pcoa_V2V3_US.jpg"),
-       width = base_dim, 
+       width = base_dim,
+       height = base_dim * get_aspect(3, 2),
        units = "px",
        dpi = 300)
+
+# Combined PCoA column: V1V2 stacked over V2V3, dimensions derived from variance explained
+# Width fixed at 3in; each panel height = width * (PCy_var / PCx_var)
+# V1V2: x=V2 (11.8%), y=V1 (18.9%)  → height = 3 * (18.9/11.8)
+# V2V3: x=V2 (11.8%), y=V3 (5.9%)   → height = 3 * (5.9/11.8)
+# PCoA coordinates are scaled by sqrt(eigenvalue), so data ranges are proportional
+# to sqrt(pct_var), not pct_var. Use sqrt proportions so coord_fixed(ratio=1)
+# fills each panel without whitespace.
+pca_w_in  <- base_dim / 300                                            # 3in
+pca_h_in  <- pca_w_in * (sqrt(pct_var_explained[1]) + sqrt(pct_var_explained[3])) /
+             sqrt(pct_var_explained[2])
+
+no_margin <- theme(plot.margin = margin(0, 0, 0, 0))
+
+pcoa_combined <- (gg_pcoa_V2V1 + scale_y_reverse() + no_margin) /
+                 (gg_pcoa_V2V3 + scale_y_reverse() + no_margin) +
+  plot_layout(heights = c(sqrt(pct_var_explained[1]), sqrt(pct_var_explained[3])))
+
+ggsave(pcoa_combined,
+       filename = paste0("figs/", scenario, "/clust/pcoa_combined.svg"),
+       device   = "svg",
+       width    = pca_w_in,
+       height   = pca_h_in,
+       units    = "in")
 
 message("Successfully completed main clustering analysis block")
 break
@@ -531,7 +570,7 @@ ggsave(
   width = combined_width,
   height = combined_height,
   units = "px",
-  dpi = 192
+  dpi = 300
 )
 
 stop("Finished Region Clustering")

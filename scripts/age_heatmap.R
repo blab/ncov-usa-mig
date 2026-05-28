@@ -12,6 +12,7 @@ library(ggplot2)
 library(RColorBrewer)
 library(ggrepel)
 library(viridis)
+library(patchwork)
 
 source("scripts/color_schemes.R")
 
@@ -187,3 +188,25 @@ ggsave(paste0("figs/", scenario, "/age_heatmaps/heatmap_different_region.jpg"),
        width = HEATMAP_WIDTH,
        height = HEATMAP_HEIGHT,
        units = "in")
+
+# Vector outputs for the stitched manuscript figure
+ggsave(paste0("figs/", scenario, "/age_heatmaps/full.svg"),
+       plot = age_heatmap, width = 6, height = 6, units = "in")
+
+compact_subset_theme <- theme(
+  plot.title = element_text(size = 8, hjust = 0.5, margin = margin(b = 1)),
+  plot.margin = margin(2, 2, 2, 2)
+)
+
+# Add a left spacer so the row of heatmaps aligns with the deviance plot panel
+# (deviance has ~0.5" of y-axis space on its left in the stitched figure).
+subsets_row <- plot_spacer() +
+  (age_heatmap_same_state       + labs(title = "Same State")       + compact_subset_theme) +
+  (age_heatmap_same_region      + labs(title = "Same Region")      + compact_subset_theme) +
+  (age_heatmap_different_region + labs(title = "Different Region") + compact_subset_theme) +
+  plot_layout(ncol = 4, widths = c(0.5, 1.5, 1.5, 1.5))
+
+ggsave(paste0("figs/", scenario, "/age_heatmaps/subsets_row.svg"),
+       plot = subsets_row, width = 5, height = 1.67, units = "in")
+ggsave(paste0("figs/", scenario, "/age_heatmaps/subsets_row.png"),
+       plot = subsets_row, width = 5, height = 1.67, dpi = 300, units = "in")

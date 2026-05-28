@@ -14,20 +14,29 @@ library(ggrepel)
 library(ggsignif)
 library(patchwork)
 library(scales)
+library(readr)
+library(cowplot)
 
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--air_source', type = 'character', default = 'db1b',
+                      choices = c('db1b', 't100'),
+                      help = 'Air travel data source: db1b (full itinerary) or t100 (individual legs)')
   return(parser$parse_args())
 }
 
 args <- collect_args()
 scenario <- args$scenario
+air_source <- args$air_source
 
 ####TEMP DELETE ONCE YOU WANT TO MAKE THE FLOW WORK
 scenario <- "CAM_1000"
 
-dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
+fig_path     <- paste0("figs/", scenario, "/dist/")
+air_fig_path <- paste0("figs/", scenario, "/dist/air_", air_source, "/")
+dir.create(fig_path,     recursive = TRUE, showWarnings = FALSE)
+dir.create(air_fig_path, recursive = TRUE, showWarnings = FALSE)
 
 fn_rr <- paste("results/",scenario,"/df_RR_by_state.tsv",sep="")
 state_rr <- fread(fn_rr)  %>%
@@ -39,8 +48,9 @@ state_rr <- fread(fn_rr)  %>%
 
 state_rr$simple_adj<-factor(state_rr$simple_adj,levels=c("Non-adjacent state","Adjacent state","Within state"))
 
-# Load travel data
-df_travel <- fread("data/travel_vars.tsv")
+# Load travel data and select the appropriate air source column as RR_air
+df_travel <- fread("data/travel_vars.tsv") %>%
+  rename(RR_air = paste0("RR_air_", air_source))
 state_rr <- left_join(state_rr, df_travel, by = c("x", "y"))
 
 Y_AXIS_ZERO <- min(state_rr$RR) * 1E-2 #Arbitrarily lower value for log-transform
@@ -58,7 +68,7 @@ df_adj_boxplot <- state_rr %>%
          y75_plot = ifelse(y75 == 0., Y_AXIS_ZERO, y75),
          y95_plot = ifelse(y95 == 0., Y_AXIS_ZERO, y95))
 
-fn_state_adj_plot <- paste0("figs/",scenario,"/state_adj_plot.jpg") 
+fn_state_adj_plot <- paste0(fig_path, "state_adj_plot.jpg")
 state_adj_plot <- state_rr%>%
   ggplot(aes(x=simple_adj)) +
   geom_jitter(aes(y=RR),alpha=0.1,fill='black',size=1,width=0.3, height = 0) +
@@ -95,18 +105,16 @@ state_adj_plot
 ggsave(fn_state_adj_plot,
        plot=state_adj_plot,
        device = "jpeg",
-       dpi = 200,
+       dpi = 300,
        width = 8,
        height = 5
 )
 
-#Note since spearman is rank-order correlation, log transformation does not matter
-rho_euclid <- cor(state_rr$euclid_dist,state_rr$RR,method = "spearman",use = "complete.obs")
-rho_cbsa <- cor(state_rr$min_cbsa_dist,state_rr$RR,method= "spearman", use = "complete.obs")
-rho_nbdist <- cor(state_rr$nb_dist,state_rr$RR,method = "spearman",use = "complete.obs") #Ignore NAs
+rho_euclid <- cor(state_rr$euclid_dist, log(state_rr$RR), method = "pearson", use = "complete.obs")
+rho_cbsa <- cor(state_rr$min_cbsa_dist, log(state_rr$RR), method = "pearson", use = "complete.obs")
 
 
-fn_state_euclid_dist_plot <- paste0("figs/",scenario,"/state_euclid_dist_plot.jpg") 
+fn_state_euclid_dist_plot <- paste0(fig_path, "state_euclid_dist_plot.jpg")
 state_euclid_dist_plot <- state_rr %>%
   filter(x != y) %>%
   ggplot() +
@@ -129,17 +137,17 @@ state_euclid_dist_plot <- state_rr %>%
         strip.text = element_blank()) + 
   theme(axis.text.x = element_text(angle = 45, hjust=1))+
   ggtitle(scenario) +
-  labs(subtitle = paste0("Spearman's rho: ",round(rho_euclid,2)))
+  labs(subtitle = paste0("r = ",round(rho_euclid,2)))
 
 ggsave(fn_state_euclid_dist_plot,
        plot=state_euclid_dist_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 6,
        height = 4
 )
 
-fn_state_cbsa_dist_plot <- paste0("figs/",scenario,"/state_cbsa_dist_plot.jpg") 
+fn_state_cbsa_dist_plot <- paste0(fig_path, "state_cbsa_dist_plot.jpg")
 state_cbsa_dist_plot <- state_rr %>%
   filter(x != y) %>%
   ggplot() +
@@ -162,17 +170,17 @@ state_cbsa_dist_plot <- state_rr %>%
         strip.text = element_blank()) + 
   theme(axis.text.x = element_text(angle = 45, hjust=1))+
   ggtitle(scenario) +
-  labs(subtitle = paste0("Spearman's rho: ",round(rho_cbsa,2)))
+  labs(subtitle = paste0("r = ",round(rho_cbsa,2)))
 
 ggsave(fn_state_cbsa_dist_plot,
        plot=state_cbsa_dist_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 6,
        height = 4
 )
 
-fn_euclid_cbsa_dist_plot <- paste0("figs/",scenario,"/state_euclid_vs_cbsa.jpg")
+fn_euclid_cbsa_dist_plot <- paste0(fig_path, "state_euclid_vs_cbsa.jpg")
 state_euclid_cbsa_dist_plot <- state_rr %>%
   filter(x != y) %>%
   ggplot() +
@@ -192,7 +200,7 @@ state_euclid_cbsa_dist_plot <- state_rr %>%
   geom_hline(yintercept = 1) + #Reference point
   theme_bw()
 
-fn_state_euclid_logdist_plot <- paste0("figs/",scenario,"/state_euclid_logdist_plot.jpg") 
+fn_state_euclid_logdist_plot <- paste0(fig_path, "state_euclid_logdist_plot.jpg")
 state_euclid_logdist_plot <- state_rr %>%
   ggplot() +
   geom_point(aes(x=log10(euclid_dist+1),y=RR),alpha=0.1,size=1,fill='black') +
@@ -215,17 +223,17 @@ state_euclid_logdist_plot <- state_rr %>%
         strip.text = element_blank()) + 
   theme(axis.text.x = element_text(angle = 45, hjust=1))+
   ggtitle(scenario) +
-  labs(subtitle = paste0("Spearman's rho: ",round(rho_euclid,2)))
+  labs(subtitle = paste0("r = ",round(rho_euclid,2)))
 
 ggsave(fn_state_euclid_logdist_plot,
        plot=state_euclid_logdist_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 6,
        height = 6
 )
 
-fn_state_nb_dist_plot <- paste0("figs/",scenario,"/state_nb_dist_plot.jpg")
+fn_state_nb_dist_plot <- paste0(fig_path, "state_nb_dist_plot.jpg")
 state_nb_dist_plot <- state_rr %>%
   ggplot() +
   geom_boxplot(aes(x = nb_dist, y = RR, group = nb_dist),
@@ -249,140 +257,155 @@ state_nb_dist_plot <- state_rr %>%
         strip.background = element_blank(),
         strip.text = element_blank()) + 
   theme(axis.text.x = element_text(angle = 45, hjust=1))+
-  ggtitle(scenario) +
-  labs(subtitle = paste0("Spearman's rho: ",round(rho_nbdist,2)))
+  ggtitle(scenario)
 
 ggsave(fn_state_nb_dist_plot,
        plot=state_nb_dist_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 6,
        height = 4,
        create.dir = TRUE
 )
 
 # Create 2x2 patchwork of key distance/travel metrics
-# Add same_state indicator
+REGION_DATA <- fread("data/us_states_regions.csv")
+
+# Add pair type: Same state / Intra-regional / Inter-regional
 state_rr <- state_rr %>%
-  mutate(same_state = ifelse(x == y, "Same state", "Different state"))
+  left_join(REGION_DATA %>% select(state, bea_reg), by = c("x" = "state")) %>%
+  rename(bea_reg_x = bea_reg) %>%
+  left_join(REGION_DATA %>% select(state, bea_reg), by = c("y" = "state")) %>%
+  rename(bea_reg_y = bea_reg) %>%
+  mutate(pair_type = factor(
+    case_when(
+      x == y                             ~ "Same state",
+      bea_reg_x == bea_reg_y             ~ "Intra-regional",
+      TRUE                               ~ "Inter-regional"
+    ),
+    levels = c("Same state", "Intra-regional", "Inter-regional")
+  ))
+
+PAIR_COLORS <- c("Same state" = "cornflowerblue",
+                 "Intra-regional" = "lightcoral",
+                 "Inter-regional" = "lightgoldenrod")
 
 # Calculate correlations
-rho_cbsa <- cor(state_rr$min_cbsa_dist, state_rr$RR, method = "spearman", use = "complete.obs")
-rho_trips <- cor(state_rr$RR_trips, state_rr$RR, method = "spearman", use = "complete.obs")
-rho_move <- cor(state_rr$RR_move, state_rr$RR, method = "spearman", use = "complete.obs")
+rho_cbsa <- cor(state_rr$min_cbsa_dist, log(state_rr$RR), method = "pearson", use = "complete.obs")
+rho_trips <- with(state_rr[state_rr$RR_trips > 0 & state_rr$RR > 0 & !is.na(state_rr$RR_trips), ],
+                  cor(log(RR_trips), log(RR), method = "pearson"))
+rho_move  <- with(state_rr[state_rr$RR_move  > 0 & state_rr$RR > 0 & !is.na(state_rr$RR_move),  ],
+                  cor(log(RR_move),  log(RR), method = "pearson"))
 
-# 1. Neighbor rank plot with ANOVA (miniaturized)
-# Perform ANOVA
-nb_data <- state_rr %>% filter(x != y, !is.na(nb_dist), nb_dist <= 6)
-anova_result <- aov(log10(RR) ~ as.factor(nb_dist), data = nb_data)
-anova_p <- summary(anova_result)[[1]][["Pr(>F)"]][1]
-anova_text <- ifelse(anova_p < 0.001, "p < 0.001",
-                     paste0("p = ", formatC(anova_p, digits = 3, format = "f")))
+# Calculate air travel correlation
+rho_air <- state_rr %>%
+  filter(x != y, !is.na(RR_air), RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
 
-p1 <- nb_data %>%
-  ggplot(aes(x = nb_dist, y = RR, group = nb_dist)) +
-  geom_boxplot(fill = NA, linewidth = 0.3, outlier.size = 0.5) +
-  scale_x_continuous(name = "Neighbor Order",
-                     breaks = 1:6,
-                     limits = c(0.5, 6.5)) +
-  scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
-                     breaks = c(1E-1, 1, 1E1),
-                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
-                     limits = c(10^(-1.5), 10^(1.5))) +
-  geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
-  theme_classic(base_size = 10) +
-  labs(subtitle = paste0("ANOVA: ", anova_text)) +
-  theme(plot.subtitle = element_text(hjust = 0.5, size = 9))
+POSTER_BASE  <- 12
+POSTER_PT_SZ <- 0.6
+POSTER_LW    <- 1.0
+POSTER_SUBT  <- 11
 
-# 2. CBSA distance plot (miniaturized) - colored by same/different state
-p2 <- state_rr %>%
+poster_y_scale <- scale_y_continuous(
+  transform = 'log',
+  name = expression(RR[identical]),
+  breaks = c(1E-1, 1, 1E1),
+  labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
+  limits = c(10^(-1.5), 10^(1.5))
+)
+poster_theme <- theme_classic(base_size = POSTER_BASE) +
+  theme(plot.subtitle = element_text(hjust = 0.5, size = POSTER_SUBT),
+        legend.position = "none")
+
+# 1. CBSA distance
+p_cbsa <- state_rr %>%
   ggplot(aes(x = min_cbsa_dist, y = RR)) +
-  geom_point(aes(color = same_state), alpha = 0.5, size = 1) +
-  geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = c("Same state" = "cornflowerblue", "Different state" = "lightcoral"),
-                     name = "") +
-  scale_x_continuous(name = "CBSA Distance (km)",
-                     limits = c(0, 3000)) +
-  scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
-                     breaks = c(1E-1, 1, 1E1),
-                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
-                     limits = c(10^(-1.5), 10^(1.5))) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
+  geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_x_continuous(name = "CBSA Distance (km)", limits = c(0, 3000)) +
+  poster_y_scale +
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
-  theme_classic(base_size = 10) +
-  labs(subtitle = paste0("ρ = ", round(rho_cbsa, 2))) +
-  theme(plot.subtitle = element_text(hjust = 0.5, size = 9),
-        legend.position = "bottom",
-        legend.text = element_text(size = 8))
+  poster_theme +
+  labs(subtitle = paste0("r = ", round(rho_cbsa, 2)))
 
-# 3. NHTS trips plot (miniaturized) - colored by same/different state
-# Get full data extent
-trips_range <- range(state_rr$RR_trips[!is.na(state_rr$RR_trips) & state_rr$RR_trips > 0])
-p3 <- state_rr %>%
+# 2. Air Travel RR (DB1B)
+p_air <- state_rr %>%
+  filter(x != y, !is.na(RR_air), RR_air > 0) %>%
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
+  geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_x_continuous(name = paste0("Air Travel RR (", toupper(air_source), ")"),
+                     transform = 'log10',
+                     breaks = c(0.001, 0.01, 0.1, 1, 10),
+                     labels = c(expression(10^{-3}), expression(10^{-2}), expression(10^{-1}),
+                               expression(10^{0}), expression(10^{1}))) +
+  poster_y_scale +
+  geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
+  poster_theme +
+  labs(subtitle = paste0("r = ", round(rho_air, 2)))
+
+# 3. Ground Travel RR (NHTS)
+p_trips <- state_rr %>%
   filter(!is.na(RR_trips)) %>%
   ggplot(aes(x = RR_trips, y = RR)) +
-  geom_point(aes(color = same_state), alpha = 0.5, size = 1) +
-  geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = c("Same state" = "cornflowerblue", "Different state" = "lightcoral"),
-                     name = "") +
-  scale_x_continuous(name = "Travel RR (NHTS)",
+  geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
+  geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_x_continuous(name = "Ground Travel RR (NHTS)",
                      transform = 'log10',
-                     breaks = c(0.001, 0.01, 0.1, 1, 10, 100),
-                     labels = c(expression(10^{-3}), expression(10^{-2}), expression(10^{-1}),
-                               expression(10^{0}), expression(10^{1}), expression(10^{2}))) +
-  scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
-                     breaks = c(1E-1, 1, 1E1),
-                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
-                     limits = c(10^(-1.5), 10^(1.5))) +
+                     breaks = c(0.0001, 0.01, 1, 100),
+                     labels = c(expression(10^{-4}), expression(10^{-2}),
+                               expression(10^{0}), expression(10^{2}))) +
+  poster_y_scale +
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
-  theme_classic(base_size = 10) +
-  labs(subtitle = paste0("ρ = ", round(rho_trips, 2))) +
-  theme(plot.subtitle = element_text(hjust = 0.5, size = 9),
-        legend.position = "bottom",
-        legend.text = element_text(size = 8))
+  poster_theme +
+  labs(subtitle = paste0("r = ", round(rho_trips, 2)))
 
-# 4. SafeGraph mobility plot (miniaturized) - colored by same/different state
-# Get full data extent
-move_range <- range(state_rr$RR_move[!is.na(state_rr$RR_move) & state_rr$RR_move > 0])
-p4 <- state_rr %>%
+# 4. Mobility RR (SafeGraph)
+p_move <- state_rr %>%
   filter(!is.na(RR_move)) %>%
   ggplot(aes(x = RR_move, y = RR)) +
-  geom_point(aes(color = same_state), alpha = 0.5, size = 1) +
-  geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = c("Same state" = "cornflowerblue", "Different state" = "lightcoral"),
-                     name = "") +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
+  geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
   scale_x_continuous(name = "Mobility RR (SafeGraph)",
                      transform = 'log10',
                      breaks = c(0.01, 0.1, 1, 10, 100),
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}), expression(10^{2}))) +
-  scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
-                     breaks = c(1E-1, 1, 1E1),
-                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
-                     limits = c(10^(-1.5), 10^(1.5))) +
+  poster_y_scale +
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
-  theme_classic(base_size = 10) +
-  labs(subtitle = paste0("ρ = ", round(rho_move, 2))) +
-  theme(plot.subtitle = element_text(hjust = 0.5, size = 9),
-        legend.position = "bottom",
-        legend.text = element_text(size = 8))
+  poster_theme +
+  labs(subtitle = paste0("r = ", round(rho_move, 2)))
 
-# Combine into 2x2 grid with shared legend
-combined_dist_plot <- (p1 | p2) / (p3 | p4) +
-  plot_layout(guides = "collect") &
-  theme(legend.position = "bottom")
+shared_legend <- cowplot::get_legend(
+  p_cbsa +
+    guides(color = guide_legend(override.aes = list(size = 3), ncol = 1)) +
+    theme(legend.position = "right", legend.text = element_text(size = POSTER_BASE - 1))
+)
+panels <- p_cbsa | p_air | p_trips | p_move
+combined_dist_plot <- cowplot::plot_grid(panels, shared_legend, nrow = 1, rel_widths = c(1, 0.15))
 
-fn_combined_dist <- paste0("figs/", scenario, "/state_distance_poster.jpg")
+fn_combined_dist <- paste0(fig_path, "state_distance_poster.jpg")
 ggsave(fn_combined_dist,
        plot = combined_dist_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 10,
-       height = 8,
+       height = 2.5,
+       units = "in",
        create.dir = TRUE
+)
+ggsave(paste0(fig_path, "state_distance_poster.svg"),
+       plot = combined_dist_plot,
+       device = "svg",
+       width = 10,
+       height = 2.5,
+       units = "in"
 )
 
 # ============================================================================
@@ -403,30 +426,28 @@ state_rr_air <- state_rr_air %>%
   mutate(flight_length = factor(flight_length, levels = c("Short", "Medium", "Long")))
 
 # Calculate correlations for each flight length bin
-epsilon <- 1E-4
 rho_short_air <- state_rr_air %>%
-  filter(flight_length == "Short") %>%
-  summarize(rho = cor(RR_air + epsilon, RR + epsilon, method = "spearman", use = "complete.obs")) %>%
+  filter(flight_length == "Short", RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
   pull(rho)
 
 rho_medium_air <- state_rr_air %>%
-  filter(flight_length == "Medium") %>%
-  summarize(rho = cor(RR_air + epsilon, RR + epsilon, method = "spearman", use = "complete.obs")) %>%
+  filter(flight_length == "Medium", RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
   pull(rho)
 
 rho_long_air <- state_rr_air %>%
-  filter(flight_length == "Long") %>%
-  summarize(rho = cor(RR_air + epsilon, RR + epsilon, method = "spearman", use = "complete.obs")) %>%
+  filter(flight_length == "Long", RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
   pull(rho)
 
 # Create plot for short flights
 p_air_short <- state_rr_air %>%
   filter(flight_length == "Short") %>%
-  ggplot(aes(x = RR_air + epsilon, y = RR + epsilon)) +
-  geom_point(aes(color = same_state), alpha = 0.5, size = 1) +
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = 1) +
   geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = c("Same state" = "cornflowerblue", "Different state" = "lightcoral"),
-                     name = "") +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
   scale_x_continuous(name = "Air Travel RR",
                      transform = 'log10',
                      breaks = c(0.01, 0.1, 1, 10),
@@ -440,7 +461,7 @@ p_air_short <- state_rr_air %>%
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
   theme_classic(base_size = 10) +
   labs(title = "Short distance (<300 km)",
-       subtitle = paste0("ρ = ", round(rho_short_air, 2))) +
+       subtitle = paste0("r = ", round(rho_short_air, 2))) +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
         plot.subtitle = element_text(hjust = 0.5, size = 9),
         legend.position = "none")
@@ -448,11 +469,10 @@ p_air_short <- state_rr_air %>%
 # Create plot for medium flights
 p_air_medium <- state_rr_air %>%
   filter(flight_length == "Medium") %>%
-  ggplot(aes(x = RR_air + epsilon, y = RR + epsilon)) +
-  geom_point(aes(color = same_state), alpha = 0.5, size = 1) +
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = 1) +
   geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = c("Same state" = "cornflowerblue", "Different state" = "lightcoral"),
-                     name = "") +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
   scale_x_continuous(name = "Air Travel RR",
                      transform = 'log10',
                      breaks = c(0.01, 0.1, 1, 10),
@@ -466,7 +486,7 @@ p_air_medium <- state_rr_air %>%
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
   theme_classic(base_size = 10) +
   labs(title = "Medium distance (300-1800 km)",
-       subtitle = paste0("ρ = ", round(rho_medium_air, 2))) +
+       subtitle = paste0("r = ", round(rho_medium_air, 2))) +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
         plot.subtitle = element_text(hjust = 0.5, size = 9),
         legend.position = "none")
@@ -474,11 +494,10 @@ p_air_medium <- state_rr_air %>%
 # Create plot for long flights
 p_air_long <- state_rr_air %>%
   filter(flight_length == "Long") %>%
-  ggplot(aes(x = RR_air + epsilon, y = RR + epsilon)) +
-  geom_point(aes(color = same_state), alpha = 0.5, size = 1) +
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = 1) +
   geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = c("Same state" = "cornflowerblue", "Different state" = "lightcoral"),
-                     name = "") +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
   scale_x_continuous(name = "Air Travel RR",
                      transform = 'log10',
                      breaks = c(0.01, 0.1, 1, 10),
@@ -492,22 +511,287 @@ p_air_long <- state_rr_air %>%
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
   theme_classic(base_size = 10) +
   labs(title = "Long distance (>1800 km)",
-       subtitle = paste0("ρ = ", round(rho_long_air, 2))) +
+       subtitle = paste0("r = ", round(rho_long_air, 2))) +
   theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
         plot.subtitle = element_text(hjust = 0.5, size = 9),
         legend.position = "none")
 
+# Simple unstratified air travel correlation (reference)
+rho_all_air <- state_rr_air %>%
+  filter(RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
+
+p_air_all <- state_rr_air %>%
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = 1) +
+  geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_x_continuous(name = "Air Travel RR",
+                     transform = 'log10',
+                     breaks = c(0.01, 0.1, 1, 10),
+                     labels = c(expression(10^{-2}), expression(10^{-1}),
+                               expression(10^{0}), expression(10^{1}))) +
+  scale_y_continuous(transform = 'log',
+                     name = expression(RR[identical]),
+                     breaks = c(1E-1, 1, 1E1),
+                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
+                     limits = c(10^(-1.5), 10^(1.5))) +
+  geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
+  theme_classic(base_size = 10) +
+  labs(title = "All distances",
+       subtitle = paste0("r = ", round(rho_all_air, 2))) +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, size = 9),
+        legend.position = "bottom",
+        legend.text = element_text(size = 8))
+
+ggsave(paste0(air_fig_path, "state_air_all_dist.jpg"),
+       plot = p_air_all, device = "jpeg", dpi = 300, width = 5, height = 4)
+
 # Combine into 3x1 vertical grid
 combined_air_plot <- p_air_short / p_air_medium / p_air_long
 
-fn_combined_air <- paste0("figs/", scenario, "/state_air_distance_poster.jpg")
+fn_combined_air <- paste0(air_fig_path, "state_air_distance_poster.jpg")
 ggsave(fn_combined_air,
        plot = combined_air_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 5,
        height = 8,
        create.dir = TRUE
 )
+ggsave(paste0(air_fig_path, "state_air_distance_poster.svg"),
+       plot = combined_air_plot,
+       device = "svg",
+       width = 5,
+       height = 8
+)
 
 message(paste("Air travel distance poster saved to:", fn_combined_air))
+
+# ============================================================================
+# Air Travel RR by Inter vs Intra-Regional (alternate stratification)
+# ============================================================================
+
+state_rr_air_reg <- state_rr_air %>%
+  filter(!is.na(bea_reg_x), !is.na(bea_reg_y)) %>%
+  mutate(flight_type = ifelse(bea_reg_x == bea_reg_y, "Intra-regional", "Inter-regional"),
+         flight_type = factor(flight_type, levels = c("Intra-regional", "Inter-regional")))
+
+rho_intra <- state_rr_air_reg %>%
+  filter(flight_type == "Intra-regional", RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
+
+rho_inter <- state_rr_air_reg %>%
+  filter(flight_type == "Inter-regional", RR_air > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
+
+p_air_intra <- state_rr_air_reg %>%
+  filter(flight_type == "Intra-regional") %>%
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = 1) +
+  geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_x_continuous(name = "Air Travel RR",
+                     transform = 'log10',
+                     breaks = c(0.01, 0.1, 1, 10),
+                     labels = c(expression(10^{-2}), expression(10^{-1}),
+                               expression(10^{0}), expression(10^{1}))) +
+  scale_y_continuous(transform = 'log',
+                     name = expression(RR[identical]),
+                     breaks = c(1E-1, 1, 1E1),
+                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
+                     limits = c(10^(-1.5), 10^(1.5))) +
+  geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
+  theme_classic(base_size = 10) +
+  labs(title = "Intra-regional flights",
+       subtitle = paste0("r = ", round(rho_intra, 2))) +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, size = 9),
+        legend.position = "bottom",
+        legend.text = element_text(size = 8))
+
+ggsave(paste0(air_fig_path, "state_air_intra_regional.jpg"),
+       plot = p_air_intra, device = "jpeg", dpi = 300, width = 5, height = 4)
+
+p_air_inter <- state_rr_air_reg %>%
+  filter(flight_type == "Inter-regional") %>%
+  ggplot(aes(x = RR_air, y = RR)) +
+  geom_point(aes(color = pair_type), alpha = 0.5, size = 1) +
+  geom_smooth(method = 'loess', linewidth = 1.5, se = FALSE, color = alpha("black", 0.7)) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_x_continuous(name = "Air Travel RR",
+                     transform = 'log10',
+                     breaks = c(0.01, 0.1, 1, 10),
+                     labels = c(expression(10^{-2}), expression(10^{-1}),
+                               expression(10^{0}), expression(10^{1}))) +
+  scale_y_continuous(transform = 'log',
+                     name = expression(RR[identical]),
+                     breaks = c(1E-1, 1, 1E1),
+                     labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
+                     limits = c(10^(-1.5), 10^(1.5))) +
+  geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
+  theme_classic(base_size = 10) +
+  labs(title = "Inter-regional flights",
+       subtitle = paste0("r = ", round(rho_inter, 2))) +
+  theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5, size = 9),
+        legend.position = "bottom",
+        legend.text = element_text(size = 8))
+
+ggsave(paste0(air_fig_path, "state_air_inter_regional.jpg"),
+       plot = p_air_inter, device = "jpeg", dpi = 300, width = 5, height = 4)
+
+# ============================================================================
+# Conserved vs non-conserved inter-regional pairs: travel RR boxplots
+# ============================================================================
+
+get_conserved_pairs <- function(pct, scenario) {
+  fread(paste0("results/", scenario, "/time_state/df_conserved_connections_", pct, "pct_5plus.tsv")) %>%
+    mutate(edge_pair = paste(pmin(x, y), pmax(x, y), sep = "_")) %>%
+    pull(edge_pair) %>%
+    unique()
+}
+
+conserved_pairs_98 <- get_conserved_pairs(98, scenario)
+conserved_pairs_95 <- get_conserved_pairs(95, scenario)
+conserved_pairs_90 <- get_conserved_pairs(90, scenario)
+
+TIER_LEVELS  <- c(">=98th", "95-97th", "90-94th", "Other")
+TIER_COLORS  <- c("firebrick", "darkorange", "steelblue", "grey60")
+
+assign_tier <- function(edge_pair) {
+  factor(
+    case_when(
+      edge_pair %in% conserved_pairs_98 ~ ">=98th",
+      edge_pair %in% conserved_pairs_95 ~ "95-97th",
+      edge_pair %in% conserved_pairs_90 ~ "90-94th",
+      TRUE                               ~ "Other"
+    ),
+    levels = TIER_LEVELS
+  )
+}
+
+# sig_connections for quarterly conserved labels
+sig_connections <- fread(paste0("results/", scenario, "/time_state/df_significant_connections_98_percentile.tsv")) %>%
+  mutate(edge_pair = paste(pmin(x, y), pmax(x, y), sep = "_"),
+         quarter = case_when(
+           as.integer(format(as.Date(date), '%m')) %in% 1:3  ~ "Q1 (Jan-Mar)",
+           as.integer(format(as.Date(date), '%m')) %in% 4:6  ~ "Q2 (Apr-Jun)",
+           as.integer(format(as.Date(date), '%m')) %in% 7:9  ~ "Q3 (Jul-Sep)",
+           TRUE                                               ~ "Q4 (Oct-Dec)"
+         )) %>%
+  filter(x < y, region_x != region_y)
+
+conserved_by_quarter <- sig_connections %>%
+  group_by(quarter, edge_pair) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  filter(n >= 2) %>%
+  select(quarter, edge_pair)
+
+# Base inter-regional pairs with all travel metrics, deduplicated
+inter_reg_base <- state_rr_air_reg %>%
+  filter(flight_type == "Inter-regional", x < y) %>%
+  mutate(edge_pair = paste(pmin(x, y), pmax(x, y), sep = "_"),
+         conserved = assign_tier(edge_pair))
+
+ADJACENT_COMPS <- list(c(">=98th", "95-97th"), c("95-97th", "90-94th"), c("90-94th", "Other"))
+
+make_conserved_boxplot <- function(data, y_var, y_label, title) {
+  kw_p <- kruskal.test(reformulate("conserved", y_var),
+                       data = data %>% filter(!is.na(.data[[y_var]]), .data[[y_var]] > 0))$p.value
+  kw_label <- ifelse(kw_p < 0.001, "Kruskal-Wallis p < 0.001",
+                     paste0("Kruskal-Wallis p = ", formatC(kw_p, digits = 3, format = "f")))
+  data %>%
+    filter(!is.na(.data[[y_var]]), .data[[y_var]] > 0) %>%
+    ggplot(aes(x = conserved, y = .data[[y_var]], color = conserved)) +
+    geom_boxplot(fill = NA, linewidth = 0.5, outlier.shape = NA) +
+    geom_jitter(alpha = 0.2, size = 1, width = 0.25, height = 0) +
+    geom_signif(comparisons = ADJACENT_COMPS,
+                map_signif_level = function(p) ifelse(p < 0.001, "***",
+                                             ifelse(p < 0.01,  "**",
+                                             ifelse(p < 0.05,  "*", "ns"))),
+                tip_length = 0.01, textsize = 3.5, size = 0.5, step_increase = 0.08,
+                test = "wilcox.test", color = "black") +
+    scale_color_manual(values = TIER_COLORS, guide = "none") +
+    scale_y_continuous(transform = 'log10', name = y_label,
+                       breaks = c(0.01, 0.1, 1, 10),
+                       labels = c(expression(10^{-2}), expression(10^{-1}),
+                                 expression(10^{0}), expression(10^{1})),
+                       expand = expansion(mult = c(0.05, 0.2))) +
+    scale_x_discrete(name = "") +
+    theme_classic(base_size = 11) +
+    labs(title = title, subtitle = kw_label) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
+          plot.subtitle = element_text(hjust = 0.5, size = 9))
+}
+
+make_conserved_quarterly_boxplot <- function(base_data, y_var, y_label, title) {
+  tidyr::crossing(
+      edge_pair = base_data$edge_pair,
+      quarter   = c("Q1 (Jan-Mar)", "Q2 (Apr-Jun)", "Q3 (Jul-Sep)", "Q4 (Oct-Dec)")
+    ) %>%
+    left_join(base_data %>% select(edge_pair, conserved, all_of(y_var)), by = "edge_pair") %>%
+    mutate(quarter = factor(quarter, levels = c("Q1 (Jan-Mar)", "Q2 (Apr-Jun)",
+                                                "Q3 (Jul-Sep)", "Q4 (Oct-Dec)"))) %>%
+    filter(!is.na(.data[[y_var]]), .data[[y_var]] > 0) %>%
+    ggplot(aes(x = conserved, y = .data[[y_var]], color = conserved)) +
+    geom_boxplot(fill = NA, linewidth = 0.5, outlier.shape = NA) +
+    geom_jitter(alpha = 0.2, size = 0.8, width = 0.25, height = 0) +
+    geom_signif(comparisons = ADJACENT_COMPS,
+                map_signif_level = function(p) ifelse(p < 0.001, "***",
+                                             ifelse(p < 0.01,  "**",
+                                             ifelse(p < 0.05,  "*", "ns"))),
+                tip_length = 0.01, textsize = 3, size = 0.5, step_increase = 0.08,
+                test = "wilcox.test", color = "black") +
+    scale_color_manual(values = TIER_COLORS, guide = "none") +
+    scale_y_continuous(transform = 'log10', name = y_label,
+                       breaks = c(0.01, 0.1, 1, 10),
+                       labels = c(expression(10^{-2}), expression(10^{-1}),
+                                 expression(10^{0}), expression(10^{1})),
+                       expand = expansion(mult = c(0.05, 0.2))) +
+    scale_x_discrete(name = "") +
+    facet_wrap(~quarter, nrow = 2) +
+    theme_classic(base_size = 10) +
+    labs(title = title) +
+    theme(plot.title = element_text(hjust = 0.5, size = 11, face = "bold"),
+          strip.background = element_blank(),
+          strip.text = element_text(face = "bold"),
+          axis.text.x = element_text(angle = 30, hjust = 1))
+}
+
+# Air travel RR
+p_conserved_air <- make_conserved_boxplot(inter_reg_base, "RR_air", "Air Travel RR",
+  "Air Travel RR: Conserved vs Other Inter-regional Pairs")
+ggsave(paste0(air_fig_path, "state_air_conserved_boxplot.jpg"),
+       plot = p_conserved_air, device = "jpeg", dpi = 300, width = 5, height = 5)
+
+p_conserved_air_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_air", "Air Travel RR",
+  "Air Travel RR by Quarter: Conserved vs Other Inter-regional Pairs")
+ggsave(paste0(air_fig_path, "state_air_conserved_quarterly_boxplot.jpg"),
+       plot = p_conserved_air_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)
+
+# NHTS trips RR
+p_conserved_trips <- make_conserved_boxplot(inter_reg_base, "RR_trips", "Travel RR (NHTS)",
+  "NHTS Trips RR: Conserved vs Other Inter-regional Pairs")
+ggsave(paste0(fig_path, "state_nhts_conserved_boxplot.jpg"),
+       plot = p_conserved_trips, device = "jpeg", dpi = 300, width = 5, height = 5)
+
+p_conserved_trips_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_trips", "Travel RR (NHTS)",
+  "NHTS Trips RR by Quarter: Conserved vs Other Inter-regional Pairs")
+ggsave(paste0(fig_path, "state_nhts_conserved_quarterly_boxplot.jpg"),
+       plot = p_conserved_trips_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)
+
+# SafeGraph mobility RR
+p_conserved_move <- make_conserved_boxplot(inter_reg_base, "RR_move", "Mobility RR (SafeGraph)",
+  "SafeGraph Mobility RR: Conserved vs Other Inter-regional Pairs")
+ggsave(paste0(fig_path, "state_safegraph_conserved_boxplot.jpg"),
+       plot = p_conserved_move, device = "jpeg", dpi = 300, width = 5, height = 5)
+
+p_conserved_move_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_move", "Mobility RR (SafeGraph)",
+  "SafeGraph Mobility RR by Quarter: Conserved vs Other Inter-regional Pairs")
+ggsave(paste0(fig_path, "state_safegraph_conserved_quarterly_boxplot.jpg"),
+       plot = p_conserved_move_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)

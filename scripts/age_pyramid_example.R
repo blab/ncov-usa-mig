@@ -78,7 +78,7 @@ ggsave(
   fn_pyramid,
   plot = age_pyramid,
   device = "jpeg",
-  dpi = 192,
+  dpi = 300,
   width = 6,
   height = 8
 )

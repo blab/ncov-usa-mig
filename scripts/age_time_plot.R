@@ -45,7 +45,7 @@ generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
     plot = p1,
     width = 16,
     height = 8,
-    dpi = 192
+    dpi = 300
   )
 
   # Plot 2: nRR over time - exclude diagonal
@@ -76,7 +76,7 @@ generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
     plot = p2,
     width = 16,
     height = 8,
-    dpi = 192
+    dpi = 300
   )
 
   # Plot 3: nRR_fixed over time - include diagonal (all pairs)
@@ -104,7 +104,7 @@ generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
     plot = p3,
     width = 16,
     height = 8,
-    dpi = 192
+    dpi = 300
   )
 }
 

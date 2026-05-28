@@ -45,10 +45,15 @@ df_travel <- df_travel %>%
         same_state = (x == y), # Use to stratify for out of state travel only
         RR_trips = (trips_xy / trips_x) / (trips_y / trips_total)
     ) %>%
-    select(x, y, same_state, RR_trips)
+    select(x, y, same_state, trips_xy, RR_trips)
 
 # Airline data already processed by calculate_airline_RR.R
-df_travel_air <- read_csv("data/rr_air_db1b.csv")
+df_travel_air <- read_csv("data/rr_air_db1b.csv") %>%
+    rename(RR_air_db1b = RR_air, pass_xy_db1b = pass_xy) %>%
+    left_join(
+        read_csv("data/rr_air_t100.csv") %>% rename(RR_air_t100 = RR_air, pass_xy_t100 = pass_xy),
+        by = c("x", "y")
+    )
 
 df_move <- read_tsv("data/safegraph_states_adj_pullano.tsv") %>%
     rename(
@@ -71,7 +76,7 @@ df_move <- df_move %>%
     left_join(df_move_rev, by = c("x" = "y_rev", "y" = "x_rev")) %>%
     mutate(n_move_avg = 1 / 2 * (n_move_xy + n_move_yx)) %>%
     mutate(RR_move = n_move_avg * n_move_all / (n_move_x * n_move_y)) %>%
-    select(x, y, RR_move)
+    select(x, y, RR_move, n_move_avg)
 
 df_travel <- df_travel %>%
     left_join(df_travel_air, by = c("x", "y")) %>%

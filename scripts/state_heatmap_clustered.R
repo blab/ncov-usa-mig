@@ -124,15 +124,28 @@ label_df <- dendro_data_full$labels %>%
 # Shift dendrogram segments to the left to avoid overlapping with labels
 # The terminal branches end at y=0, shift them left so labels can be at x=0.5
 # With scale_x_reverse, we need to ADD to push branches left
+dendro_offset <- max(dendro_data_full$segments$y) * 0
 dendro_segments_shifted <- dendro_data_full$segments %>%
-  mutate(y = y,
-         yend = yend)
+  mutate(y = y + dendro_offset,
+         yend = yend + dendro_offset)
+
+n_states <- length(state_order)
+max_dissim  <- max(dendro_data_full$segments$y)
+leaf_gap    <- max_dissim * 0.03          # small gap between dendrogram tips and tiles
+leaf_width  <- max_dissim * 0.30          # tile width (~3x height in physical units)
+leaf_x      <- -(leaf_gap + leaf_width / 2)  # centre of tiles (negative = right of x=0 with x_reverse)
 
 gg_dendro <- ggplot() +
   geom_segment(data = dendro_segments_shifted,
                aes(x = y, y = x, xend = yend, yend = xend)) +
-  scale_x_reverse(expand = expansion(mult = c(0.15, 0))) +
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
+  geom_tile(data = label_df,
+            aes(x = leaf_x, y = x),
+            fill = REGION_SCALE[as.character(label_df$region_label)],
+            width = leaf_width, height = 1,
+            inherit.aes = FALSE) +
+  scale_x_reverse(expand = expansion(mult = c(0.15, 0),
+                                     add  = c(0, leaf_gap * 0.5))) +
+  scale_y_continuous(limits = c(0.4, n_states + 0.6), expand = c(0, 0)) +
   theme_void() +
   theme(
     plot.margin = unit(c(0.5, 0, 1, 0.2), "cm")
@@ -143,8 +156,8 @@ fn_rr <- paste("results/", scenario, "/df_RR_by_state.tsv", sep = "")
 state_rr <- fread(fn_rr)
 
 # Set RR bounds for heatmap
-UB <- 2
-LB <- 0.5
+UB <- 5
+LB <- 0.2
 
 
 # Add region information for axis labeling
@@ -157,19 +170,7 @@ state_rr_labeled <- state_rr %>%
   rename(y_region = region)
 
 # Create heatmap
-AXIS_SIZE <- 7
-
-# Create y-axis label data with region colors (in dendrogram order)
-# Use 3 spaces as placeholder for uniform leaf indicators
-y_label_data <- df_regions %>%
-  filter(state %in% state_order) %>%
-  mutate(state = factor(state, levels = state_order)) %>%
-  arrange(state) %>%
-  mutate(region = get_region(.),
-         color = REGION_SCALE[as.character(region)],
-         leaf_label = "               ",  # 3 spaces as placeholder
-         y_pos = as.numeric(state),
-         x_pos = 0.5)  # Position at left edge
+AXIS_SIZE <- 9
 
 # Reorder factors based on dendrogram (both axes use same order for symmetry)
 state_rr_labeled$x <- factor(state_rr_labeled$x, levels = state_order)
@@ -181,31 +182,21 @@ state_heatmap <- state_rr_labeled %>%
   mutate(fill_RR = fill_bound(RR, LB, UB)) %>%
   ggplot(aes(x = y, y = x, fill = fill_RR)) +
   geom_tile() +
-  # Add colored leaf indicators (3 spaces as placeholder)
-  geom_label(data = y_label_data,
-             aes(x = x_pos-0.2, y = state, label = leaf_label),
-             fill = y_label_data$color,
-             color = "white",
-             size = 2.5,
-             hjust = 1,
-             linewidth = 0,
-             inherit.aes = FALSE) +
   RR_log_grad(LB, UB) +
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
     legend.text = element_text(size = 14),
     legend.title = element_text(size = 14),
-    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
     axis.text.y = element_blank(),
     axis.title.y = element_blank(),
     axis.ticks.y = element_blank(),
     plot.margin = unit(c(0.5, 0.2, 1, 0.1), "cm")
   ) +
-  labs(x = "State/Province",
-       y = NULL,
-       title = "Identical Sequence RR with Hierarchical Clustering") +
-  coord_fixed(clip = "off")
+  labs(x = NULL, y = NULL) +
+  coord_cartesian(clip = "off")
 
 # Combine dendrogram and heatmap with minimal spacing
 combined_plot <- gg_dendro + state_heatmap +
@@ -218,15 +209,20 @@ fn_combined <- paste0("figs/", scenario, "/state_heatmap_clustered.jpg")
 ggsave(fn_combined,
        plot = combined_plot,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 12,
        height = 10,
        create.dir = TRUE)
 
+ggsave(sub("\\.jpg$", ".svg", fn_combined),
+       plot = combined_plot,
+       device = "svg",
+       width = 12,
+       height = 10)
 message(paste("Combined dendrogram + heatmap saved to:", fn_combined))
 
 # =============================================================================
-# Subset heatmap: New England, Mideast & Southeast ("Acela" corridor + Southeast)
+# Subset dendrogram: New England, Mideast & Southeast
 # =============================================================================
 
 subset_regions <- c("New England", "Mideast", "Southeast")
@@ -238,87 +234,69 @@ subset_states <- df_regions %>%
 dend_full <- as.dendrogram(hc_agnes_full)
 leaves_to_remove <- setdiff(labels(dend_full), subset_states)
 dend_subset <- prune(dend_full, leaves_to_remove)
+
+# Extract dendrogram data for manual ggplot construction
 hc_subset <- as.hclust(dend_subset)
-
-# Get subset state order from pruned dendrogram
 dendro_data_subset <- dendro_data(hc_subset, type = "rectangle")
-subset_state_order <- dendro_data_subset$labels %>%
-  arrange(x) %>%
-  pull(label)
 
-# Build subset dendrogram plot
-gg_dendro_subset <- ggplot() +
-  geom_segment(data = dendro_data_subset$segments,
-               aes(x = y, y = x, xend = yend, yend = xend)) +
-  scale_x_reverse(expand = expansion(mult = c(0.15, 0))) +
-  scale_y_continuous(expand = expansion(mult = c(0.01, 0.01))) +
-  theme_void() +
-  theme(
-    plot.margin = unit(c(0.5, 0, 1, 0.2), "cm")
-  )
+# Extend leaf segments: add small horizontal lines from y=0 outward
+leaf_ext <- 0.03 * max(dendro_data_subset$segments$y)
+leaf_segments <- dendro_data_subset$labels %>%
+  mutate(y = 0, yend = -leaf_ext, xend = x)
 
-# Prepare y-axis label data with region-colored backgrounds
-y_label_subset <- df_regions %>%
-  filter(state %in% subset_states) %>%
-  mutate(state = factor(state, levels = subset_state_order)) %>%
-  arrange(state) %>%
+# Build label data with region colors
+label_data_subset <- dendro_data_subset$labels %>%
+  left_join(df_regions, join_by(label == state)) %>%
   mutate(region = get_region(.),
-         color = REGION_SCALE[as.character(region)],
-         y_pos = as.numeric(state),
-         x_pos = 0.5)
+         fill_color = REGION_SCALE[as.character(region)],
+         y = -leaf_ext)
 
-# Filter heatmap data to subset states
-state_rr_subset <- state_rr_labeled %>%
-  filter(x %in% subset_states, y %in% subset_states) %>%
-  mutate(x = factor(x, levels = subset_state_order),
-         y = factor(y, levels = subset_state_order))
-
-# Build subset heatmap
-state_heatmap_subset <- state_rr_subset %>%
-  rowwise() %>%
-  mutate(fill_RR = fill_bound(RR, LB, UB)) %>%
-  ggplot(aes(x = y, y = x, fill = fill_RR)) +
-  geom_tile() +
-  # Colored region labels on y-axis
-  geom_label(data = y_label_subset,
-             aes(x = x_pos - 0.2, y = state, label = state),
-             fill = y_label_subset$color,
-             color = "white",
-             size = 2.5,
+# Plot horizontal dendrogram with colored label boxes
+gg_dendro_subset <- ggplot() +
+  #Manual gridlines
+  geom_vline(xintercept = c(0,0.5,1,1.5,2),color="grey80",linewidth=0.3) + 
+  geom_segment(aes(x = 0, xend = 2, y = 0, yend = 0), color = "black", linewidth = 1) + #Limit X axis to subset extent
+  #Tree segments
+  geom_segment(data = dendro_data_subset$segments,
+               aes(x = y, y = x, xend = yend, yend = xend),
+               linewidth = 1, lineend = "square") +
+  geom_segment(data = leaf_segments,
+               aes(x = y, y = x, xend = yend, yend = xend),
+              linewidth = 1) +
+  geom_label(data = label_data_subset,
+             aes(x = y, y = x, label = label),
+             fill = label_data_subset$fill_color,
+             color = "black",
+             size = 3.5,
              fontface = "bold",
-             hjust = 1,
-             linewidth = 0,
-             label.padding = unit(0.15, "lines"),
-             inherit.aes = FALSE) +
-  RR_log_grad(LB, UB) +
+             hjust = 0,
+             linewidth = 0.3,
+             label.padding = unit(0.2, "lines"),
+             label.r = unit(0.1, "lines")) +
+  scale_x_reverse(expand = expansion(mult = c(0.65, 0.005)),
+      name = "Cluster Dissimilarity",
+      breaks = c(0,1,2)
+  ) +
+  coord_cartesian(clip = "off") +
+  ggtitle("US East Coast Dendrogram") +
   theme_minimal() +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
-    legend.text = element_text(size = 14),
-    legend.title = element_text(size = 14),
-    axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
-    axis.text.y = element_blank(),
-    axis.title.y = element_blank(),
-    axis.ticks.y = element_blank(),
-    plot.margin = unit(c(0.5, 0.2, 1, 0.1), "cm")
-  ) +
-  labs(x = "State",
-       y = NULL,
-       title = "Identical Sequence RR: New England, Mideast & Southeast") +
-  coord_fixed(clip = "off")
+    plot.title = element_text(hjust = 0.9, size = 24, face = "bold"),
+    plot.margin = unit(c(0.5, 4.5, 0.5, -6), "cm"),
+    axis.title.x = element_text(hjust = 0.8, size = 16),
+    axis.text.x = element_text(size = 12, face = "bold"),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
 
-# Combine and save
-combined_plot_subset <- gg_dendro_subset + state_heatmap_subset +
-  plot_layout(widths = c(1, 4))
-
-fn_subset <- paste0("figs/", scenario, "/state_heatmap_clustered_acela.jpg")
+fn_subset <- paste0("figs/", scenario, "/state_dendro_subset.pdf")
 
 ggsave(fn_subset,
-       plot = combined_plot_subset,
-       device = "jpeg",
-       dpi = 192,
-       width = 12,
+       plot = gg_dendro_subset,
+       device = "pdf",
+       dpi = 300,
+       width = 8,
        height = 10,
        create.dir = TRUE)
 
-message(paste("Subset dendrogram + heatmap saved to:", fn_subset))
+message(paste("Subset dendrogram saved to:", fn_subset))

@@ -108,8 +108,7 @@ if(aggregate_flag){
       school_cat = case_when(
         is.na(age_adj) ~ "NA",
         age_adj < 5 ~ "Pre-School",
-        age_adj < 12 ~ "Primary School",
-        age_adj < 18 ~ "Secondary School",
+        age_adj < 18 ~ "School Aged",
         age_adj < 65 ~ "Adult",
         .default = "Seniors"
       )

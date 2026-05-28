@@ -64,27 +64,31 @@ utils::globalVariables(c(
   "RR_nhts", "RR_move", "RR_air", "variable", "correlation",
   "metric", "value", "n", "ci_lower", "ci_upper", "significant",
   "cor", "ci", ".x", ".y", "process_variable",
-  # Additional variables needed for correlation functions
-  "get", "correlation", "variable", "ci",
-  # Variables for ggplot
+  "get", "ci",
   "x", "y", "nRR", "date", "correlation", "variable",
   "ci_lower", "ci_upper", "significant"
 ))
 
 df_state_distances <- fread("data/nb_dist_states.tsv")
 df_cbsa_distances <- fread("data/state_cbsa_dist.tsv")
-df_travel <- fread("data/travel_vars.tsv")
 
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
                       help = 'Which scenario to perform the analysis on')
+  parser$add_argument('--air_source', type = 'character', default = 't100',
+                      choices = c('db1b', 't100'),
+                      help = 'Air travel data source: db1b (full itinerary) or t100 (individual legs)')
   return(parser$parse_args())
 }
 
 args <- collect_args()
 SCENARIO <- args$scenario
+AIR_SOURCE <- args$air_source
 fig_path <- paste0("figs/",SCENARIO,"/time/")
+
+df_travel <- fread("data/travel_vars.tsv") %>%
+  rename(RR_air = paste0("RR_air_", AIR_SOURCE))
 
 # Add the normalization function from state_time_rr_analysis.R
 normalized_state_rr <- function(df_rr){
@@ -101,49 +105,6 @@ normalized_state_rr <- function(df_rr){
     rename(RR_yy = RR_diag) %>%
     mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = FALSE))
 return(df_rr)
-}
-
-# Modified normalization function for travel data (without N_pairs)
-normalized_travel_rr <- function(df_rr){
-  # First: filter to the diagonal (RR(x,x)) entries
-  rr_diag <- df_rr %>%
-    filter(x == y) %>%
-    select(date, state = x, RR_diag = RR) %>%
-    mutate(RR_diag = ifelse(is.na(RR_diag), NA, RR_diag))
-  
-  # Join to get RR(x,x) and RR(y,y) for each row
-  df_rr <- df_rr %>%
-    left_join(rr_diag, by = c("date", "x" = "state")) %>%
-    rename(RR_xx = RR_diag) %>%
-    left_join(rr_diag, by = c("date", "y" = "state")) %>%
-    rename(RR_yy = RR_diag) %>%
-    mutate(nRR = RR / rowMeans(across(c(RR_xx, RR_yy)), na.rm = FALSE))
-  return(df_rr)
-}
-
-# Function to normalize travel RR variables
-normalize_travel_vars <- function(df) {
-  # Normalize RR_trips
-  if("RR_trips" %in% names(df)) {
-    df_trips <- df %>%
-      select(date, x, y, RR = RR_trips) %>%
-      filter(!is.na(RR)) %>%
-      normalized_travel_rr() %>%
-      select(date, x, y, nRR_trips = nRR)
-    df <- left_join(df, df_trips, by = c("date", "x", "y"))
-  }
-  
-  # Normalize RR_move
-  if("RR_move" %in% names(df)) {
-    df_move <- df %>%
-      select(date, x, y, RR = RR_move) %>%
-      filter(!is.na(RR)) %>%
-      normalized_travel_rr() %>%
-      select(date, x, y, nRR_move = nRR)
-    df <- left_join(df, df_move, by = c("date", "x", "y"))
-  }
-  
-  return(df)
 }
 
 attach_distances <- function(df) {
@@ -172,8 +133,7 @@ attach_distances <- function(df) {
        RR_air_short = ifelse(min_cbsa_dist < 300, RR_air, NA),
        RR_air_med = ifelse(min_cbsa_dist >= 300 & min_cbsa_dist < 1800, RR_air, NA),
        RR_air_long = ifelse(min_cbsa_dist >= 1800, RR_air, NA)
-    ) %>%
-    normalize_travel_vars()
+    )
     
   return(df)
 }
@@ -223,7 +183,7 @@ plot_rr_boxplot <- function(data, date_medians, filename) {
          width = 7,
          height = 5,
          units = "in",
-         dpi = 192,
+         dpi = 300,
          create.dir = TRUE)
   
   return(p)
@@ -251,7 +211,7 @@ plot_neighbor_rank <- function(data, filename) {
          width = 2400,
          height = 2400,
          units = "px",
-         dpi = 192)
+         dpi = 300)
   
   return(p)
 }
@@ -327,7 +287,7 @@ plot_rr_relationship <- function(data, x_var, title, x_label, filename,
          width = 2400,
          height = 2400,
          units = "px",
-         dpi = 192)
+         dpi = 300)
   
   return(p)
 }
@@ -403,27 +363,6 @@ plot_rr_relationship(
   x_limits = c(0.01, 10)
 )
 
-# Add new normalized travel plots
-plot_rr_relationship(
-  data = state_rr_snap,
-  x_var = "nRR_trips",
-  title = "Normalized Travel RR and Normalized RR",
-  x_label = "Normalized Travel RR",
-  filename = "nhts_time_normalized.png",
-  log_x = FALSE,
-  x_limits = c(0, 5)
-)
-
-plot_rr_relationship(
-  data = state_rr_snap,
-  x_var = "nRR_move",
-  title = "Normalized Mobility RR and Normalized RR",
-  x_label = "Normalized Mobility RR",
-  filename = "safegraph_time_normalized.png",
-  log_x = FALSE,
-  x_limits = c(0, 5)
-)
-
 # Function to calculate correlation CI using Fisher z-transformation
 calculate_correlation_ci <- function(r, n, conf.level = 0.95) {
   # Fisher's z-transformation
@@ -448,7 +387,7 @@ calculate_correlation_ci <- function(r, n, conf.level = 0.95) {
 
 # Create function to calculate and plot time series correlations
 plot_correlation_series <- function(data, var_list, var_labels = NULL, filename,
-                                  conf.level = 0.95) {
+                                  log_x = NULL, conf.level = 0.95) {
   # Initialize empty list for results
   results_list <- vector("list", length(var_list))
   names(results_list) <- var_list
@@ -473,13 +412,17 @@ plot_correlation_series <- function(data, var_list, var_labels = NULL, filename,
     # Calculate correlations and CIs for each date
     for (j in seq_along(dates)) {
       date_data <- var_data[var_data$date == dates[j], ]
-      valid_idx <- !is.na(date_data[[var]]) & !is.na(date_data$nRR)
-      
+      valid_idx <- !is.na(date_data[[var]]) & !is.na(date_data$nRR) &
+                   date_data$nRR > 0 &
+                   (!isTRUE(log_x[i]) | date_data[[var]] > 0)
+
       if (sum(valid_idx) >= 3) {
+        x_vals <- date_data[[var]][valid_idx]
+        if (isTRUE(log_x[i])) x_vals <- log(x_vals)
         corr_results$correlation[j] <- cor(
-          date_data[[var]][valid_idx],
-          date_data$nRR[valid_idx],
-          method = "spearman"
+          x_vals,
+          log(date_data$nRR[valid_idx]),
+          method = "pearson"
         )
         corr_results$n[j] <- sum(valid_idx)
         ci <- calculate_correlation_ci(
@@ -525,22 +468,12 @@ plot_correlation_series <- function(data, var_list, var_labels = NULL, filename,
     ) +
     # Add lines and points
     geom_line(linewidth = 1) +
-    geom_point(aes(size = significant), alpha = 0.8) +
-    # Add horizontal line at zero
+    geom_point(size = 1.5, alpha = 0.8) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-    # Customize scales
-    scale_size_manual(values = c(`TRUE` = 3, `FALSE` = 1.5)) +
-    guides(size = "none") +  # Hide size legend
-    # Theme and labels
     theme_bw() +
     labs(
-      title = "Spearman Correlation with Normalized RR Over Time",
-      subtitle = paste0(
-        conf.level * 100,
-        "% Confidence Intervals (Larger points indicate significant correlations)"
-      ),
       x = "Date",
-      y = "Spearman Correlation",
+      y = "Correlation Coefficient",
       color = "Variable",
       fill = "Variable"
     ) +
@@ -557,7 +490,7 @@ plot_correlation_series <- function(data, var_list, var_labels = NULL, filename,
          width = 10,
          height = 6,
          units = "in",
-         dpi = 192)
+         dpi = 300)
   
   return(p)
   
@@ -571,22 +504,12 @@ plot_correlation_series <- function(data, var_list, var_labels = NULL, filename,
     ) +
     # Add lines and points
     geom_line(linewidth = 1) +
-    geom_point(aes(size = significant), alpha = 0.8) +
-    # Add horizontal line at zero
+    geom_point(size = 1.5, alpha = 0.8) +
     geom_hline(yintercept = 0, linetype = "dashed", color = "gray50") +
-    # Customize scales
-    scale_size_manual(values = c(`TRUE` = 3, `FALSE` = 1.5)) +
-    guides(size = "none") +  # Hide size legend
-    # Theme and labels
     theme_bw() +
     labs(
-      title = "Spearman Correlation with Normalized RR Over Time",
-      subtitle = paste0(
-        conf.level * 100,
-        "% Confidence Intervals (Larger points indicate significant correlations)"
-      ),
       x = "Date",
-      y = "Spearman Correlation",
+      y = "Correlation Coefficient",
       color = "Variable",
       fill = "Variable"
     ) +
@@ -603,29 +526,27 @@ plot_correlation_series <- function(data, var_list, var_labels = NULL, filename,
          width = 10,
          height = 6,
          units = "in",
-         dpi = 192)
+         dpi = 300)
   
   return(p)
 }
 
 # Plot correlation time series
-plot_correlation_series(
+p_corr <- plot_correlation_series(
   data = state_rr_series,
   var_list = c("min_cbsa_dist", "RR_trips", "RR_move", "RR_air"),
   var_labels = c("Geographic Distance", "Travel", "Mobility", "Air Travel"),
+  log_x = c(FALSE, TRUE, TRUE, TRUE),
   filename = "correlations_time_series.png"
 )
+ggsave(paste0(fig_path, "correlations_time_series.svg"),
+       plot = p_corr, device = "svg", width = 10, height = 6)
 
 plot_correlation_series(
   data = state_rr_series,
   var_list = c("min_cbsa_dist", "RR_trips", "RR_move", "RR_air_short", "RR_air_med", "RR_air_long"),
   var_labels = c("Geographic Distance", "Travel", "Mobility", "Air Travel (Short)", "Air Travel (Medium)", "Air Travel (Long)"),
+  log_x = c(FALSE, TRUE, TRUE, TRUE, TRUE, TRUE),
   filename = "correlations_time_series_split_air.png"
 )
 
-plot_correlation_series(
-  data = state_rr_series,
-  var_list = c("min_cbsa_dist", "nRR_trips", "nRR_move"),
-  var_labels = c("Geographic Distance", "Normalized Travel", "Normalized Mobility"),
-  filename = "correlations_time_series_normalized.png"
-)

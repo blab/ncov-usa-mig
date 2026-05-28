@@ -59,9 +59,9 @@ state_trajectories <- df_school_ay %>%
   ) %>%
   mutate(
     trajectory_type = case_when(
-      start_inperson >= 0.8 & min_inperson >= 0.8 ~ "Persistent High",
-      start_inperson <= 0.2 & max_inperson <= 0.2 ~ "Persistent Low",
-      start_inperson <= 0.2 & end_inperson >= 0.8 ~ "Rising In-Person",
+      start_inperson >= 0.7 & min_inperson >= 0.7 ~ "Persistent High",
+      start_inperson <= 0.3 & max_inperson <= 0.3 ~ "Persistent Low",
+      start_inperson <= 0.3 & end_inperson >= 0.7 ~ "Rising In-Person",
       TRUE ~ "Other"
     )
   )
@@ -174,10 +174,10 @@ message(paste0("Trajectory heatmap saved to ", fn_trajectories_heatmap))
 
 # ------------------------------------------------------------------
 
-# Filter RR data to within-group transmission for Primary and Secondary School
+# Filter RR data to within-group transmission for School Aged
 df_rr_school <- df_rr %>%
   filter(x == y) %>%
-  filter(x %in% c("Primary School", "Secondary School")) %>%
+  filter(x %in% c("School Aged")) %>%
   mutate(
     date = as.Date(date),
     year_month = floor_date(date, "month")
@@ -257,7 +257,7 @@ df_corr <- df_combined %>%
     share_type = factor(share_type,
                        levels = c("share_inperson", "share_hybrid", "share_virtual"),
                        labels = c("In-Person", "Hybrid", "Virtual")),
-    x = factor(x, levels = c("Primary School", "Secondary School"))
+    x = factor(x, levels = c("School Aged"))
   )
 
 # Calculate Spearman correlations and p-values for annotations
@@ -314,7 +314,7 @@ df_corr_nrr_fixed <- df_combined %>%
     share_type = factor(share_type,
                        levels = c("share_inperson", "share_hybrid", "share_virtual"),
                        labels = c("In-Person", "Hybrid", "Virtual")),
-    x = factor(x, levels = c("Primary School", "Secondary School"))
+    x = factor(x, levels = c("School Aged"))
   )
 
 df_corr_stats_nrr_fixed <- df_corr_nrr_fixed %>%
@@ -363,7 +363,7 @@ write_tsv(df_combined, fn_combined)
 message(paste0("Combined data saved to ", fn_combined))
 
 nrr_share_model <- lmer(nRR_fixed  ~  share_hybrid + bs(date)  + (1|state),
-                        data=df_combined %>% filter(x == "Secondary School"))
+                        data=df_combined %>% filter(x == "School Aged"))
 summary(nrr_share_model)
 ranova(nrr_share_model)
 AIC(nrr_share_model)

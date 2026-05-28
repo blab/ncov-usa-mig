@@ -42,10 +42,9 @@ p <- plot_cam_choropleth(
   value_col = region,
   fill_mapper = identity,
   scale_fun = region_fill_scale,  # Use the predefined scale
-  title = "US Bureau of Economic Analysis (BEA) Regions",
+  title = NULL,
   bottom_legend = FALSE,
   theme_override = theme(
-    plot.title = element_text(hjust = 0.5, size = 28),
     legend.title = element_blank(),
     legend.text = element_text(size = 16)
   )
@@ -58,8 +57,8 @@ dir.create(paste0("figs/", scenario), recursive = TRUE, showWarnings = FALSE)
 ggsave(
   paste0("figs/", scenario, "/bea_region_map.png"),
   p,
-  width = 14,
-  height = 12,
+  width = 8,
+  height = 7,
   units = "in",
-  dpi = 192
+  dpi = 300
 )

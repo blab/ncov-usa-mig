@@ -81,7 +81,7 @@ fn_state_plot <- paste0("figs/",scenario,"/state_heatmap",".jpg")
 ggsave(fn_state_plot,
        plot=state_heatmap,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 7 * SCALE_FACTOR,
        height = 6 * SCALE_FACTOR,
        create.dir = TRUE

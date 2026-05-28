@@ -54,12 +54,7 @@ for (ORI in names(b_list)) {
 }
 
 # Combine into a single polot
-wrap_plots(map_list, nrow = 1) +
-  plot_annotation(
-  title="Identical Sequence Relative Risk",
-  theme = theme(
-    plot.title = element_text(hjust = 0.5, size = rel(1.5), face = "bold")
-  ))
+wrap_plots(map_list, nrow = 1)
 ggsave(filename="figs/CAM_1000/RR_maps/patched_maps.jpg",
        width = 15,
        height = 4,

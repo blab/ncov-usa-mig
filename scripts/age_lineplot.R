@@ -75,7 +75,7 @@ fn_age_plot_all <- paste0("figs/",scenario,"/age_lineplot_all_censor.jpg")
 ggsave(fn_age_plot_all,
        plot=age_plot_all,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 50,
        height = 40,
        limitsize = FALSE
@@ -149,7 +149,7 @@ fn_age_state_plot <- paste0("figs/",scenario,"/age_lineplot_by_state.jpg")
 ggsave(fn_age_state_plot,
        plot=age_plot_by_state,
        device = "jpeg",
-       dpi = 192,
+       dpi = 300,
        width = 50,
        height = 40,
        limitsize = FALSE

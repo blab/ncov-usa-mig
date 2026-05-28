@@ -87,7 +87,7 @@ p_rr_time <- ggplot(state_pairs, aes(x = date, y = RR, color = pair, group = pai
 
 # Save the RR plot
 ggsave(paste0(fn_out_path, "ohio_oklahoma_RR_timeseries.jpg"),
-  plot = p_rr_time, width = 12, height = 7, dpi = 192
+  plot = p_rr_time, width = 12, height = 7, dpi = 300
 )
 
 message("RR time series plot saved to: ", fn_out_path, "ohio_oklahoma_RR_timeseries.jpg")
@@ -119,7 +119,7 @@ p_nrr_time <- ggplot(state_pairs, aes(x = date, y = nRR, color = pair, group = p
 
 # Save the nRR plot
 ggsave(paste0(fn_out_path, "ohio_oklahoma_nRR_timeseries.jpg"),
-  plot = p_nrr_time, width = 12, height = 7, dpi = 192
+  plot = p_nrr_time, width = 12, height = 7, dpi = 300
 )
 
 message("nRR time series plot saved to: ", fn_out_path, "ohio_oklahoma_nRR_timeseries.jpg")
@@ -232,7 +232,7 @@ p_seq_counts_abs <- ggplot(df_weekly_counts, aes(x = week, y = n_sequences_sma, 
   )
 
 ggsave(paste0(fn_out_path, "sequence_counts_timeseries_absolute.jpg"),
-  plot = p_seq_counts_abs, width = 12, height = 7, dpi = 192
+  plot = p_seq_counts_abs, width = 12, height = 7, dpi = 300
 )
 
 # Plot per capita sequence counts with SMA
@@ -257,7 +257,7 @@ p_seq_counts_per_cap <- ggplot(df_weekly_counts, aes(x = week, y = n_sequences_s
   )
 
 ggsave(paste0(fn_out_path, "sequence_counts_timeseries_per_capita.jpg"),
-  plot = p_seq_counts_per_cap, width = 12, height = 7, dpi = 192
+  plot = p_seq_counts_per_cap, width = 12, height = 7, dpi = 300
 )
 
 message("Sequence counts time series plots saved (absolute and per capita)")
@@ -423,7 +423,7 @@ for (state in states_of_interest) {
     )
 
   ggsave(paste0(fn_out_path, "clade_composition_", tolower(state), ".jpg"),
-    plot = p_lineage, width = 12, height = 7, dpi = 192
+    plot = p_lineage, width = 12, height = 7, dpi = 300
   )
 
   message("Clade composition plot saved for ", state)
@@ -469,7 +469,7 @@ p_combined <- lineage_props %>%
   guides(fill = guide_legend(ncol = 5))
 
 ggsave(paste0(fn_out_path, "ohio_oklahoma_clade_comparison_4panel.jpg"),
-  plot = p_combined, width = 14, height = 16, dpi = 192
+  plot = p_combined, width = 14, height = 16, dpi = 300
 )
 
 message("Combined 4-panel clade plot saved")
@@ -669,7 +669,7 @@ p_component_sizes <- ggplot(hist_df, aes(x = midpoint, y = count)) +
   )
 
 ggsave(paste0(fn_out_path, "component_size_distribution.jpg"),
-  plot = p_component_sizes, width = 10, height = 7, dpi = 192
+  plot = p_component_sizes, width = 10, height = 7, dpi = 300
 )
 
 message("Component size histogram saved")
@@ -773,7 +773,7 @@ p_component_time <- ggplot(component_time_data, aes(x = first_date, y = size)) +
   )
 
 ggsave(paste0(fn_out_path, "component_size_over_time.jpg"),
-  plot = p_component_time, width = 12, height = 7, dpi = 192
+  plot = p_component_time, width = 12, height = 7, dpi = 300
 )
 
 message("Component size over time plot saved")
@@ -875,7 +875,7 @@ p_network_map <- ggplot() +
   )
 
 ggsave(paste0(fn_out_path, "largest_component_network_map.jpg"),
-  plot = p_network_map, width = 14, height = 10, dpi = 192
+  plot = p_network_map, width = 14, height = 10, dpi = 300
 )
 
 message("Network map saved")
@@ -978,7 +978,7 @@ p_state_involvement <- ggplot(plot_data, aes(x = state, y = pct_components)) +
   )
 
 ggsave(paste0(fn_out_path, "state_involvement_barplot.jpg"),
-  plot = p_state_involvement, width = 10, height = 8, dpi = 192
+  plot = p_state_involvement, width = 10, height = 8, dpi = 300
 )
 
 message("\nState involvement barplot saved to: ", fn_out_path, "state_involvement_barplot.jpg")

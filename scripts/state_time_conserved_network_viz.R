@@ -4,6 +4,7 @@ library(argparse)
 library(igraph)
 library(ggraph)
 library(sf)
+library(patchwork)
 
 source("scripts/color_schemes.R")
 
@@ -65,6 +66,8 @@ edge_counts <- sig_connections %>%
     .groups = "drop"
   ) %>%
   filter(n_occurrences >= min_occurrences) %>%
+  filter(region_x != region_y) %>%
+  filter(x < y) %>%
   arrange(desc(n_occurrences), desc(mean_nRR))
 
 cat("\n=== Conserved Connection Analysis ===\n")
@@ -173,7 +176,7 @@ edges_for_plot <- edge_counts %>%
 
 # Generate simple geodesic-like arcs by adding curvature perpendicular to the line
 # This approximates great circle behavior for moderate distances
-generate_curved_path <- function(lon1, lat1, lon2, lat2, n = 50, curvature = 0.15) {
+generate_curved_path <- function(lon1, lat1, lon2, lat2, n = 20, curvature = 0.15) {
   # Parameterize the path from 0 to 1
   t <- seq(0, 1, length.out = n)
 
@@ -205,7 +208,7 @@ generate_curved_path <- function(lon1, lat1, lon2, lat2, n = 50, curvature = 0.1
 edges_with_paths <- edges_for_plot %>%
   rowwise() %>%
   mutate(
-    path = list(generate_curved_path(lon_x, lat_x, lon_y, lat_y, n = 50, curvature = 0.15))
+    path = list(generate_curved_path(lon_x, lat_x, lon_y, lat_y, n = 20, curvature = 0.15))
   ) %>%
   ungroup()
 
@@ -243,20 +246,17 @@ p_map <- ggplot() +
   # Add network nodes (circles with black outline)
   geom_point(data = nodes_for_plot,
              aes(x = lon, y = lat, fill = bea_reg),
-             size = 5, shape = 21, color = "black", stroke = 1.5) +
+             size = 2, shape = 21, color = "black", stroke = 0.5) +
   scale_linewidth_continuous(range = c(0.5, 3),
                              name = "# Time Points",
                              breaks = c(2, 5, 10, 15)) +
   scale_alpha_continuous(range = c(0.4, 0.9), guide = "none") +
   guides(fill = "none") +  # Remove BEA region fill legend
   coord_sf(expand = FALSE) +  # Remove whitespace
-  labs(title = "Conserved Significant Inter-Region Connections",
-       subtitle = paste0("Connections above ", label_threshold, "th percentile in ", min_occurrences, "+ time points\n",
-                        "Network overlaid on BEA regions")) +
+  labs(title = paste0("All Quarters (n = ", nrow(conserved_edges), ")")) +
   theme_minimal() +
   theme(
-    plot.title = element_text(size = 16, face = "bold"),
-    plot.subtitle = element_text(size = 11),
+    plot.title = element_text(size = 10, face = "bold", hjust = 0.5),
     legend.position = "bottom",
     legend.box = "horizontal",
     panel.grid = element_blank(),
@@ -272,9 +272,9 @@ ggsave(fn_out_map, plot = p_map, width = 16, height = 10, dpi = 300)
 cat("Map with network overlay saved to:", fn_out_map, "\n")
 
 # ============================================================================
-# QUARTERLY NETWORK VISUALIZATIONS
+# QUARTERLY NETWORK VISUALIZATION (combined 2x2 facet)
 # ============================================================================
-cat("\n=== Creating Quarterly Network Maps ===\n")
+cat("\n=== Creating Combined Quarterly Network Map ===\n")
 
 # Define states to exclude from quarterly maps (non-continental US)
 EXCLUDE_STATES <- c("Hawaii", "Alaska", "Mexico", "Canada",
@@ -286,11 +286,11 @@ EXCLUDE_STATES <- c("Hawaii", "Alaska", "Mexico", "Canada",
 # Add quarter to significant connections and filter to continental US
 sig_connections_q <- sig_connections %>%
   filter(!(x %in% EXCLUDE_STATES | y %in% EXCLUDE_STATES)) %>%
-  mutate(quarter = paste0("Q", quarter(date)))
+  mutate(quarter = paste0("Q", lubridate::quarter(date)))
 
-# Define quarter labels
-quarter_labels <- c("Q1" = "Q1 (Jan-Mar)", "Q2" = "Q2 (Apr-Jun)",
-                    "Q3" = "Q3 (Jul-Sep)", "Q4" = "Q4 (Oct-Dec)")
+# Months-only labels (3-letter abbreviations)
+quarter_month_labels <- c("Q1" = "Jan-Mar", "Q2" = "Apr-Jun",
+                          "Q3" = "Jul-Sep", "Q4" = "Oct-Dec")
 
 # Minimum occurrences for quarterly analysis
 min_occ_quarterly <- 2
@@ -300,33 +300,22 @@ cam_map_conus <- cam_map %>%
   left_join(REGION_DATA %>% select(state, bea_reg), by = c("NAME_En" = "state")) %>%
   filter(!(NAME_En %in% EXCLUDE_STATES))
 
-# Loop through each quarter
-for (q in c("Q1", "Q2", "Q3", "Q4")) {
-  cat("\nProcessing", q, "...\n")
+# Build edges and nodes across all four quarters
+quarterly_edges <- list()
+quarterly_nodes <- list()
 
-  # Filter to this quarter and count edge occurrences
+for (q in c("Q1", "Q2", "Q3", "Q4")) {
   edge_counts_q <- sig_connections_q %>%
     filter(quarter == q) %>%
-    group_by(edge_pair, x, y, region_x, region_y, country_x, country_y) %>%
-    summarise(
-      n_occurrences = n(),
-      mean_nRR = mean(nRR, na.rm = TRUE),
-      .groups = "drop"
-    ) %>%
+    group_by(edge_pair, x, y, region_x, region_y) %>%
+    summarise(n_occurrences = n(), .groups = "drop") %>%
     filter(n_occurrences >= min_occ_quarterly) %>%
-    arrange(desc(n_occurrences), desc(mean_nRR))
+    filter(region_x != region_y)
 
-  cat("  Connections in", q, "appearing", min_occ_quarterly, "+ times:", nrow(edge_counts_q), "\n")
+  cat("  ", q, ":", nrow(edge_counts_q), "connections\n")
 
-  if (nrow(edge_counts_q) == 0) {
-    cat("  Skipping - no connections meet threshold\n")
-    next
-  }
+  if (nrow(edge_counts_q) == 0) next
 
-  # Get states involved in this quarter
-  states_involved_q <- unique(c(edge_counts_q$x, edge_counts_q$y))
-
-  # Prepare edges for plotting (deduplicate)
   edges_for_plot_q <- edge_counts_q %>%
     left_join(state_centroids, by = c("x" = "state")) %>%
     rename(lon_x = lon, lat_x = lat) %>%
@@ -336,65 +325,106 @@ for (q in c("Q1", "Q2", "Q3", "Q4")) {
     slice_min(lon_x, n = 1, with_ties = FALSE) %>%
     ungroup()
 
-  # Create curved paths
-  edges_with_paths_q <- edges_for_plot_q %>%
+  edges_paths_long_q <- edges_for_plot_q %>%
     rowwise() %>%
-    mutate(
-      path = list(generate_curved_path(lon_x, lat_x, lon_y, lat_y, n = 50, curvature = 0.15))
-    ) %>%
-    ungroup()
-
-  edges_paths_long_q <- edges_with_paths_q %>%
+    mutate(path = list(generate_curved_path(lon_x, lat_x, lon_y, lat_y,
+                                            n = 20, curvature = 0.15))) %>%
+    ungroup() %>%
     select(edge_pair, n_occurrences, path) %>%
     unnest(path) %>%
-    group_by(edge_pair) %>%
-    mutate(path_order = row_number()) %>%
-    ungroup()
+    mutate(quarter = q)
 
-  # Prepare nodes
-  nodes_for_plot_q <- state_centroids %>%
+  states_involved_q <- unique(c(edge_counts_q$x, edge_counts_q$y))
+  nodes_q <- state_centroids %>%
     filter(state %in% states_involved_q) %>%
-    left_join(REGION_DATA %>% select(state, bea_reg), by = "state")
+    left_join(REGION_DATA %>% select(state, bea_reg), by = "state") %>%
+    mutate(quarter = q)
 
-  # Use pre-filtered continental US map
-  cam_map_q <- cam_map_conus
-
-  # Create quarterly map plot
-  p_q <- ggplot() +
-    geom_sf(data = cam_map_q, aes(fill = bea_reg), color = "black", linewidth = 0.5) +
-    region_fill_scale() +
-    geom_path(data = edges_paths_long_q,
-              aes(x = lon, y = lat, group = edge_pair,
-                  linewidth = n_occurrences, alpha = n_occurrences),
-              color = "black") +
-    geom_point(data = nodes_for_plot_q,
-               aes(x = lon, y = lat, fill = bea_reg),
-               size = 5, shape = 21, color = "black", stroke = 1.5) +
-    scale_linewidth_continuous(range = c(0.5, 3),
-                               name = "# Years",
-                               breaks = c(2, 3, 4, 5)) +
-    scale_alpha_continuous(range = c(0.4, 0.9), guide = "none") +
-    guides(fill = "none") +
-    coord_sf(expand = FALSE) +
-    labs(title = paste0("Conserved Connections (Continental US): ", quarter_labels[q]),
-         subtitle = paste0("Connections above ", label_threshold, "th percentile in ", min_occ_quarterly, "+ years\n",
-                          "Total connections: ", nrow(edges_for_plot_q), " | States involved: ", length(states_involved_q))) +
-    theme_minimal() +
-    theme(
-      plot.title = element_text(size = 16, face = "bold"),
-      plot.subtitle = element_text(size = 11),
-      legend.position = "bottom",
-      legend.box = "horizontal",
-      panel.grid = element_blank(),
-      axis.text = element_blank(),
-      axis.title = element_blank(),
-      plot.margin = margin(5, 5, 5, 5)
-    )
-
-  # Save quarterly plot
-  fn_out_q <- paste0(fn_out_path, "network_conserved_", label_threshold, "pct_", q, "_map.jpg")
-  ggsave(fn_out_q, plot = p_q, width = 16, height = 10, dpi = 300)
-  cat("  Saved:", fn_out_q, "\n")
+  quarterly_edges[[q]] <- edges_paths_long_q
+  quarterly_nodes[[q]] <- nodes_q
 }
+
+all_q_edges <- bind_rows(quarterly_edges) %>%
+  mutate(n_occurrences = pmin(n_occurrences, 4))
+
+# Build per-quarter connection counts for facet titles
+quarter_counts <- all_q_edges %>%
+  distinct(quarter, edge_pair) %>%
+  count(quarter)
+quarter_facet_labels <- setNames(
+  paste0(quarter_month_labels[quarter_counts$quarter],
+         " (n = ", quarter_counts$n, ")"),
+  quarter_counts$quarter
+)
+# Fill in any quarter with no edges
+for (q in c("Q1", "Q2", "Q3", "Q4")) {
+  if (!q %in% names(quarter_facet_labels)) {
+    quarter_facet_labels[[q]] <- paste0(quarter_month_labels[q], " (n = 0)")
+  }
+}
+quarter_facet_labels <- quarter_facet_labels[c("Q1", "Q2", "Q3", "Q4")]
+
+all_q_edges <- all_q_edges %>%
+  mutate(quarter = factor(quarter,
+                          levels = c("Q1", "Q2", "Q3", "Q4"),
+                          labels = quarter_facet_labels))
+all_q_nodes <- bind_rows(quarterly_nodes) %>%
+  mutate(quarter = factor(quarter,
+                          levels = c("Q1", "Q2", "Q3", "Q4"),
+                          labels = quarter_facet_labels))
+
+p_quarters <- ggplot() +
+  geom_sf(data = cam_map_conus, aes(fill = bea_reg),
+          color = "black", linewidth = 0.2) +
+  region_fill_scale() +
+  geom_path(data = all_q_edges,
+            aes(x = lon, y = lat,
+                group = interaction(quarter, edge_pair),
+                linewidth = n_occurrences,
+                alpha = n_occurrences),
+            color = "black") +
+  geom_point(data = all_q_nodes,
+             aes(x = lon, y = lat, fill = bea_reg),
+             size = 1.2, shape = 21, color = "black", stroke = 0.3) +
+  scale_linewidth_continuous(range = c(0.3, 3),
+                             name = "# Years",
+                             breaks = c(2, 3, 4),
+                             limits = c(2, 4)) +
+  scale_alpha_continuous(range = c(0.5, 0.9), guide = "none") +
+  guides(fill = "none") +
+  facet_wrap(~ quarter, nrow = 2, ncol = 2) +
+  coord_sf(expand = FALSE) +
+  theme_minimal(base_size = 9) +
+  theme(
+    legend.position = "bottom",
+    legend.box = "horizontal",
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    plot.margin = margin(2, 2, 2, 2),
+    panel.spacing = unit(2, "pt"),
+    strip.text = element_text(size = 10, face = "bold")
+  )
+
+# Save standalone quarterly faceted map
+fn_out_q <- paste0(fn_out_path, "network_conserved_", label_threshold, "pct_quarterly_map.jpg")
+ggsave(fn_out_q, plot = p_quarters, width = 8, height = 8, dpi = 300)
+cat("Quarterly faceted map saved to:", fn_out_q, "\n")
+
+# ============================================================================
+# COMBINED FIGURE (full conserved map + quarterly facet, side by side)
+# ============================================================================
+combined <- p_map + p_quarters + plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Conserved Inter-Region Connections",
+    theme = theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5))
+  )
+fn_out_combined <- paste0(fn_out_path, "network_conserved_combined.jpg")
+ggsave(fn_out_combined, plot = combined, width = 7, height = 4, dpi = 300)
+cat("Combined figure saved to:", fn_out_combined, "\n")
+
+fn_out_combined_svg <- paste0(fn_out_path, "network_conserved_combined.svg")
+ggsave(fn_out_combined_svg, plot = combined, width = 7, height = 4)
+cat("Combined SVG saved to:", fn_out_combined_svg, "\n")
 
 cat("\n=== Analysis Complete ===\n")

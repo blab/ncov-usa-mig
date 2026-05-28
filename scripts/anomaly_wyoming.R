@@ -88,7 +88,7 @@ p_rr_time <- ggplot(state_pairs, aes(x = date, y = RR, color = pair, group = pai
 
 # Save the RR plot
 ggsave(paste0(fn_out_path, "wyoming_RR_timeseries.jpg"),
-  plot = p_rr_time, width = 12, height = 7, dpi = 192
+  plot = p_rr_time, width = 12, height = 7, dpi = 300
 )
 
 message("RR time series plot saved")
@@ -120,7 +120,7 @@ p_nrr_time <- ggplot(state_pairs, aes(x = date, y = nRR, color = pair, group = p
 
 # Save the nRR plot
 ggsave(paste0(fn_out_path, "wyoming_nRR_timeseries.jpg"),
-  plot = p_nrr_time, width = 12, height = 7, dpi = 192
+  plot = p_nrr_time, width = 12, height = 7, dpi = 300
 )
 
 message("nRR time series plot saved")
@@ -238,7 +238,7 @@ p_seq_counts_abs <- ggplot(df_weekly_counts, aes(x = week, y = n_sequences_sma, 
   )
 
 ggsave(paste0(fn_out_path, "sequence_counts_timeseries_absolute.jpg"),
-  plot = p_seq_counts_abs, width = 12, height = 7, dpi = 192
+  plot = p_seq_counts_abs, width = 12, height = 7, dpi = 300
 )
 
 # Plot per capita sequence counts with SMA
@@ -263,7 +263,7 @@ p_seq_counts_per_cap <- ggplot(df_weekly_counts, aes(x = week, y = n_sequences_s
   )
 
 ggsave(paste0(fn_out_path, "sequence_counts_timeseries_per_capita.jpg"),
-  plot = p_seq_counts_per_cap, width = 12, height = 7, dpi = 192
+  plot = p_seq_counts_per_cap, width = 12, height = 7, dpi = 300
 )
 
 message("Sequence counts time series plots saved (absolute and per capita)")
@@ -429,7 +429,7 @@ for (state in states_of_interest) {
     )
 
   ggsave(paste0(fn_out_path, "clade_composition_", tolower(state), ".jpg"),
-    plot = p_lineage, width = 12, height = 7, dpi = 192
+    plot = p_lineage, width = 12, height = 7, dpi = 300
   )
 
   message("Clade composition plot saved for ", state)
@@ -475,7 +475,7 @@ p_combined <- lineage_props %>%
   guides(fill = guide_legend(ncol = 5))
 
 ggsave(paste0(fn_out_path, "wyoming_clade_comparison_7panel.jpg"),
-  plot = p_combined, width = 14, height = 20, dpi = 192
+  plot = p_combined, width = 14, height = 20, dpi = 300
 )
 
 message("Combined 7-panel clade plot saved")
