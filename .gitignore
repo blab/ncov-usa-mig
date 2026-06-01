@@ -4,11 +4,17 @@
 *.o
 *.pdf
 *.html
+
+# LateX manuscript
+# Exclude rendered main text PDF and SVGs
+manuscript/main.pdf
 manuscript/figures/*.svg
+# Include PDF figures
 !manuscript/figures/*.pdf
 !manuscript/figures/supp/*.pdf
-!manuscript/main.pdf
 
+# Exclude snakemake intermediates
+.snakemake
 
 cluster-analysis/*
 cecile-rr/*
