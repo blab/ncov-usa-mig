@@ -206,11 +206,23 @@ Sequence relative risk scores were calculated between all geographic areas.
 Relative risk (RR) maps for Ontario, New York State, and Mexico are shown fig \ref{fig:geo_clust}A. 
 Generally these maps show that states and provinces tend to have higher RR scores with neighboring states and provinces.
 For New York and Ontario, cross-border neighbors between the US and Canada did not tend to have RR scores greater than 1, but Mexico did have RR scores greater than 1 with most of its neighboring states.
-The full matrix of RRs were used to construct a heatmap (fig \ref{fig:geo_clust}C). The highest RR values are along the heatmap’s diagonal, showing that identical sequence pairs had the highest likelihood of occurring within the same geographical unit.  
+Additionally, there is some evidence for regional connections in the New York map with relatively higher RR scores for some Southeast (e.g. Virginia, North Carolina, and Florida) and Great Lakes (e.g. Ohio, Illinois) states, while having lower RR scores for the Plains and Rocky Mountain States. 
 
-This matrix of RRs was sorted using hierarchical clustering and then annotated by the geographic region (i.e. Bureau of Economic Analysis regions for the US, Eastern vs Western Canada, and Mexico)  (fig \ref{fig:geo_clust}B). The clustering reveals that the identical sequence RRs tended to sort along region definitions, with regions such as Eastern Canada, Western Canada, Mideast, and the Plains creating distinct and fully sorted clusters. Within the US, however, state clusters do not perfectly sort along regional definitions. For example, states from the Southeast are split into three different small clusters: (1) the District of Columbia (DC), Maryland, Virginia, and North Carolina were closest to the Mideast and New England clusters; (2) Arkansas, Louisiana, and Mississippi were closest to Southwest states and Mexico; and (3) the remainder of the states were mixed with the Great Lakes states. Similarly, we find that in the Far West that Alaska, Oregon and Washington are closer to certain Rocky Mountain states (Idaho and Utah), while California, Hawaii, and Nevada cluster with Arizona and Texas.  
+We constructed a heatmap of the full matrix of RR values (fig \ref{fig:geo_clust}C).
+The highest RR values are along the heatmap’s diagonal (i.e. same unit pairs), with all same unit pairs having a RR > 1.
+This demonstrates that identical sequence pairs had the highest likelihood of occurring within the same geographical unit, fitting our expectation that transmission occurs most frequently within-unit rather than across units.
+This matrix of RRs was sorted using hierarchical clustering and then annotated by the geographic region (Bureau of Economic Analysis regions for the US, Eastern vs Western Canada, and Mexico)  (fig \ref{fig:geo_clust}B).
+The clustering reveals that the identical sequence RRs tended to sort along region definitions, with regions such as Eastern Canada, Western Canada, Mideast, and the Plains creating distinct and fully sorted clusters.
+Within the US, however, state clusters do not perfectly sort along regional definitions.
+For example, states from the Southeast are split into three different small clusters: (1) the District of Columbia (DC), Maryland, Virginia, and North Carolina were closest to the Mideast and New England clusters; (2) Arkansas, Louisiana, and Mississippi were closest to Southwest states and Mexico; and (3) the remainder of the states were mixed with the Great Lakes states.
+Similarly, we find that in the Far West that Alaska, Oregon and Washington are closer to certain Rocky Mountain states (Idaho and Utah), while California, Hawaii, and Nevada cluster with Arizona and Texas.  
 
-The dissimilarity score was used for a principal coordinate analysis (fig \ref{fig:geo_clust}D) to determine if any geographic patterns could be identified through dimensionality reduction. The first principal coordinate mapped to country differences with Canadian provinces having negative values and US states having positive values. The second principal coordinate generally tends to map onto an East-West axis with New England and the Mideast having the greatest positive values. We also calculated convex hulls for each region to try and determine areas of overlap. We find similar relationships in the PCoA analysis as the hierarchical clustering such as the Canadian regions being closest to each other while distant from all other regions and overlap between the Southeast/Great Lakes regions and the Far West/Rocky Mountain regions.
+The dissimilarity score was used for a principal coordinate analysis (fig \ref{fig:geo_clust}D) to determine if any geographic patterns could be identified through dimensionality reduction.
+The first principal coordinate mapped to country differences with Canadian provinces having negative values and US states having positive values.
+Mexico sits between Canada and the United States with a PC1 value of 0.
+The second principal coordinate generally tends to map onto an East-West axis with New England and the Mideast having the greatest positive values.
+We also calculated convex hulls for each region to try and determine areas of overlap.
+We find similar relationships in the PCoA analysis as the hierarchical clustering such as the Canadian regions being closest to each other while distant from all other regions and overlap between the Southeast/Great Lakes regions and the Far West/Rocky Mountain regions.
 
 \subsection{Temporal and Seasonal Relationships for Geographic RR}
 
@@ -221,16 +233,42 @@ The dissimilarity score was used for a principal coordinate analysis (fig \ref{f
     \label{fig:geo_time}
 \end{figure}
 
-Quarterly identical sequence RR scores were calculated and normalized against the mean same state RR for comparisons over time. Normalized RR scores showed a broad range in Q1 2020 and then rapidly decreased to a nadir in 2020 Q4 (fig \ref{fig:geo_time}A). Normalized RR increased during 2021 and 2022 and then stabilized in late 2023 and 2024. Throughout all time periods, state pairs within the same region had the highest normalized RR compared to inter-region and international state pairs. Fold-change of geographic nRRs were also calculated with respect to 2023 Q1 to track how individual pairs changed over time (fig \ref{fig:geo_time}B). We see a sharp decrease across most state/provincial pairs from 2020 Q1 to 2020 Q2 and this decrease persists through the remainder of 2020 across all geographies. The nRR begin to increase in a gradated fashion during 2021 as within region nRR scores increased in early 2021 and across region nRR scores increased in late 2021. International nRR scores remained low throughout 2021 and started to increase in 2022.
+We calculated and normalized Quarterly identical sequence RR scores against the mean same state RR for comparisons over time.
+Normalized RR scores showed a broad range in Q1 2020 and then rapidly decreased to a nadir in 2020 Q4 (fig \ref{fig:geo_time}A). 
+They then increased during 2021 and 2022, stabilizing in late 2023 and 2024.
+Throughout all time periods, state pairs within the same region had higher normalized RR compared to inter-region and international state pairs.
+Fold-change of geographic nRRs were also calculated with respect to 2023 Q1 to track how individual pairs changed over time (fig \ref{fig:geo_time}B).
+We see a sharp decrease across most state/provincial pairs from 2020 Q1 to 2020 Q2 and this decrease persists through the remainder of 2020 across all geographies.
+The nRR begin to increase in a gradated fashion during 2021 as within region nRR scores increased in early 2021 and across region nRR scores increased in late 2021.
+International nRR scores remained low throughout 2021 and started to increase in 2022.
+These findings point to evidence that COVID-19 transmission between states/provinces tended to be more local within the same region throughout the pandemic.
+Based on the fold change dynamics, we see evidence that international transmission remained suppressed throughout 2021 despite intra-regional and inter-regional nRR rising throughout that year. 
 
-Geographic nRR scores were also used to find pairs of states/provinces with consistently higher nRR scores across multiple time points. Within region pairs tended to be consistently higher than between region pairs, so we investigated conserved highly enriched connections between regions. These were state-province pairs that were in the upper 95th percentile of for at least five of the twenty quarters during the study time period (fig \ref{fig:geo_time}C). There were 21 state pairings that had at least 5 quarters within the upper 95th percentile. All of these conserved connections were between US states and there were no international connections. Florida had the highest involvement (9 connections) followed by New York and New Jersey (both with 6 connections). Florida - New Jersey and Florida - Pennsylvania were the most common conserved connections with each having 10 quarters of nRR within the top 98th percentile, followed by Florida - Texas, Florida - New York, California - Florida, and California - New Jersey having 8 quarters.  We further investigated conserved connections stratified by quarters. Florida acts as the main hub with the most conserved connections across all four quarters. The majority of these connections tend to be with Mideast states (New Jersey, Pennsylvania, and New York), but Texas and California also have conserved connections with Florida in multiple years. We also find that the number of conserved connection vary by season with Q1 (January - March) and Q3 (July - September) having the most conserved connections and Q2 (April - June) having the least. 
+Geographic nRR scores were also used to find pairs of states/provinces with consistently higher nRR scores across multiple time points.
+Within region pairs tended to be consistently higher than between region pairs, so we investigated conserved highly scoring connections between regions.
+These were state-province pairs that were in the upper 98th percentile of for at least five of the twenty quarters during the study time period (fig \ref{fig:geo_time}C).
+There were 21 state pairings that had at least 5 quarters within the upper 98th percentile. All of these conserved connections were between US states and there were no international connections.
+Florida had the highest involvement (9 connections) followed by New York and New Jersey (both with 6 connections).
+Florida - New Jersey and Florida - Pennsylvania were the most common conserved connections with each having 10 quarters of nRR within the top 98th percentile, followed by Florida - Texas, Florida - New York, California - Florida, and California - New Jersey having 8 quarters. 
+We further investigated conserved connections stratified by quarters. Florida acts as the main hub with the most conserved connections across all four quarters.
+The majority of these connections tend to be with Mideast states (New Jersey, Pennsylvania, and New York), but Texas and California also have conserved connections with Florida in multiple years.
+We also find that the number of conserved connection vary by season with Q1 (January - March) and Q3 (July - September) having the most conserved connections and Q2 (April - June) having the least. 
+
+\subsection{Geographical Predictors of Identical Sequence RR}
 
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{geo_dist.pdf}
-    \caption{Relationship between US identical sequence RR scores with distance/travel patterns. A: Clockwise, box/correlation plots between identical sequence RR and: neighbor order, geographic distance, cell phone mobility timeshare, and transportation diary trips. Blue points indicate within state RR and best fit curve using LOESS for all scatter plots. B: Correlation plots between airline trips and identical sequence RRs stratified by geographic distance  C: Pearson correlation over time between nRR and distance/travel with 95\% confidence band.}
+    \caption{Relationship between Continental US identical sequence RR scores with distance/travel patterns. A: Clockwise, box/correlation plots between identical sequence RR and: neighbor order, geographic distance, cell phone mobility timeshare, and transportation diary trips. Blue points indicate within state RR and best fit curve using LOESS for all scatter plots. B: Correlation plots between airline trips and identical sequence RRs stratified by geographic distance  C: Pearson correlation over time between nRR and distance/travel with 95\% confidence band.}
     \label{fig:geo_dist}
 \end{figure}
+
+Within the United States, we examined the relationship between geographic distance and movement variables with identical sequences, shown in fig\ref{fig:geo_dist}A.
+To facilitate easier comparisons, we calculated RR scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transformed all RR scores (including for identical sequences).
+Distance between states was negatively correlated with identical sequence RR, with a rapid descent in RR from 0 to 1000 km and then a slower descent phase beyond 1000 km.
+Ground travel and mobility RR were positively correlated with identical sequence RR, and same-state and intra-regional state pairs had higher movement RR scores compared to inter-regional pairs.
+
+\subsection{Age Relationships with Identical Sequence RR}
 
 \begin{figure}[tp]
     \centering
@@ -240,8 +278,6 @@ Geographic nRR scores were also used to find pairs of states/provinces with cons
 \end{figure}
 
 
-\subsection{Geographical Predictors of Identical Sequence RR}
-
 \section{Discussion}
 
 \subsection{Geography and Scale of Transmission}
@@ -249,8 +285,11 @@ The benefit of our approach is the ability to do high resolution geographic anal
 
 Another important example of the significance of scale can be seen with the "Acela Corridor" in the United States. This is where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD; and Washington DC. Since US metropolitan areas often cross state boundaries, this can also lead them to span several regions as well. We expect Connecticut (within the New England region) to have high levels of transmission with New York (within the Mideast) due to having a large commuting population to New York City. Similarly, we expect Maryland (within the Mideast) to have high levels of transmission with Virginia (within the Southeast)  Both of these relationships are confirmed in our state level heatmap. If we zoom our clustering tree to focus on the New England, Mideast, and Southeast region (supplemental fig \ref{fig:hclust_subset}), we find that the states from Connecticut through South Carolina sit on closely linked branches of the hierarchical tree. Interestingly, we find that despite Connecticut's geographical proximity to the New England states, its RR pattern more closely aligns with the New York and Philadelphia metro areas. Similarly, Virginia, North Carolina and South Carolina are linked more closely to the Washington metro states rather than the other Southeastern states.  This demonstrates the risk of missing important relationships depending on how geographical boundaries and regions are defined.
 
-Ultimately, the strongest geographical relationships found in our analysis tended to be intraregional or interregional with neighboring states/provinces. Geographical distance, mobility data, and vehicle trips all were strong predictors of geographic RR. This provides evidence that the bulk of transmission are local, shorter distance events. However, we were able to capture some signal of longer distance interregional and international transmission using our time normalized RR metric.      
-
+Ultimately, the strongest geographical relationships found in our analysis tended to be intraregional or interregional with neighboring states/provinces.
+Geographical distance, mobility data, and vehicle trips all were strong predictors of geographic RR. 
+This provides evidence that the bulk of transmission are local, shorter distance events. 
+However, we were able to capture some signal of longer distance interregional and international transmission using our time normalized RR metric.
+We were able to identify corridors of consistent inter-regional  
 
 \subsection{Limitations}
 In this paper, we propose a framework to understand the identical sequence RR across time by normalizing against either a reference population or an average RR when no suitable reference population exists. These normalized RRs allow us to better track specific relationships between groups across time. However, the magnitudes do not share the same interpretation as the original RR. For example, with the geographic version the $nRR_{A,B}(t)$ may be less than 1 even if the $RR_{A,B}(t) > 1$. Comparison of nRR across different pairs of demes is also limited. We can imagine a situation where the $RR_{A,B}(t) > RR_{A,C}(t)$ but $nRR_{A,B}(t) < nRR_{A,C}$ if $R_{B,B}(t) \gg R_{C,C}(t)$. Therefore, caution should be exhibited when interpreting normalized RR outside a specific relationship. We have used fold-change of normalized relative risk as a way to help with interpretability, but this also requires establishing a specific time point as a baseline.
@@ -283,6 +322,12 @@ We completed 50 simulations where the movement probability for $A$ was set to 0 
     \label{fig:hclust_subset}
 \end{figure}
 
+\begin{figure}[htb]
+    \centering
+    \includegraphics[width=\textwidth]{supp/predictor_cor_heatmap.pdf}
+    \caption{Pairwise Pearson's correlations between predictor variables used in the regression model on log-transformed scale. NHTS: National Household Travel Survey trip rates; SafeGraph: smartphone mobility timeshare; T100: FAA T-100 airline passenger counts; DB1B: FAA DB1B airline ticket data; CBSA dist.: minimum distance between Core-Based Statistical Areas.}
+    \label{fig:pred_corr}
+\end{figure}
 \subsection{Regression Model Selection and Validation}
 
 \subsection{Investigation of Virtual versus In-Person Schooling on Transmission}

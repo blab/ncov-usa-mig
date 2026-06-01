@@ -40,6 +40,7 @@ Thumbs.db
 .Rproj.user
 core
 *.Rproj
+Rplots.pdf
 
 # LaTeX temporary files
 *.aux

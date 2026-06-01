@@ -446,10 +446,11 @@ p_cor <- ggplot(df_cor, aes(x = x, y = y, fill = r)) +
   geom_text(aes(label = label), size = 3.5, color = "black") +
   scale_fill_gradient2(
     low = "steelblue", mid = "white", high = "firebrick",
-    midpoint = 0, limits = c(-1, 1), name = "Pearson r"
+    midpoint = 0, limits = c(-1, 1), name = "Pearson's r"
   ) +
+  coord_fixed() +
   labs(
-    title = "Predictor correlations (model scale)",
+    title = "Predictor correlations",
     x = NULL, y = NULL
   ) +
   theme_minimal(base_size = 12) +
@@ -464,6 +465,9 @@ ggsave(
   paste0("figs/", scenario, "/dist/predictor_cor_heatmap.jpg"),
   plot = p_cor, width = 5, height = 4.5, units = "in", dpi = 300
 )
+fn_supp_pdf <- "manuscript/figures/supp/predictor_cor_heatmap.pdf"
+dir.create(dirname(fn_supp_pdf), recursive = TRUE, showWarnings = FALSE)
+ggsave(fn_supp_pdf, plot = p_cor, width = 5, height = 4.5, units = "in")
 message("Predictor correlation heatmap saved.")
 
 # Create output file for regression results
