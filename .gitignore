@@ -6,6 +6,7 @@
 *.html
 manuscript/figures/*.svg
 !manuscript/figures/*.pdf
+!manuscript/figures/supp/*.pdf
 !manuscript/main.pdf
 
 
