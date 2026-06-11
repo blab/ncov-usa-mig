@@ -290,16 +290,24 @@ PAIR_COLORS <- c("Same state" = "cornflowerblue",
                  "Intra-regional" = "lightcoral",
                  "Inter-regional" = "lightgoldenrod")
 
-# Calculate correlations
-rho_cbsa <- cor(state_rr$min_cbsa_dist, log(state_rr$RR), method = "pearson", use = "complete.obs")
-rho_trips <- with(state_rr[state_rr$RR_trips > 0 & state_rr$RR > 0 & !is.na(state_rr$RR_trips), ],
-                  cor(log(RR_trips), log(RR), method = "pearson"))
-rho_move  <- with(state_rr[state_rr$RR_move  > 0 & state_rr$RR > 0 & !is.na(state_rr$RR_move),  ],
-                  cor(log(RR_move),  log(RR), method = "pearson"))
+# Calculate correlations. Exclude pairs with zero underlying movement so the
+# floored/+correction points (esp. DB1B, where most pairs have no sampled
+# itinerary) don't dominate the correlation.
+air_count <- paste0("pass_xy_", air_source)
 
-# Calculate air travel correlation
+rho_cbsa <- cor(state_rr$min_cbsa_dist, log(state_rr$RR), method = "pearson", use = "complete.obs")
+rho_trips <- state_rr %>%
+  filter(x != y, trips_xy > 0, RR_trips > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_trips), log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
+rho_move <- state_rr %>%
+  filter(x != y, n_move_avg > 0, RR_move > 0, RR > 0) %>%
+  summarize(rho = cor(log(RR_move), log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
+
+# Calculate air travel correlation (zero-flight pairs excluded)
 rho_air <- state_rr %>%
-  filter(x != y, !is.na(RR_air), RR_air > 0, RR > 0) %>%
+  filter(x != y, !is.na(RR_air), RR_air > 0, RR > 0, .data[[air_count]] > 2) %>%
   summarize(rho = cor(log(RR_air), log(RR), method = "pearson", use = "complete.obs")) %>%
   pull(rho)
 
@@ -333,7 +341,7 @@ p_cbsa <- state_rr %>%
 
 # 2. Air Travel RR (DB1B)
 p_air <- state_rr %>%
-  filter(x != y, !is.na(RR_air), RR_air > 0) %>%
+  filter(x != y, !is.na(RR_air), RR_air > 0, .data[[air_count]] > 2) %>%
   ggplot(aes(x = RR_air, y = RR)) +
   geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
   geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
@@ -350,7 +358,7 @@ p_air <- state_rr %>%
 
 # 3. Ground Travel RR (NHTS)
 p_trips <- state_rr %>%
-  filter(!is.na(RR_trips)) %>%
+  filter(x != y, !is.na(RR_trips), trips_xy > 0) %>%
   ggplot(aes(x = RR_trips, y = RR)) +
   geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
   geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
@@ -367,7 +375,7 @@ p_trips <- state_rr %>%
 
 # 4. Mobility RR (SafeGraph)
 p_move <- state_rr %>%
-  filter(!is.na(RR_move)) %>%
+  filter(x != y, !is.na(RR_move), n_move_avg > 0) %>%
   ggplot(aes(x = RR_move, y = RR)) +
   geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
   geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
@@ -656,20 +664,22 @@ get_conserved_pairs <- function(pct, scenario) {
     unique()
 }
 
-conserved_pairs_98 <- get_conserved_pairs(98, scenario)
 conserved_pairs_95 <- get_conserved_pairs(95, scenario)
 conserved_pairs_90 <- get_conserved_pairs(90, scenario)
+conserved_pairs_80 <- get_conserved_pairs(80, scenario)
+conserved_pairs_70 <- get_conserved_pairs(70, scenario)
 
-TIER_LEVELS  <- c(">=98th", "95-97th", "90-94th", "Other")
-TIER_COLORS  <- c("firebrick", "darkorange", "steelblue", "grey60")
+TIER_LEVELS  <- c(">=95th", "90-94th", "80-89th", "70-79th", "<70th")
+TIER_COLORS  <- c("firebrick", "darkorange", "steelblue", "mediumpurple", "grey85")
 
 assign_tier <- function(edge_pair) {
   factor(
     case_when(
-      edge_pair %in% conserved_pairs_98 ~ ">=98th",
-      edge_pair %in% conserved_pairs_95 ~ "95-97th",
+      edge_pair %in% conserved_pairs_95 ~ ">=95th",
       edge_pair %in% conserved_pairs_90 ~ "90-94th",
-      TRUE                               ~ "Other"
+      edge_pair %in% conserved_pairs_80 ~ "80-89th",
+      edge_pair %in% conserved_pairs_70 ~ "70-79th",
+      TRUE                               ~ "<70th"
     ),
     levels = TIER_LEVELS
   )
@@ -698,7 +708,7 @@ inter_reg_base <- state_rr_air_reg %>%
   mutate(edge_pair = paste(pmin(x, y), pmax(x, y), sep = "_"),
          conserved = assign_tier(edge_pair))
 
-ADJACENT_COMPS <- list(c(">=98th", "95-97th"), c("95-97th", "90-94th"), c("90-94th", "Other"))
+ADJACENT_COMPS <- list(c(">=95th", "90-94th"), c("90-94th", "80-89th"), c("80-89th", "70-79th"), c("70-79th", "<70th"))
 
 make_conserved_boxplot <- function(data, y_var, y_label, title) {
   kw_p <- kruskal.test(reformulate("conserved", y_var),
@@ -763,35 +773,43 @@ make_conserved_quarterly_boxplot <- function(base_data, y_var, y_label, title) {
           axis.text.x = element_text(angle = 30, hjust = 1))
 }
 
-# Air travel RR
+# Air travel RR (DB1B)
 p_conserved_air <- make_conserved_boxplot(inter_reg_base, "RR_air", "Air Travel RR",
-  "Air Travel RR: Conserved vs Other Inter-regional Pairs")
+  "Conserved Percentile Pairs vs Air Travel RR (DB1B)")
 ggsave(paste0(air_fig_path, "state_air_conserved_boxplot.jpg"),
        plot = p_conserved_air, device = "jpeg", dpi = 300, width = 5, height = 5)
+ggsave(paste0(fig_path, "state_air_db1b_conserved_boxplot.jpg"),
+       plot = p_conserved_air, device = "jpeg", dpi = 300, width = 5, height = 5)
+ggsave(paste0(fig_path, "state_air_db1b_conserved_boxplot.svg"),
+       plot = p_conserved_air, device = "svg", width = 7, height = 4)
 
 p_conserved_air_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_air", "Air Travel RR",
-  "Air Travel RR by Quarter: Conserved vs Other Inter-regional Pairs")
+  "Conserved Percentile Pairs vs Air Travel RR (DB1B) by Quarter")
 ggsave(paste0(air_fig_path, "state_air_conserved_quarterly_boxplot.jpg"),
        plot = p_conserved_air_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)
 
 # NHTS trips RR
 p_conserved_trips <- make_conserved_boxplot(inter_reg_base, "RR_trips", "Travel RR (NHTS)",
-  "NHTS Trips RR: Conserved vs Other Inter-regional Pairs")
+  "Conserved Percentile Pairs vs NHTS Trips RR")
 ggsave(paste0(fig_path, "state_nhts_conserved_boxplot.jpg"),
        plot = p_conserved_trips, device = "jpeg", dpi = 300, width = 5, height = 5)
+ggsave(paste0(fig_path, "state_nhts_conserved_boxplot.svg"),
+       plot = p_conserved_trips, device = "svg", width = 7, height = 4)
 
 p_conserved_trips_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_trips", "Travel RR (NHTS)",
-  "NHTS Trips RR by Quarter: Conserved vs Other Inter-regional Pairs")
+  "Conserved Percentile Pairs vs NHTS Trips RR by Quarter")
 ggsave(paste0(fig_path, "state_nhts_conserved_quarterly_boxplot.jpg"),
        plot = p_conserved_trips_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)
 
 # SafeGraph mobility RR
 p_conserved_move <- make_conserved_boxplot(inter_reg_base, "RR_move", "Mobility RR (SafeGraph)",
-  "SafeGraph Mobility RR: Conserved vs Other Inter-regional Pairs")
+  "Conserved Percentile Pairs vs SafeGraph Mobility RR")
 ggsave(paste0(fig_path, "state_safegraph_conserved_boxplot.jpg"),
        plot = p_conserved_move, device = "jpeg", dpi = 300, width = 5, height = 5)
+ggsave(paste0(fig_path, "state_safegraph_conserved_boxplot.svg"),
+       plot = p_conserved_move, device = "svg", width = 7, height = 4)
 
 p_conserved_move_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_move", "Mobility RR (SafeGraph)",
-  "SafeGraph Mobility RR by Quarter: Conserved vs Other Inter-regional Pairs")
+  "Conserved Percentile Pairs vs SafeGraph Mobility RR by Quarter")
 ggsave(paste0(fig_path, "state_safegraph_conserved_quarterly_boxplot.jpg"),
        plot = p_conserved_move_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)

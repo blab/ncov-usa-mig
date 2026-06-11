@@ -353,6 +353,78 @@ run_ti_lrt("log_RR_air_db1b", "DB1B",      df_db1b_data)
 run_ti_lrt("log_RR_move",     "SafeGraph", df_move_data)
 
 # ============================================================================
+# PARTIAL CORRELATIONS: travel RR vs sequence RR, controlling for CBSA distance
+# Pearson on the log scale (log10 RR_seq, log10 travel-RR). Isolates the unique
+# travel signal net of distance, since the travel variables are collinear with
+# distance. The SMOOTH-distance control is the valid one to cite (distance acts
+# nonlinearly); the linear control is shown for comparison and can mislead.
+# ============================================================================
+
+# Pearson correlations: marginal, and partial controlling distance (linear & smooth)
+partial_corr_row <- function(df, travel_var, label) {
+  d <- df %>% mutate(lseq = log10(RR_seq)) %>%
+    filter(is.finite(.data[[travel_var]]), is.finite(lseq))
+  marg     <- cor(d[[travel_var]], d$lseq)
+  # linear distance control
+  rv_l <- resid(lm(reformulate("min_cbsa_dist", travel_var), data = d))
+  ry_l <- resid(lm(lseq ~ min_cbsa_dist, data = d))
+  part_lin <- cor(rv_l, ry_l)
+  # smooth (nonlinear) distance control
+  rv_s <- resid(mgcv::gam(reformulate("s(min_cbsa_dist)", travel_var), data = d))
+  ry_s <- resid(mgcv::gam(lseq ~ s(min_cbsa_dist), data = d))
+  part_sm  <- cor(rv_s, ry_s)
+  data.frame(source = label, n = nrow(d),
+             marginal            = round(marg, 3),
+             partial_linear_dist = round(part_lin, 3),
+             partial_smooth_dist = round(part_sm, 3))
+}
+
+# Pearson within distance bands (where does the association actually hold?)
+within_band_rows <- function(df, travel_var, label,
+                             breaks = c(0, 250, 1000, 3000, 5000)) {
+  df %>% mutate(lseq = log10(RR_seq),
+                band = cut(min_cbsa_dist, breaks, include.lowest = TRUE)) %>%
+    filter(is.finite(.data[[travel_var]]), is.finite(lseq)) %>%
+    group_by(band) %>%
+    summarise(n = n(), pearson = round(cor(.data[[travel_var]], lseq), 3), .groups = "drop") %>%
+    mutate(source = label) %>%
+    select(source, band, n, pearson)
+}
+
+pc_tbl <- bind_rows(
+  partial_corr_row(df_trips_data, "log_RR_trips",    "NHTS"),
+  partial_corr_row(df_t100_data,  "log_RR_air_t100", "T100"),
+  partial_corr_row(df_db1b_data,  "log_RR_air_db1b", "DB1B"),
+  partial_corr_row(df_move_data,  "log_RR_move",     "SafeGraph")
+)
+band_tbl <- bind_rows(
+  within_band_rows(df_trips_data, "log_RR_trips",    "NHTS"),
+  within_band_rows(df_t100_data,  "log_RR_air_t100", "T100"),
+  within_band_rows(df_db1b_data,  "log_RR_air_db1b", "DB1B"),
+  within_band_rows(df_move_data,  "log_RR_move",     "SafeGraph")
+)
+
+sink(results_file, append = TRUE)
+cat(paste0("\n", strrep("=", 80), "\n"))
+cat("PARTIAL CORRELATIONS: travel RR vs sequence RR | CBSA distance\n")
+cat("Pearson, log10 scale (log10 RR_seq, log10 travel-RR)\n")
+cat(paste0(strrep("=", 80), "\n\n"))
+cat("marginal            = cor(log travel-RR, log seq-RR), distance ignored\n")
+cat("partial_linear_dist = correlate residuals of lm(~ min_cbsa_dist) for both vars\n")
+cat("partial_smooth_dist = correlate residuals of gam(~ s(min_cbsa_dist)) for both vars\n")
+cat("  >>> CITE partial_smooth_dist: distance is strongly nonlinear, so the smooth\n")
+cat("      control is the valid estimate of the unique travel signal. A linear\n")
+cat("      control mis-removes distance's curvature (e.g. it spuriously collapses\n")
+cat("      DB1B and understates how much of SafeGraph is just distance).\n\n")
+print(pc_tbl, row.names = FALSE)
+cat("\nWithin distance-band Pearson(log travel-RR, log seq-RR):\n")
+cat("  Shows where the association holds. SafeGraph is strongly + at short range,\n")
+cat("  ~0 mid-range, and only - in the sparse >3000 km tail (artifact, low n).\n\n")
+print(as.data.frame(band_tbl), row.names = FALSE)
+sink()
+message("Partial correlation tables written to tensor_results.txt")
+
+# ============================================================================
 # DEVIANCE DECOMPOSITION
 # ============================================================================
 

@@ -28,6 +28,7 @@
 % ---Figures and tables ---
 \usepackage{graphicx}
 \graphicspath{{./figures/}}
+\usepackage{float}      % Provides [H] specifier to pin floats exactly where written
 \usepackage{booktabs}
 \usepackage[font=small]{caption}
 
@@ -259,14 +260,29 @@ We also find that the number of conserved connection vary by season with Q1 (Jan
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{geo_dist.pdf}
-    \caption{Relationship between Continental US identical sequence RR scores with distance/travel patterns. A: Clockwise, box/correlation plots between identical sequence RR and: neighbor order, geographic distance, cell phone mobility timeshare, and transportation diary trips. Blue points indicate within state RR and best fit curve using LOESS for all scatter plots. B: Correlation plots between airline trips and identical sequence RRs stratified by geographic distance  C: Pearson correlation over time between nRR and distance/travel with 95\% confidence band.}
+    \caption{Relationship between Continental US identical sequence RR scores with distance/travel patterns. A: Scatter plots of distance/travel covariates with identical sequence RR with points colored by geographic relationship. Solid line indicates LOESS best-fit and Pearson correlation coefficient placed above each plot. Note: CBSA distance is the distance between the two closest census-based statistical areas. B: Predicted values from combined movement/distance GAM models. Colored curves each represent a fixed CBSA distance value. Movement RR extent was limited to observed extent in data for the distance. Note for all plots, relative risks are plotted on logarithmic scale.}
     \label{fig:geo_dist}
 \end{figure}
 
-Within the United States, we examined the relationship between geographic distance and movement variables with identical sequences, shown in fig\ref{fig:geo_dist}A.
-To facilitate easier comparisons, we calculated RR scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transformed all RR scores (including for identical sequences).
+Within the continental United States, we examined the relationship between geographic distance and movement variables with identical sequences, shown in fig\ref{fig:geo_dist}A.
+Our travel datasets were limited to the United States and Alaska and Hawaii were excluded due to being significant outliers on all distance/travel metrics.
+To facilitate better comparisons, we calculated RR scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transformed all RR scores (including for identical sequences).
+Geographic distance remained on a linear scale.
 Distance between states was negatively correlated with identical sequence RR, with a rapid descent in RR from 0 to 1000 km and then a slower descent phase beyond 1000 km.
 Ground travel and mobility RR were positively correlated with identical sequence RR, and same-state and intra-regional state pairs had higher movement RR scores compared to inter-regional pairs.
+Air travel was showed a weak positive correlation (r = 0.13), and the best-fit curve did not show a monotonic relationship.
+For the air travel scatterplot, state pairs with no trips were removed from the analysis as they significantly biased the relationship to no correlation when included and bounded to the air travel RR floor.
+
+We suspected the relationships between
+
+(AMIN: This next paragraph focuses on DB1B vs T100 data, should it be moved to discussion?)
+We also investigated using the US Department of Transportation's T-100 market dataset to measure air travel flows, and the results are reported in the supplement.
+The T-100 set measures each travel leg volumes instead of looking at flows between origin and destinations.
+It is  not possible to tell which passengers arrive at their final destination versus a layover between flights, making interpretation of flows difficult.
+While the raw correlation between T-100 and identical sequence RRs was higher compared to the DB1B dataset (r = 0.26), we ultimately felt this approach misclassified flows as many trips between non-hub cities will require a layover at a regional hub first.
+When looking for correlation across our travel/distance variables (fig \ref{fig:pred_corr}) we find that the T-100 RR scores tend to be more correlated with NHTS ground travel data and CBSA distance than with the DB1B ticket data.
+Furthermore, the partial correlation of the T-100 market data with identical sequence RR after controlling for distance is weaker than the DB1B partial correlation (0.113 vs 0.232).
+These findings suggest that using T-100 segment leg flows captures much of the same identical sequence RR variance as distance and adds less new information compared to the DB1B data. 
 
 \subsection{Age Relationships with Identical Sequence RR}
 
@@ -277,22 +293,47 @@ Ground travel and mobility RR were positively correlated with identical sequence
     \label{fig:age}
 \end{figure}
 
-
 \section{Discussion}
 
 \subsection{Geography and Scale of Transmission}
-The benefit of our approach is the ability to do high resolution geographic analyses even across a large study area. Traditional phylogeographic approaches would not be able to process a sufficient number of sequences to describe the relationships for all fifty United States and ten Canadian provinces. Instead, approaches have typically needed to either focus on a smaller area study area and capture higher resolution data within that area or subsample data from a larger area and then aggregate the locations for there to be sufficient signal. Aggregation implicitly assumes a degree of homogeneity within that population and can miss relationships. In our example we found heterogeneity in the clustering of the Southeast and Far West states. When repeating the RR analysis at the regional level instead of state/province (supplemental fig \ref{fig:reg_hmap}) the Far West had no RR > 1 with any other regions despite individual states having relationships outside the region with RR greater than 1 (e.g. Washington and Idaho, California and Mexico). 
+The benefit of our approach is the ability to do high resolution geographic analyses even across a large study area.
+Traditional phylogeographic approaches would not be able to process a sufficient number of sequences to describe the relationships for all fifty United States and ten Canadian provinces.
+Instead, approaches have typically needed to either focus on a smaller area study area and capture higher resolution data within that area or subsample data from a larger area and then aggregate the locations for there to be sufficient signal.
+Aggregation implicitly assumes a degree of homogeneity within that population and can miss relationships.
+In our example we found heterogeneity in the clustering of the Southeast and Far West states. 
+When repeating the RR analysis at the regional level instead of state/province (supplemental fig \ref{fig:reg_hmap}) the Far West had no RR > 1 with any other regions despite individual states having relationships outside the region with RR greater than 1 (e.g. Washington and Idaho, California and Mexico). 
 
-Another important example of the significance of scale can be seen with the "Acela Corridor" in the United States. This is where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD; and Washington DC. Since US metropolitan areas often cross state boundaries, this can also lead them to span several regions as well. We expect Connecticut (within the New England region) to have high levels of transmission with New York (within the Mideast) due to having a large commuting population to New York City. Similarly, we expect Maryland (within the Mideast) to have high levels of transmission with Virginia (within the Southeast)  Both of these relationships are confirmed in our state level heatmap. If we zoom our clustering tree to focus on the New England, Mideast, and Southeast region (supplemental fig \ref{fig:hclust_subset}), we find that the states from Connecticut through South Carolina sit on closely linked branches of the hierarchical tree. Interestingly, we find that despite Connecticut's geographical proximity to the New England states, its RR pattern more closely aligns with the New York and Philadelphia metro areas. Similarly, Virginia, North Carolina and South Carolina are linked more closely to the Washington metro states rather than the other Southeastern states.  This demonstrates the risk of missing important relationships depending on how geographical boundaries and regions are defined.
+Another important example of the significance of scale can be seen with the "Acela Corridor" in the United States.
+This is where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD; and Washington DC.
+Since US metropolitan areas often cross state boundaries, this can lead them to span several regions as well.
+We expect Connecticut (within the New England region) to have high levels of transmission with New York (Mideast) due to having a large commuting population to New York City.
+Similarly, we expect Maryland (within the Mideast) to have high levels of transmission with Virginia (Southeast).
+Both of these relationships are confirmed in our state level heatmap.
+If we zoom our clustering tree to focus on the New England, Mideast, and Southeast region (supplemental fig \ref{fig:hclust_subset}), we find that the states from Connecticut through South Carolina sit on closely linked branches of the hierarchical tree.
+Despite Connecticut's geographical proximity to the New England states, its RR pattern more closely aligns with the New York and Philadelphia metro areas.
+Similarly, Virginia, North Carolina and South Carolina are linked more closely to the Washington DC metro states rather than the other Southeastern states.
+This demonstrates the risk of missing important relationships depending on how geographical boundaries and regions are defined, and therefore a benefit of sampling at higher resolutions.
+Prior phylogeographic work has highlighted the need for consistent, high sampling effort across finer-scale demes to successfully identify relationships between demes.
+This has historically needed to be balanced with the computational complexity of developing phylogenetic trees with higher numbers of sequences, but our identical sequence relative risk framework greatly reduces the computational cost of adding additional sequences.\autocite{layanImpactMitigationSampling2023}
 
 Ultimately, the strongest geographical relationships found in our analysis tended to be intraregional or interregional with neighboring states/provinces.
-Geographical distance, mobility data, and vehicle trips all were strong predictors of geographic RR. 
+Geographical distance, mobility data, and vehicle trips all were strong predictors of geographic RR.
 This provides evidence that the bulk of transmission are local, shorter distance events. 
-However, we were able to capture some signal of longer distance interregional and international transmission using our time normalized RR metric.
-We were able to identify corridors of consistent inter-regional  
+However, using identical sequences we were able to capture some signal of longer distance interregional and international transmission.
+One notable example of this is the conserved relationships identified between the Mideast states and Florida shown in figure \ref{fig:geo_time}C.
+This corridor is among the most densely populated in the United States and Florida is a major tourism hub for the United States (along with California and New York).
+Florida is also a major destination for "snowbirds": seasonal, often elderly migrants traveling to a warmer climate during winter months.\autocite{smithSnowbirdsSunbirdsStayers2006}
+This snowbird migration pattern has previously been studied and linked to increased pneumonia and influenza hospitalizations by non-residents in snowbird destination states including Florida, Arizona, and California
 
 \subsection{Limitations}
-In this paper, we propose a framework to understand the identical sequence RR across time by normalizing against either a reference population or an average RR when no suitable reference population exists. These normalized RRs allow us to better track specific relationships between groups across time. However, the magnitudes do not share the same interpretation as the original RR. For example, with the geographic version the $nRR_{A,B}(t)$ may be less than 1 even if the $RR_{A,B}(t) > 1$. Comparison of nRR across different pairs of demes is also limited. We can imagine a situation where the $RR_{A,B}(t) > RR_{A,C}(t)$ but $nRR_{A,B}(t) < nRR_{A,C}$ if $R_{B,B}(t) \gg R_{C,C}(t)$. Therefore, caution should be exhibited when interpreting normalized RR outside a specific relationship. We have used fold-change of normalized relative risk as a way to help with interpretability, but this also requires establishing a specific time point as a baseline.
+In this paper, we propose a framework to understand the identical sequence RR across time by normalizing against either a reference population or an average RR when no suitable reference population exists. 
+These normalized RRs allow us to better track specific relationships between groups across time.
+However, the magnitudes do not share the same interpretation as the original RR.
+For example, with the geographic version the $nRR_{A,B}(t)$ may be less than 1 even if the $RR_{A,B}(t) > 1$.
+Comparison of nRR across different pairs of demes is also limited.
+We can imagine a situation where the $RR_{A,B}(t) > RR_{A,C}(t)$ but $nRR_{A,B}(t) < nRR_{A,C}$ if $R_{B,B}(t) \gg R_{C,C}(t)$.
+Therefore, caution should be exhibited when interpreting normalized RR outside a specific relationship.
+We have used fold-change of normalized relative risk as a way to help with interpretability, but this also requires establishing a specific time point as a baseline.
 
 \subsection{Conclusions}
 
@@ -300,6 +341,7 @@ In this paper, we propose a framework to understand the identical sequence RR ac
 \printbibliography
 \clearpage
 
+%TC:ignore
 \section{Supplementary Information}
 
 \subsection{Validating Relative Risk Simulations}
@@ -308,28 +350,111 @@ To test the nRR approach, we developed a simulation of an outbreak in a three po
 We completed 50 simulations where the movement probability for $A$ was set to 0 at $t=150$ for 200 time steps to simulate a lockdown condition. For each simulation, an outbreak would originate from an infected agent in $O$ and the simulation would continue until either 30,000 infections occurred or more than 1,000 time steps passed. From \texttt{nosoi} we were able to obtain a Newick transmission tree which was then passed to \texttt{phastSim} to simulate nucleotide evolution. We used a mutation rate of $2 \times 10^{-6}$ substitutions per site per day to match a similar rate as SARS-CoV-2. These simulated sequences were then fed into a similar pipeline as described earlier to calculate the RR and nRR between the three geographic areas over time.  The full results of this analysis can be seen in Supplemental Figure. 
 
 \subsection{Additional Geographic Analyses}
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{regions_heatmap.pdf}
+    \includegraphics[width=\textwidth]{supp/regions_heatmap.pdf}
     \caption{Heatmap of geographic RRs calculated at the regional level.}
     \label{fig:reg_hmap}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{hclust_subset.pdf}
+    \includegraphics[width=\textwidth]{supp/hclust_subset.pdf}
     \caption{Subset of hierarchical clustering tree for the Southeast, Mideast, and New England regions. Original clustering used full Canada + US + Mexico dataset and branches with states outside the three regions were excluded from this figure. Colors represent different regions.}
     \label{fig:hclust_subset}
 \end{figure}
 
-\begin{figure}[htb]
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=0.8\textheight]{supp/mobility_conserved.pdf}
+    \caption{Travel and mobility metrics stratified by inter-regional state-pair nRR highest conserved percentile for 5 or more quarterly time points.  (A) Ground travel RR (NHTS) (B) Air travel RR (DB1B survey data) (C) SafeGraph mobility RR}
+    \label{fig:mobility_conserved}
+\end{figure}
+
+\subsection{Distance/Movement Interaction Analyses}
+
+To quantify the unique contribution of each movement metric beyond geographic distance, we computed Pearson's correlations between identical-sequence $\log_{10}(\text{RR})$ and each $\log_{10}$-transformed travel/mobility RR, both marginally and after partialling out minimum CBSA distance (Table~\ref{tab:partial_corr}). Partial correlations were obtained by correlating the residuals of each variable after regression on a thin-plate spline smooth of distance $s(\text{CBSA dist.})$, which accounts for the strongly nonlinear effect of distance. Once distance is accounted for, SafeGraph mobility retains essentially no independent association ($r=0.02$), while ground travel (NHTS) and origin--destination air travel (DB1B) retain the largest unique signal. Band-stratified correlations (Table~\ref{tab:band_corr}) show that the movement--transmission association is concentrated at short range for mobility and at long range for air travel.
+
+The significance of the distance$\times$movement interaction was assessed by likelihood-ratio-style tests comparing an additive tensor-spline model, $\text{ti(movement)} + \text{ti(CBSA dist.)}$, against a model adding the interaction term $\text{ti(movement, CBSA dist.)}$, fit by maximum likelihood with the \texttt{mgcv} package (Table~\ref{tab:interaction_lrt}). The interaction was highly significant for every movement metric in both the negative-binomial count and Gaussian $\log_{10}(\text{RR})$ formulations.
+
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{supp/predictor_cor_heatmap.pdf}
     \caption{Pairwise Pearson's correlations between predictor variables used in the regression model on log-transformed scale. NHTS: National Household Travel Survey trip rates; SafeGraph: smartphone mobility timeshare; T100: FAA T-100 airline passenger counts; DB1B: FAA DB1B airline ticket data; CBSA dist.: minimum distance between Core-Based Statistical Areas.}
     \label{fig:pred_corr}
 \end{figure}
-\subsection{Regression Model Selection and Validation}
+
+\begin{table}[H]
+    \centering
+    \caption{Pearson's correlations (on $\log_{10}$ scale) between identical-sequence RR and each movement/distance RR metric, marginally and after partialling out minimum CBSA distance. The partial correlation controls for distance via a thin-plate spline smooth $s(\text{CBSA dist.})$, which accounts for the strongly nonlinear effect of distance and isolates the unique movement signal. Correlations are computed on the modeling subset for each metric (CBSA distance $\leq 5000$~km, nonzero travel counts, outliers beyond 3 SD removed), so $n$ differs by source. NHTS: National Household Travel Survey trip rates; T-100: FAA T-100 airline passenger (segment) counts; DB1B: FAA DB1B airline ticket (origin--destination) data; SafeGraph: smartphone mobility timeshare.}
+    \label{tab:partial_corr}
+    \begin{tabular}{lrrr}
+        \toprule
+        Travel source & $n$ & Marginal $r$ & Partial $r$ (distance-controlled) \\
+        \midrule
+        NHTS (ground)   & 2424 & 0.681 & 0.252 \\
+        Air, T-100      & 2042 & 0.277 & 0.113 \\
+        Air, DB1B       & 2218 & 0.290 & 0.232 \\
+        SafeGraph       & 2316 & 0.540 & 0.018 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Pearson's correlations (on $\log_{10}$ scale) between identical-sequence RR and each movement/distance RR metric, stratified by minimum CBSA distance band. SafeGraph mobility is positively associated with transmission at short range and only negatively associated in the sparse $>3000$~km tail; air travel (T-100, DB1B) shows the opposite pattern, with its association concentrated at longer distances.}
+    \label{tab:band_corr}
+    \begin{tabular}{llrr}
+        \toprule
+        Travel source & CBSA distance band (km) & $n$ & Pearson $r$ \\
+        \midrule
+        NHTS (ground) & 0--250      & 302  & $0.620$ \\
+                      & 250--1000   & 752  & $0.172$ \\
+                      & 1000--3000  & 1140 & $0.325$ \\
+                      & 3000--5000  & 230  & $0.476$ \\
+        \addlinespace
+        Air, T-100    & 0--250      & 318  & $-0.248$ \\
+                      & 250--1000   & 668  & $-0.002$ \\
+                      & 1000--3000  & 898  & $0.343$ \\
+                      & 3000--5000  & 158  & $0.421$ \\
+        \addlinespace
+        Air, DB1B     & 0--250      & 254  & $-0.236$ \\
+                      & 250--1000   & 700  & $0.314$ \\
+                      & 1000--3000  & 1058 & $0.358$ \\
+                      & 3000--5000  & 206  & $0.544$ \\
+        \addlinespace
+        SafeGraph     & 0--250      & 310  & $0.676$ \\
+                      & 250--1000   & 750  & $0.195$ \\
+                      & 1000--3000  & 1106 & $-0.060$ \\
+                      & 3000--5000  & 150  & $-0.319$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \caption{Tests of the distance$\times$movement interaction. Each test compares an additive tensor-spline model [$\text{ti(movement)} + \text{ti(CBSA dist.)}$] against a model adding the interaction smooth [$+\,\text{ti(movement, CBSA dist.)}$], fit by maximum likelihood. Negative-binomial count models are tested with an approximate $\chi^2$ (change in deviance); Gaussian $\log_{10}(\text{RR})$ models with an approximate $F$ test. The effective degrees of freedom (edf) of the interaction smooth, the test statistic, and the $p$-value are reported.}
+    \label{tab:interaction_lrt}
+    \begin{tabular}{llrrl}
+        \toprule
+        Travel source & Response (test) & Interaction edf & Test statistic & $p$-value \\
+        \midrule
+        NHTS (ground) & NB count ($\chi^2$) & 7.61  & $\chi^2 = 85.9$  & $1.9\times10^{-15}$ \\
+                      & $\log_{10}$ RR ($F$) & 7.49  & $F = 12.1$       & $3.6\times10^{-16}$ \\
+        \addlinespace
+        Air, T-100    & NB count ($\chi^2$) & 12.93 & $\chi^2 = 217.3$ & $<2.2\times10^{-16}$ \\
+                      & $\log_{10}$ RR ($F$) & 12.71 & $F = 13.7$       & $<2.2\times10^{-16}$ \\
+        \addlinespace
+        Air, DB1B     & NB count ($\chi^2$) & 14.35 & $\chi^2 = 182.4$ & $<2.2\times10^{-16}$ \\
+                      & $\log_{10}$ RR ($F$) & 16.32 & $F = 13.3$       & $<2.2\times10^{-16}$ \\
+        \addlinespace
+        SafeGraph     & NB count ($\chi^2$) & 9.28  & $\chi^2 = 350.1$ & $<2.2\times10^{-16}$ \\
+                      & $\log_{10}$ RR ($F$) & 11.11 & $F = 36.6$       & $<2.2\times10^{-16}$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
 
 \subsection{Investigation of Virtual versus In-Person Schooling on Transmission}
 
+%TC:endignore
 \end{document}

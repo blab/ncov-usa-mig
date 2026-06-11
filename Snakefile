@@ -5,8 +5,9 @@ EXCLUDE_DUPLICATES = config['exclude_duplicates']
 SCENARIOS = config["scenarios"]
 
 # Parameters for conserved network analysis
-SD_THRESHOLD = 2
-MIN_OCCURRENCES = 4
+PERCENTILE_THRESHOLD = 0.98
+PERCENTILE_LABEL = round(PERCENTILE_THRESHOLD * 100)
+MIN_OCCURRENCES = 5
 
 # Collect final outputs for all scenarios
 all_outputs = expand([
@@ -36,6 +37,9 @@ all_outputs = expand([
     # Time series analyses
     "results/{scenario}/time_state/df_state_rr_series.tsv",
     "results/{scenario}/time_age/df_RR_by_time_age_series.tsv",
+    # Seasonal FL vs Mideast age analysis
+    "results/{scenario}/season_geo_age/df_RR_season_geo_age.tsv",
+    "figs/{scenario}/season_geo_age/age_RR_season_geo.png",
     # School analyses
     "results/{scenario}/time_age/state_trajectory_classifications.tsv",
     "figs/{scenario}/age_time/school_share_RR_correlation.jpg",
@@ -51,9 +55,7 @@ all_outputs = expand([
     "results/{scenario}/time_state/df_significant_connections_3sd.tsv",
     "results/{scenario}/time_state/network_plots_complete.txt",
     # Conserved network map
-    f"results/{{scenario}}/time_state/df_significant_connections_{SD_THRESHOLD}sd.tsv",
-    f"results/{{scenario}}/time_state/df_conserved_connections_{MIN_OCCURRENCES}plus.tsv",
-    f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus_map.jpg"
+    f"results/{{scenario}}/time_state/df_conserved_connections_{PERCENTILE_LABEL}pct_{MIN_OCCURRENCES}plus.tsv"
 ], scenario=SCENARIOS)
 
 shell.prefix("set -euo pipefail; ")
@@ -309,6 +311,20 @@ rule state_time_rr_analysis:
         Rscript ./scripts/state_time_rr_analysis.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
+rule age_season_fl_mideast:
+    input:
+        "results/{scenario}/pairs_time_created.txt"
+    output:
+        "results/{scenario}/season_geo_age/df_RR_season_geo_age.tsv",
+        "figs/{scenario}/season_geo_age/age_RR_season_geo.png"
+    group: "duckdb_acc"
+    resources:
+        duckdb_lock=1
+    shell:
+        """
+        Rscript ./scripts/age_season_fl_mideast.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
+        """
+
 rule state_time_significant_connections:
     input:
         "results/{scenario}/time_state/df_state_rr_snap.tsv"
@@ -342,16 +358,14 @@ rule state_time_significant_connections_conserved:
         Rscript ./scripts/state_time_significant_connections.R --scenario {{wildcards.scenario}} --sd_threshold {SD_THRESHOLD} --min_nb_dist 1
         """
 
-rule state_time_conserved_network_viz:
+rule gen_conserved_network:
     input:
-        f"results/{{scenario}}/time_state/df_significant_connections_{SD_THRESHOLD}sd.tsv"
+        f"results/{{scenario}}/time_state/df_significant_connections_{PERCENTILE_LABEL}_percentile.tsv"
     output:
-        f"results/{{scenario}}/time_state/df_conserved_connections_{MIN_OCCURRENCES}plus.tsv",
-        f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus.jpg",
-        f"figs/{{scenario}}/time_state_networks/network_conserved_{MIN_OCCURRENCES}plus_map.jpg"
+        f"results/{{scenario}}/time_state/df_conserved_connections_{PERCENTILE_LABEL}pct_{MIN_OCCURRENCES}plus.tsv"
     shell:
         f"""
-        Rscript ./scripts/state_time_conserved_network_viz.R --scenario {{wildcards.scenario}} --sd_threshold {SD_THRESHOLD} --min_occurrences {MIN_OCCURRENCES}
+        Rscript ./scripts/gen_conserved_network.R --scenario {{wildcards.scenario}} --percentile_threshold {PERCENTILE_THRESHOLD} --min_occurrences {MIN_OCCURRENCES}
         """
 
 rule age_time_rr_analysis:
