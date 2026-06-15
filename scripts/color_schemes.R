@@ -33,6 +33,20 @@ region_color_scale <- function(){
                      na.value = "grey80")
 }
 
+##Age group scale (school-relevant bins, shared across all age-time figures)
+## Used by both the school nRR traces and the vaccine-rollout nRR figure so the
+## age groups and colorway stay identical between them.
+AGE_GROUP_LEVELS <- c("0-4", "5-11", "12-17", "18-24", "25-64", "65-80", "80+")
+AGE_GROUP_SCALE <- setNames(viridisLite::viridis(length(AGE_GROUP_LEVELS)), AGE_GROUP_LEVELS)
+age_group_color_scale <- function(name = "Paired age"){
+  scale_color_manual(values = AGE_GROUP_SCALE, name = name, drop = FALSE,
+                     na.translate = FALSE)
+}
+age_group_fill_scale <- function(name = "Paired age"){
+  scale_fill_manual(values = AGE_GROUP_SCALE, name = name, drop = FALSE,
+                    na.translate = FALSE)
+}
+
 ##Country scales
 COUNTRY_SCALE <- c("Mexico" = "#5d4",
                    "USA" = "#35d",

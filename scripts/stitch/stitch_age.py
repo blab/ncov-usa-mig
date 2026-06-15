@@ -6,7 +6,7 @@ Layout (subfigure letters A-E):
   | A | full heatmap         | B | subsets_row          |
   |   |                      |   | C | deviance         |
   +------------------------------------------------------+
-  | D | contact correlation  | E | vaccine nRR          |
+  | D | young_0_24 heatmap   | E | contact correlation  |
   +------------------------------------------------------+
 """
 
@@ -29,17 +29,27 @@ LETTER_X = 8
 
 # Row heights (inches)
 A_H_IN = 5
-BC_H_IN = 3
+BC_H_IN = 4
 TOTAL_H_IN = A_H_IN + BC_H_IN
 
 # Panel A internal layout (within 10" wide, 5" tall)
 A_FULL_W_IN = 5            # left half: full heatmap area
 A_RIGHT_W_IN = 5
-A_SUBSETS_H_IN = 1.67      # top of right column
-A_DEV_H_IN = A_H_IN - A_SUBSETS_H_IN  # 3.33
+A_SUBSETS_H_IN = 2.0       # top of right column (B, enlarged)
+A_DEV_H_IN = A_H_IN - A_SUBSETS_H_IN  # 3.0 (C, shrunk to give B room)
 
-# Panel B/C share the bottom row (5" wide each)
-BC_PANEL_W_IN = 5
+# Panel C (deviance) saved at 5 x 3.33; scaled to fit its (reduced) height
+# allotment, then nudged right so its content clears the "C" letter label.
+DEV_NATIVE_H_IN = 3.33
+DEV_INSET_IN = 0.25
+DEV_SCALE = A_DEV_H_IN / DEV_NATIVE_H_IN  # height-driven shrink
+
+# Bottom row: D is a single square heatmap (3x3), E is the two-panel contact
+# correlation (7x3). Widths intentionally unequal — they sum to the full width.
+D_W_IN = BC_H_IN           # 4 -> square young_0_24 heatmap
+E_W_IN = PANEL_W_IN - D_W_IN  # 6 -> native age_contact_correlation.svg (6x4)
+YOUNG_SRC_IN = 6           # young_0_24.svg native canvas (square)
+YOUNG_SCALE = BC_H_IN / YOUNG_SRC_IN  # fit the 3" row height
 
 
 def in_pt(x):
@@ -89,39 +99,41 @@ def stitch(scenario, out_path):
         add_panel(f"{fig_dir}/age_heatmaps/subsets_row.svg",
                   LEFT_MARGIN + in_pt(A_FULL_W_IN), a_y)
     )
-    # Compact deviance saved at 5 x 3.33 — slot below the subset row.
+    # Compact deviance saved at 5 x 3.33 — slot below the subset row, nudged
+    # right and scaled down a touch so its content clears the "C" label.
     elements.append(
         add_panel(f"{fig_dir}/age_RR_deviance_geographic_compact.svg",
-                  LEFT_MARGIN + in_pt(A_FULL_W_IN),
-                  a_y + in_pt(A_SUBSETS_H_IN))
+                  LEFT_MARGIN + in_pt(A_FULL_W_IN) + in_pt(DEV_INSET_IN),
+                  a_y + in_pt(A_SUBSETS_H_IN),
+                  scale=DEV_SCALE)
     )
 
-    # ----- Panel B: contact correlation (bottom-left) -----
+    # ----- Panel D: young 0-24yo heatmap (bottom-left, single square) -----
     bc_y = in_pt(A_H_IN)
     elements.append(
-        add_panel(f"{fig_dir}/age_contact_correlation_compact.svg",
-                  LEFT_MARGIN, bc_y)
+        add_panel(f"{fig_dir}/age_heatmaps/young_0_24.svg",
+                  LEFT_MARGIN, bc_y, scale=YOUNG_SCALE)
     )
 
-    # ----- Panel C: vaccine period nRR (bottom-right) -----
+    # ----- Panel E: contact correlation (bottom-right, two panels, 7x3) -----
     elements.append(
-        add_panel(f"{fig_dir}/age_time/all_countries/vaccine_period_nRR_fixed_elderly_ci_compact.svg",
-                  LEFT_MARGIN + in_pt(BC_PANEL_W_IN), bc_y)
+        add_panel(f"{fig_dir}/age_contact_correlation.svg",
+                  LEFT_MARGIN + in_pt(D_W_IN), bc_y)
     )
 
     # ----- Subfigure letters -----
     # A: full heatmap (left gutter, top of panel A)
     # B: subsets_row top-left (inside)
     # C: deviance top-left (inside, below subsets row)
-    # D: contact correlation (left gutter, bottom row)
-    # E: vaccine top-left (inside, bottom-right panel)
+    # D: young 0-24 heatmap (left gutter, bottom row)
+    # E: contact correlation top-left (inside, at the D/E boundary)
     INSET = 4
     letters = [
         ("A", LETTER_X,                                       0),
         ("B", LEFT_MARGIN + in_pt(A_FULL_W_IN) + INSET,       INSET),
         ("C", LEFT_MARGIN + in_pt(A_FULL_W_IN) + INSET,       in_pt(A_SUBSETS_H_IN) + INSET),
         ("D", LETTER_X,                                       bc_y),
-        ("E", LEFT_MARGIN + in_pt(BC_PANEL_W_IN) + INSET,     bc_y + INSET),
+        ("E", LEFT_MARGIN + in_pt(D_W_IN) + INSET,            bc_y + INSET),
     ]
     for letter, lx, ly in letters:
         elements.append(

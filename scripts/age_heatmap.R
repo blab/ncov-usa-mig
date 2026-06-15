@@ -37,6 +37,7 @@ if(scenario ==  "CAM_1000"){
 }
 
 dir.create(paste("figs/",scenario,sep="")) #Make a directory in case it doesn't already exist
+dir.create(paste0("figs/",scenario,"/age_heatmaps"), showWarnings = FALSE) #Subdir for all age heatmap outputs
 fn_rr <- paste("results/",scenario,"/df_RR_by_age_class.tsv",sep="")
 age_rr <- fread(fn_rr)
 fn_rr <-paste("results/",scenario,"/df_RR_by_age_state.tsv",sep="")
@@ -127,14 +128,61 @@ age_heatmap <- make_age_heatmap(
   show_rr_labels = TRUE
 )
 
-fn_age_plot <- paste0("figs/",scenario,"/age_heatmaps/full",".jpg") 
-  
+fn_age_plot <- paste0("figs/",scenario,"/age_heatmaps/full",".jpg")
+
 ggsave(fn_age_plot,
        plot=age_heatmap,
        device = "jpeg",
        dpi = 300,
        width = 6,
        height = 6
+)
+
+# --- Hardcoded 0-24yo subset (higher RR ceiling, 5-year labels) ---
+# Standalone block: zooms into childhood/young-adult ages where the upper
+# tail of RR is compressed in the full plot. Uses UB = 3 to expand contrast
+# and labels every 5 years instead of every 10.
+SUBSET_UB <- 2
+SUBSET_LB <- 0.5
+
+age_rr_young <- age_rr %>%
+  filter(x <= "24y", y <= "24y") %>%
+  rowwise() %>%
+  mutate(fill_RR = max(min(log10(RR), log10(SUBSET_UB)), log10(SUBSET_LB))) %>%
+  ungroup()
+
+young_breaks <- unique(c(age_rr_young$x, age_rr_young$y)) %>%
+  sort() %>%
+  grep("[05]y$", ., value = TRUE)
+
+age_heatmap_young <- ggplot(age_rr_young, aes(x = x, y = y, fill = fill_RR)) +
+  geom_tile() +
+  RR_log_grad(LB = SUBSET_LB, UB = SUBSET_UB) +
+  scale_x_discrete(name = "Age Groups", breaks = young_breaks) +
+  scale_y_discrete(name = "Age Groups", breaks = young_breaks) +
+  theme_minimal() +
+  # Native font bumped to AXIS_SIZE*1.25 so that, after the heatmap is scaled
+  # down more than the full (A) panel in the stitch (4/6 vs 5/6), the rendered
+  # axis labels match A's size.
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.title = element_text(size = 11 * 1.25),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = AXIS_SIZE * 1.25),
+        axis.text.y = element_text(size = AXIS_SIZE * 1.25)) +
+  coord_equal()
+
+ggsave(paste0("figs/", scenario, "/age_heatmaps/young_0_24.jpg"),
+       plot = age_heatmap_young,
+       device = "jpeg",
+       dpi = 300,
+       width = 6,
+       height = 6
+)
+
+ggsave(paste0("figs/", scenario, "/age_heatmaps/young_0_24.svg"),
+       plot = age_heatmap_young,
+       width = 6,
+       height = 6,
+       units = "in"
 )
 
 # Generate the three heatmaps using the function
@@ -204,9 +252,9 @@ subsets_row <- plot_spacer() +
   (age_heatmap_same_state       + labs(title = "Same State")       + compact_subset_theme) +
   (age_heatmap_same_region      + labs(title = "Same Region")      + compact_subset_theme) +
   (age_heatmap_different_region + labs(title = "Different Region") + compact_subset_theme) +
-  plot_layout(ncol = 4, widths = c(0.5, 1.5, 1.5, 1.5))
+  plot_layout(ncol = 4, widths = c(0.15, 1.5, 1.5, 1.5))
 
 ggsave(paste0("figs/", scenario, "/age_heatmaps/subsets_row.svg"),
-       plot = subsets_row, width = 5, height = 1.67, units = "in")
+       plot = subsets_row, width = 5, height = 2.0, units = "in")
 ggsave(paste0("figs/", scenario, "/age_heatmaps/subsets_row.png"),
-       plot = subsets_row, width = 5, height = 1.67, dpi = 300, units = "in")
+       plot = subsets_row, width = 5, height = 2.0, dpi = 300, units = "in")

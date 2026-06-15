@@ -47,8 +47,9 @@ scenario <- args$scenario
 ref_age <- args$ref_age
 exclude_duplicates <- args$exclude_duplicates
 
-# School-relevant, irregular-width age bins
-SCHOOL_LEVELS <- c("0-4", "5-11", "12-17", "18-24", "25-64", "65+")
+# School-relevant, irregular-width age bins (shared with the vaccine figure;
+# levels/colors defined in color_schemes.R as AGE_GROUP_LEVELS / AGE_GROUP_SCALE)
+SCHOOL_LEVELS <- AGE_GROUP_LEVELS
 age_school_bin <- function(a){
   case_when(
     a <= 4  ~ "0-4",
@@ -56,7 +57,8 @@ age_school_bin <- function(a){
     a <= 17 ~ "12-17",
     a <= 24 ~ "18-24",
     a <= 64 ~ "25-64",
-    TRUE    ~ "65+"
+    a <= 80 ~ "65-80",
+    TRUE    ~ "80+"
   )
 }
 
@@ -92,55 +94,84 @@ con <- DBI::dbConnect(duckdb(), fn_db)
 
 full_bounds <- c(as.Date("2019-01-01"), as.Date("2025-01-01"))
 
-# Bind division (carries transmit_date through pairs_time); join raw age separately
-pairs_div <- con %>%
-  bind_pairs_exp("division", time_bounds = full_bounds, exclude_duplicates = exclude_duplicates) %>%
-  rename(division.x = x, division.y = y)
-
+# Raw-age dictionary for binding school-age groups in R
 age_dict <- tbl(con, "metadata") %>%
   select(strain, age_adj) %>%
   collect()
 
-df_pairs <- pairs_div %>%
+# Turn a collected division-pairs frame (x/y = division) into within-state,
+# season-labeled, school-age-binned pairs ready for RR calculation.
+prep_school_pairs <- function(df_div){
+  df_div %>%
+    rename(division.x = x, division.y = y) %>%
+    left_join(age_dict %>% rename(age.x = age_adj), by = join_by(strain_1 == strain)) %>%
+    left_join(age_dict %>% rename(age.y = age_adj), by = join_by(strain_2 == strain)) %>%
+    filter(!is.na(age.x) & !is.na(age.y)) %>%
+    filter(division.x == division.y) %>%   # within-state pairs only
+    mutate(
+      season = assign_season(month(transmit_date)),
+      season_date = season_date(transmit_date),
+      season_label = paste0(season, " ", year(season_date)),
+      x = age_school_bin(age.x),
+      y = age_school_bin(age.y)
+    ) %>%
+    filter(!is.na(x) & !is.na(y))
+}
+
+# Per-season RR matrix + fixed-baseline nRR for a prepared pairs frame.
+season_nrr <- function(df_p){
+  strata <- df_p %>% distinct(season_date, season, season_label)
+  pmap_dfr(strata, function(season_date, season, season_label){
+    subset <- df_p %>% filter(season_date == !!season_date) %>%
+      select(strain_1, strain_2, x, y)
+    if(nrow(subset) == 0) return(NULL)
+    subset %>%
+      calculate_rr_matrix() %>%
+      normalized_age_rr_fixed(baseline_grp = ref_age) %>%
+      mutate(nRR_fixed = ifelse(N_pairs == 0, NA_real_, nRR_fixed),
+             season_date = !!season_date, season = !!season, season_label = !!season_label)
+  })
+}
+
+# Point estimate (full sample)
+df_pairs <- con %>%
+  bind_pairs_exp("division", time_bounds = full_bounds, exclude_duplicates = exclude_duplicates) %>%
   collect() %>%
-  left_join(age_dict %>% rename(age.x = age_adj), by = join_by(strain_1 == strain)) %>%
-  left_join(age_dict %>% rename(age.y = age_adj), by = join_by(strain_2 == strain)) %>%
-  filter(!is.na(age.x) & !is.na(age.y))
+  prep_school_pairs()
 
-DBI::dbDisconnect(con, shutdown = TRUE)
-
-# Restrict to within-state pairs (pooled across all divisions), derive season + bins
-df_pairs <- df_pairs %>%
-  filter(division.x == division.y) %>%
-  mutate(
-    season = assign_season(month(transmit_date)),
-    season_date = season_date(transmit_date),
-    season_label = paste0(season, " ", year(season_date)),
-    x = age_school_bin(age.x),
-    y = age_school_bin(age.y)
-  ) %>%
-  filter(!is.na(x) & !is.na(y))
-
-# Compute RR matrix + fixed-baseline nRR per season time point (single geography)
-strata <- df_pairs %>% distinct(season_date, season, season_label)
-
-df_nrr <- pmap_dfr(strata, function(season_date, season, season_label){
-  subset <- df_pairs %>%
-    filter(season_date == !!season_date) %>%
-    select(strain_1, strain_2, x, y)
-  if(nrow(subset) == 0) return(NULL)
-  subset %>%
-    calculate_rr_matrix() %>%
-    normalized_age_rr_fixed(baseline_grp = ref_age) %>%
-    mutate(season_date = !!season_date, season = !!season, season_label = !!season_label)
-})
-
-df_nrr <- df_nrr %>%
-  mutate(nRR_fixed = ifelse(N_pairs == 0, NA_real_, nRR_fixed)) %>%
+df_nrr <- season_nrr(df_pairs) %>%
   mutate(
     x = factor(x, levels = SCHOOL_LEVELS),
     y = factor(y, levels = SCHOOL_LEVELS)
   )
+
+# Bootstrap CIs by subsampling strains in memory (same as bind_pairs_exp(
+# sub_samp = TRUE), but on the already-collected pairs instead of re-querying).
+SIMPLE_IDX <- c("5-11", "12-17")
+K_BOOT <- 200
+SAMP_COV <- 0.8
+CI_WIDTH <- 0.95
+set.seed(17)
+message(sprintf("Bootstrapping simplified-trace CIs (%d resamples)...", K_BOOT))
+
+all_strains <- unique(c(df_pairs$strain_1, df_pairs$strain_2))
+boot_ci <- map_dfr(seq_len(K_BOOT), function(k){
+  keep <- sample(all_strains, size = floor(SAMP_COV * length(all_strains)), replace = FALSE)
+  df_pk <- df_pairs %>% filter(strain_1 %in% keep & strain_2 %in% keep)
+  season_nrr(df_pk) %>%
+    filter(x %in% SIMPLE_IDX) %>%
+    select(x, y, season_date, nRR_fixed)
+})
+
+ci_simple <- boot_ci %>%
+  group_by(x, y, season_date) %>%
+  summarise(
+    nRR_lower = quantile(nRR_fixed, (1 - CI_WIDTH) / 2, na.rm = TRUE),
+    nRR_upper = quantile(nRR_fixed, (1 + CI_WIDTH) / 2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+DBI::dbDisconnect(con, shutdown = TRUE)
 
 # Write long table
 fn_out_path <- paste0("results/", scenario, "/time_age/")
@@ -184,7 +215,7 @@ for(idx in index_ages){
     geom_hline(yintercept = 1, linetype = "dashed", color = "grey50") +
     geom_line(linewidth = 0.6) +
     geom_point(size = 1) +
-    scale_color_viridis_d(name = "Partner age", option = "turbo", drop = FALSE) +
+    age_group_color_scale(name = "Paired age") +
     scale_x_date(limits = date_lims, breaks = x_breaks$season_date, labels = x_breaks$season_label) +
     scale_y_log10() +
     labs(
@@ -222,6 +253,43 @@ for(idx in index_ages){
 
   fn_safe <- str_replace_all(idx, "[/+]", "p")
   ggsave(paste0(fn_fig_path, "school_nRR_trace_", fn_safe, ".png"), plot = p, width = 9, height = 7, dpi = 300)
+}
+
+# --- Simplified two-panel figure: school-age index groups (5-11, 12-17) ---
+# nRR traces with bootstrap confidence bands, faceted side by side.
+df_simple <- df_nrr %>%
+  filter(x %in% SIMPLE_IDX, !is.na(nRR_fixed)) %>%
+  mutate(x = as.character(x), y = as.character(y)) %>%
+  left_join(ci_simple, by = c("x", "y", "season_date")) %>%
+  mutate(x = factor(x, levels = SIMPLE_IDX),
+         y = factor(y, levels = SCHOOL_LEVELS))
+
+if(nrow(df_simple) > 0){
+  p_simple <- ggplot(df_simple, aes(x = season_date, y = nRR_fixed, color = y, group = y)) +
+    geom_hline(yintercept = 1, linetype = "dashed", color = "grey50") +
+    geom_ribbon(aes(ymin = nRR_lower, ymax = nRR_upper, fill = y), alpha = 0.15, color = NA) +
+    geom_line(linewidth = 0.6) +
+    geom_point(size = 1) +
+    facet_wrap(~ x, nrow = 1) +
+    age_group_color_scale(name = "Paired age") +
+    age_group_fill_scale(name = "Paired age") +
+    scale_x_date(limits = date_lims, breaks = x_breaks$season_date, labels = x_breaks$season_label) +
+    scale_y_log10() +
+    labs(title = "Change in School Age RR", y = "nRR", x = NULL) +
+    theme_bw() +
+    theme(
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      strip.text = element_text(face = "bold", size = 10),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8),
+      legend.key.size = unit(0.4, "cm")
+    )
+
+  ggsave(paste0(fn_fig_path, "school_nRR_trace_simplified.png"),
+         plot = p_simple, width = 9, height = 4, dpi = 300)
+  ggsave(paste0(fn_fig_path, "school_nRR_trace_simplified.svg"),
+         plot = p_simple, width = 9, height = 4)
 }
 
 cat("School nRR season time series analysis complete.\n")

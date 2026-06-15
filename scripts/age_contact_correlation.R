@@ -153,7 +153,7 @@ p <- ggplot(df_corr, aes(x = contact_RR, y = RR, color = same_age)) +
                      labels = c("Different", "Same"), name = "Age") +
   geom_text(data = corr_stats,
             aes(x = 0.2, y = max(df_corr$RR, na.rm = TRUE), label = label),
-            hjust = 0, vjust = 1, size = 2.5, inherit.aes = FALSE) +
+            hjust = 0, vjust = 1, size = 4, inherit.aes = FALSE) +
   scale_x_log10() +
   scale_y_log10() +
   coord_equal() +
@@ -164,18 +164,20 @@ p <- ggplot(df_corr, aes(x = contact_RR, y = RR, color = same_age)) +
   ) +
   theme_bw() +
   theme(
-    strip.text = element_text(face = "bold", size = 11),
+    strip.text = element_text(face = "bold", size = 12),
     strip.background = element_rect(fill = "gray90"),
-    legend.position = "right",
-    legend.title = element_text(size = 8),
-    legend.text = element_text(size = 7),
-    legend.key.size = unit(0.35, "cm")
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 10),
+    legend.position = "bottom",
+    legend.title = element_text(size = 11),
+    legend.text = element_text(size = 10),
+    legend.key.size = unit(0.45, "cm")
   )
 
 fn_plot <- paste0("figs/", scenario, "/age_contact_correlation.png")
 dir.create(dirname(fn_plot), recursive = TRUE, showWarnings = FALSE)
-ggsave(fn_plot, p, width = 7, height = 3, dpi = 300)
-ggsave(sub("\\.png$", ".svg", fn_plot), p, width = 7, height = 3)
+ggsave(fn_plot, p, width = 6, height = 4, dpi = 300)
+ggsave(sub("\\.png$", ".svg", fn_plot), p, width = 6, height = 4)
 ggsave(sub("\\.png$", "_compact.svg", fn_plot), p, width = 5, height = 3)
 message(paste0("Plot saved to ", fn_plot))
 

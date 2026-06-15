@@ -50,13 +50,10 @@ exclude_duplicates <- args$exclude_duplicates
 plot_only <- args$plot_only
 
 fn_out_all <- paste0("results/", scenario, "/time_age/df_vaccine_period_nRR_ci.tsv")
-fn_out_countries <- paste0("results/", scenario, "/time_age/df_vaccine_period_nRR_ci_countries.tsv")
 
 if (plot_only) {
-  message("plot_only mode: reading cached CI TSVs, skipping bootstrap")
+  message("plot_only mode: reading cached CI TSV, skipping bootstrap")
   df_vaccine_all <- read_tsv(fn_out_all, show_col_types = FALSE)
-  df_vaccine_countries_combined <- read_tsv(fn_out_countries, show_col_types = FALSE)
-  countries <- df_vaccine_countries_combined %>% distinct(country) %>% pull(country)
 } else {
 
 # Connect to database
@@ -64,7 +61,7 @@ fn_db <- paste0("db_files/db_", scenario, ".duckdb")
 con <- DBI::dbConnect(duckdb(), fn_db)
 
 # Bootstrap parameters
-K_BOOT <- 25
+K_BOOT <- 200
 SAMP_COV <- 0.8
 CI_WIDTH <- 0.95
 
@@ -82,61 +79,43 @@ vaccine_ub <- vaccine_mid_dates + 28 * MONTH_BUFFER
 
 message(paste0("Processing ", length(vaccine_mid_dates), " time windows for vaccine period"))
 
-# Create country pairs binding
-pairs_country <- con %>%
-  bind_pairs_exp("country", exclude_duplicates = exclude_duplicates) %>%
-  rename(country.x = x, country.y = y) %>%
-  mutate(sameCountry = (country.x == country.y))
+# Collect the pair pool once, then bootstrap by subsampling strains in memory
+# (same as bind_pairs_exp(sub_samp = TRUE), but without re-querying per resample).
+period_lb <- min(vaccine_lb)
+period_ub <- max(vaccine_ub)
+df_boot_pool <- con %>%
+  bind_pairs_exp("age_aggr", time_bounds = c(period_lb, period_ub),
+                 exclude_duplicates = exclude_duplicates) %>%
+  rename(age.x = x, age.y = y) %>%
+  collect()
+boot_strains <- unique(c(df_boot_pool$strain_1, df_boot_pool$strain_2))
 
-countries <- tbl(con, "metadata") %>%
-  filter(!is.na(country)) %>%
-  distinct(country) %>%
-  pull(country)
-
-# Point estimates (read from existing TSVs)
+# Point estimates (read from existing TSV)
 fn_series <- paste0("results/", scenario, "/time_age/df_RR_by_time_age_series.tsv")
 df_point_all <- read_tsv(fn_series, show_col_types = FALSE) %>%
   filter(date >= as.Date("2020-11-01") & date <= as.Date("2021-05-31"))
 
-fn_countries <- paste0("results/", scenario, "/time_age/df_RR_by_time_age_countries.tsv")
-df_point_countries <- read_tsv(fn_countries, show_col_types = FALSE) %>%
-  filter(date >= as.Date("2020-11-01") & date <= as.Date("2021-05-31"))
-
 # Bootstrap function for a given set of pairs
-run_bootstrap <- function(label, filter_fn = NULL) {
+run_bootstrap <- function(label) {
   message(paste0("\n=== Bootstrapping: ", label, " ==="))
   boot_results <- NULL
 
   for(i in seq_along(vaccine_mid_dates)) {
     message(paste0("Window ", i, "/", length(vaccine_mid_dates), ": ", vaccine_mid_dates[i]))
 
-    boot_rr <- vector("list", K_BOOT)
-    for(k in seq_len(K_BOOT)) {
-      boot_pairs <- con %>%
-        bind_pairs_exp("age_aggr", time_bounds = c(vaccine_lb[i], vaccine_ub[i]),
-                       sub_samp = TRUE, samp_cov = SAMP_COV,
-                       exclude_duplicates = exclude_duplicates)
+    # Pre-filter the in-memory pool to this window
+    window_pairs <- df_boot_pool %>%
+      filter(transmit_date > vaccine_lb[i] & transmit_date < vaccine_ub[i])
 
-      # Apply country filter if provided
-      if(!is.null(filter_fn)) {
-        boot_pairs <- boot_pairs %>%
-          left_join(pairs_country, join_by(strain_1, strain_2)) %>%
-          filter_fn()
-      }
-
-      boot_iter <- boot_pairs %>%
+    boot_rr <- map(seq_len(K_BOOT), function(k){
+      keep <- sample(boot_strains, floor(length(boot_strains) * SAMP_COV), replace = FALSE)
+      window_pairs %>%
+        filter(strain_1 %in% keep & strain_2 %in% keep) %>%
+        select(strain_1, strain_2, x = age.x, y = age.y) %>%
         calculate_rr_matrix() %>%
-        collect() %>%
-        normalized_age_rr_fixed(baseline_grp = "26-45y") %>%
+        normalized_age_rr_fixed(baseline_grp = "25-64") %>%
         select(x, y, RR, nRR_fixed)
-
-      boot_rr[[k]] <- boot_iter
-
-      if(k %% 10 == 0) {
-        gc()
-        message(sprintf("  Bootstrap %d/%d", k, K_BOOT))
-      }
-    }
+    })
 
     boot_combined <- bind_rows(boot_rr)
     ci_vals <- boot_combined %>%
@@ -160,30 +139,13 @@ run_bootstrap <- function(label, filter_fn = NULL) {
 }
 
 # All countries combined
+set.seed(17)
 boot_all <- run_bootstrap("All Countries")
 df_vaccine_all <- df_point_all %>%
   left_join(boot_all, by = c("x", "y", "date"))
 
 write_tsv(df_vaccine_all, fn_out_all)
-message(paste0("All countries results saved to ", fn_out_all))
-
-# Country-specific
-df_vaccine_countries <- list()
-for(ctry in countries) {
-  # Create a filter function for this country
-  ctry_val <- ctry
-  filter_fn <- function(df) df %>% filter(country.x == ctry_val & country.y == ctry_val)
-
-  boot_ctry <- run_bootstrap(ctry, filter_fn)
-
-  df_ctry_point <- df_point_countries %>% filter(country == ctry)
-  df_vaccine_countries[[ctry]] <- df_ctry_point %>%
-    left_join(boot_ctry, by = c("x", "y", "date"))
-}
-
-df_vaccine_countries_combined <- bind_rows(df_vaccine_countries)
-write_tsv(df_vaccine_countries_combined, fn_out_countries)
-message(paste0("Country results saved to ", fn_out_countries))
+message(paste0("Results saved to ", fn_out_all))
 
 DBI::dbDisconnect(con, shutdown = TRUE)
 message("Bootstrap complete.")
@@ -191,7 +153,8 @@ message("Bootstrap complete.")
 }  # end if (!plot_only)
 
 # --- Plotting ---
-age_order <- c("0-5y", "6-11y", "12-17y", "18-25y", "26-45y", "46-65y", "65-80y", "81y+")
+age_order <- AGE_GROUP_LEVELS  # shared 7-group scheme from color_schemes.R
+elderly_groups <- c("65-80", "80+")
 
 generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
   plot_data <- df_data %>%
@@ -199,7 +162,7 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
       x = factor(x, levels = age_order),
       y = factor(y, levels = age_order)
     ) %>%
-    filter(x %in% c("65-80y", "81y+"))
+    filter(x %in% elderly_groups)
 
   # nRR_fixed with CIs
   p_nrr <- ggplot(plot_data, aes(x = date, y = nRR_fixed, color = y, fill = y)) +
@@ -209,26 +172,29 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
     geom_hline(yintercept = 1, linetype = "dotted", color = "black", alpha = 0.5) +
     facet_wrap(~ x, nrow = 1) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+    scale_y_log10() +
+    age_group_color_scale(name = "Paired age") +
+    age_group_fill_scale(name = "Paired age") +
     labs(
+      title = "Elderly RR during Vaccine Rollout",
       x = "Date",
-      y = "nRR",
-      color = "To Group",
-      fill = "To Group"
+      y = "nRR"
     ) +
     theme_bw() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
+      plot.title = element_text(face = "bold", hjust = 0.5),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
       strip.text = element_text(size = 11, face = "bold"),
       legend.position = "right",
-      legend.title = element_text(size = 8),
-      legend.text = element_text(size = 7),
-      legend.key.size = unit(0.35, "cm")
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8),
+      legend.key.size = unit(0.4, "cm")
     )
 
   dir.create(fig_path, recursive = TRUE, showWarnings = FALSE)
   fn_nrr <- paste0(fig_path, "vaccine_period_nRR_fixed_elderly_ci.png")
-  ggsave(fn_nrr, p_nrr, width = 7, height = 3, dpi = 300)
-  ggsave(sub("\\.png$", ".svg", fn_nrr), p_nrr, width = 7, height = 3)
+  ggsave(fn_nrr, p_nrr, width = 9, height = 4, dpi = 300)
+  ggsave(sub("\\.png$", ".svg", fn_nrr), p_nrr, width = 9, height = 4)
   ggsave(sub("\\.png$", "_compact.svg", fn_nrr), p_nrr, width = 5, height = 3)
   message(paste0("nRR plot saved to ", fn_nrr))
 
@@ -241,12 +207,12 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
     facet_wrap(~ x, nrow = 1) +
     scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
     scale_y_log10() +
+    age_group_color_scale(name = "Paired age") +
+    age_group_fill_scale(name = "Paired age") +
     labs(
       title = paste0("Relative Risk During Vaccine Rollout", title_suffix),
       x = "Date",
-      y = "RR (log scale)",
-      color = "To Group",
-      fill = "To Group"
+      y = "RR (log scale)"
     ) +
     theme_bw() +
     theme(
@@ -260,15 +226,7 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
   message(paste0("RR plot saved to ", fn_rr))
 }
 
-# All countries
 fig_path_all <- paste0("figs/", scenario, "/age_time/all_countries/")
-generate_vaccine_ci_plots(df_vaccine_all, fig_path_all, " (All Countries)")
-
-# Each country
-for(ctry in countries) {
-  df_ctry <- df_vaccine_countries_combined %>% filter(country == ctry)
-  fig_path_ctry <- paste0("figs/", scenario, "/age_time/", ctry, "/")
-  generate_vaccine_ci_plots(df_ctry, fig_path_ctry, paste0(" (", ctry, ")"))
-}
+generate_vaccine_ci_plots(df_vaccine_all, fig_path_all, "")
 
 cat("\nVaccine period CI analysis complete.\n")

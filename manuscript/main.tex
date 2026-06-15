@@ -8,6 +8,7 @@
 
 % --- Page Layout ---
 \usepackage[margin=1in]{geometry}
+\usepackage{parskip} % Block-style paragraphs: vertical gap, no first-line indent
 
 % --- Math ---
 \usepackage{amsmath}
@@ -29,6 +30,13 @@
 \usepackage{graphicx}
 \graphicspath{{./figures/}}
 \usepackage{float}      % Provides [H] specifier to pin floats exactly where written
+% Relax float placement so tall figures share a page with text instead of being
+% pushed onto a near-empty float page (see \topfraction default of 0.7).
+\renewcommand{\topfraction}{0.9}        % max page fraction a top float may occupy
+\renewcommand{\bottomfraction}{0.9}     % same
+\renewcommand{\textfraction}{0.07}      % min fraction of a text page that must be text
+\renewcommand{\floatpagefraction}{0.85} % a flo full
+
 \usepackage{booktabs}
 \usepackage[font=small]{caption}
 
@@ -121,7 +129,18 @@ We calculate the $RR_{A,B}$ as follows:
 
 Identical sequence RR scores were calculated for geography, age, and gender.
 Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the RR of individuals with the same age within the same state/province compared to the RR of individuals with the same age not in the same state/province). 
-We calculated uncertainty through sampling sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}  
+We calculated uncertainty through sampling sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+
+In order to summarize how much a given deme's RR profile deviates from random mixing, we generated a deviance score.
+This is calculated by finding the root-mean-square of the deme's log-transformed RR scores:
+
+\[D_A = \sqrt{\frac{1}{n}\sum_{B} \left( \log_{10} RR_{A,B} \right)^2}\]
+
+By squaring the log-transformed RR, enrichment ($RR > 1$) and depletion ($RR < 1$) contribute equally to the deviance.
+$D_A = 0$ if and only if $RR_{A,B} = 1$ for all $B$, and $D_A$ will increase as there is greater departure from random mixing. 
+Of note, there is no fixed upper bound for $D_A$.
+This score can be compared across time or other scales, provided the structure of the demes are consistent across the scales and there is sufficient sampling for all demes across the scales.
+In this paper, we use this method to characterize the strength of non-random mixing across age groups, but the approach extends to any deme definition.  
 
 \subsection{Extending Relative Risk over Time}
 We can extend this approach to calculate the RR for a time period starting at date $t$ with length $\Delta t$ by only using pairs where both sequences' collection date fall between $t$ and $t + \Delta t$. 
@@ -264,7 +283,7 @@ We also find that the number of conserved connection vary by season with Q1 (Jan
     \label{fig:geo_dist}
 \end{figure}
 
-Within the continental United States, we examined the relationship between geographic distance and movement variables with identical sequences, shown in fig\ref{fig:geo_dist}A.
+Within the continental United States, we examined the relationship between geographic distance and movement variables with identical sequences, shown in figure \ref{fig:geo_dist}A.
 Our travel datasets were limited to the United States and Alaska and Hawaii were excluded due to being significant outliers on all distance/travel metrics.
 To facilitate better comparisons, we calculated RR scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transformed all RR scores (including for identical sequences).
 Geographic distance remained on a linear scale.
@@ -273,9 +292,22 @@ Ground travel and mobility RR were positively correlated with identical sequence
 Air travel was showed a weak positive correlation (r = 0.13), and the best-fit curve did not show a monotonic relationship.
 For the air travel scatterplot, state pairs with no trips were removed from the analysis as they significantly biased the relationship to no correlation when included and bounded to the air travel RR floor.
 
-We suspected the relationships between
+We suspected the relationships between the travel/movement variables and identical sequence RR are dependent on distance.
+First we tested this by calculating the correlation of each travel variable with identical sequence RR before and after controlling for CBSA distance (table: \ref{tab:partial_corr}).
+The correlation of ground travel decreased from 0.681 to 0.252 after controlling for distance while for cellphone mobility it decreased from 0.540 to 0.018.
+Air travel saw only a modest decrease in correlation from 0.290 to 0.232.
+We then made stratified correlations based on the state pair's CBSA distance. 
+Ground travel and mobility data RR scores were most strongly correlated with identical sequence for short distance pairs (0-250 km).
+For long distance pairs (3000-5000 km) ground travel still remained significantly correlated (r = 0.476), but mobility data became uncorrelated (r = -0.060) at moderate distances (1000-3000 km) and anti-correlated (r = -0.319) at long distances (3000-5000 km).
+Air travel had an inverse relationship where short distances were anticorrelated (r = -0.236) and most strongly related at long distances (r = 0.544).
+Based on these findings we developed generalized additive models with tensor products to look at the interaction of ground travel and air travel with CBSA distance.
+Predictions from these models are shown in figure \ref{fig:geo_dist}B,
+We find that there is generally a monotonic predicted relationship between ground travel and identical sequence RR, regardless of distance.
+Air travel is predicted to essentially have no relationship with identical sequence RR at a short distance (100 km), and then positive relationships at medium distance (500 km) and very long distances (4000 km).
+Notably, at 2000 km we find a biphasic relationship with initially a rise and then fall of identical sequence RR as air travel RR increases.
+Interaction terms were found to be significant both when the model used either a gaussian link to directly predict RR or negative binomial link to predict the number of pairs (table \ref{tab:interaction_lrt}), and there was no significant difference between predictions. 
 
-(AMIN: This next paragraph focuses on DB1B vs T100 data, should it be moved to discussion?)
+\textit{(AMIN: This next paragraph focuses on DB1B vs T100 data, should it be moved to discussion?)}
 We also investigated using the US Department of Transportation's T-100 market dataset to measure air travel flows, and the results are reported in the supplement.
 The T-100 set measures each travel leg volumes instead of looking at flows between origin and destinations.
 It is  not possible to tell which passengers arrive at their final destination versus a layover between flights, making interpretation of flows difficult.
@@ -289,11 +321,69 @@ These findings suggest that using T-100 segment leg flows captures much of the s
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{age.pdf}
-    \caption{Investigation of identical sequences with age. A: Heatmap of all identical sequence RR from age 0 to 80 years old. B: Identical sequence RR heatmaps stratified by same state/province pairs, intraregional but different state/province pairs, and different region pairs. C: RR deviance by age at different geographies where higher deviance indicates greater evidence of non-random mixing. D:  Correlation scatter plot for the sequence age RR versus synthetic contact matrix age RR in Canada and the US. E: Age normalized relative risks for 65-80 yo and 81 yo+ during the time period of the initial SARS-CoV-2 vaccine release.}
+    \caption{Investigation of identical sequences with age. A: Heatmap of all identical sequence RR from age 0 to 80 years old. B: Identical sequence RR heatmaps stratified by same state/province pairs, intraregional but different state/province pairs, and different region pairs. C: RR deviance by age at different geographies where higher deviance indicates greater evidence of non-random mixing. D: Focused heatmap of identical sequence RR of children and young adults, plotted on an expanded color scale (RR 0.5--2). E: Correlation scatter plot for the sequence age RR versus synthetic contact matrix age RR in Canada and the US.}
     \label{fig:age}
 \end{figure}
 
+Another major aim of this project was to investigate age relationships of identical sequences with our method.
+We created a full heatmap across all ages from 0 to 80, shown in figure \ref{fig:age}A, and find several notable age patterns.
+Across all ages we find the highest RR scores to be among same age pairings (i.e. the heatmap's diagonal), with neighboring ages generally having RR > 1.
+The strength of the RR between neighboring age group varies greatly with age.
+For pediatric and elderly age ranges (< 18 years and > 65 years), we find strong clusters of RR > 1 across large subsets of the respective age blocks.
+We also find a strong cluster of RR > 1 for 18 to 22-year-olds that then dissipates into the more general adult population (i.e. from 20 to 30-year-olds).
+When zooming into the pediatric and young adult age groups in \ref{fig:age}D we find that age 0 does not show as much mixing with older age groups outside 1 and 2-year-olds. 
+Furthermore, there is a clear transition in the patterns from 17 to 18-year-olds. 
+The 17-year-old group has RR > 1 with almost all age groups < 18 years, while 18-year-olds only keep RR < 1 for older children/adolescents (i.e. age $\geq$12).
+This is evidence of the transmission pattern changing from school and household contacts in childhood to college and workforce contacts in young adulthood.
+In the larger heatmap there is also a secondary diagonal cluster for ages 1-17 with ages 30-50, but this secondary diagonal dissipates with ages $\geq$18. 
+We then stratify our pairs based on similarity of geographic membership in figure \ref{fig:age}B.
+The magnitude of age relationships decrease as geographic similarity decreases with a general reversion towards RR = 1 for different region identical sequence pairs.
+
+We can use our RR deviance measure to describe the degree of age structuring for each age category and summarize this geographic trend in figure $\ref{fig:age}C$.
+For the deviance measure, we expect that if a given age's identical sequences are fully randomly mixed (i.e. its RR = 1 across all paired ages) that its deviance would be 0 and as the age structure (i.e. non-random mixing) increases the deviance will increase.
+Using the same state/province curve as a baseline deviance curve, we see that deviance scores are highest for children and the elderly, with a nadir in middle adulthood.
+This suggests non-random mixing plays a larger role for children and the elderly compared to the bulk of the working-age adult population.
+For the different state/province, same region curve and the different region curve we see this general pattern of higher deviance for children and the elderly preserved, but the magnitude of deviance scores are decreased across all ages.
+This indicates that age structure in mixing decreases as geographic membership broadens for the pairs.
+Finally, we can compare our sequence RR scores to existing synthetic contact matrix RR scores based on survey data.
+These results are shown in figure \ref{fig:age}E.
+We find significant log-log correlation for age and sequence scores both in the United States and Canada.
+The log-log slope was found to be less than 1 in both countries.
+Identical sequence RR changing at a slower rate than the age contact RR could suggest that there is increased random mixing of identical sequences than would be expected by the contact matrix structure alone.
+
+\subsection{Changes in Age Based RR Over Time}
+
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\textwidth]{age_time.pdf}
+    \caption{Changes in age-based identical sequence RR over time, normalized against the working-age adults (25--64y) within-group RR ($nRR$). A: Elderly transmission during the vaccine rollout period (November 2020--May 2021). Each trace shows the $nRR$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% bootstrap confidence intervals. B: Within-state, school-age $nRR$ traces by 3 month seasons, pooled across all states. Each trace shows the $nRR$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% bootstrap confidence intervals. The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 bootstraps per time point.}
+    \label{fig:age_time}
+\end{figure}
+
+We investigated how age relative risk changed over time for two age groups in response to public health interventions.
+First we sought to see if the age identical sequence structure changed for elderly adults during the initial COVID-19 vaccine rollout period (Winter 2020 through Spring 2021), shown in figure \ref{fig:age_time}A.
+For all three countries, vaccine rollout was initially prioritized to individuals with medical comorbidities, older age, and residence in a long-term care facility.
+Therefore, we looked at normalized relative risks (nRR) for ages 65 - 80 and greater than 80 from November 2020 to June 2021.
+All nRRs used the within-group RR of 25 - 64-year-olds as a reference category.
+We find that for 65 - 80-year-olds (left panel) that they have the highest nRR scores with the 65-80 group and the 80+ group consistently across all time points.
+We do not see any major trends for the RR curves for this group.
+The 80+ group again has highest nRR scores for both the 65-80 and 80+ groups as well (right panel), but the 80+ nRR curve is significantly higher than the 65-80 curve.
+We also see for the 80+/80+ curve there is a significant drop from December 2020 to January 2021 with some rebound in the following months but no return to its original peak.
+All three countries introduced the COVID-19 vaccine in December 2020, fitting the time frame of this drop.
+
+We also investigated how the identical sequence nRR of school aged groups (ages 5-11 and 12-17) changed over the pandemic, given changes of in-person versus virtual school patterns.
+The results are shown in figure \ref{fig:age_time}B.
+Normalized RR were calculated in fixed three-month windows corresponding to seasons: Winter (December to February), Spring (March to May), Summer (June to August), and Autumn (September to November).
+We limited our analysis specifically to same state/province pairs to focus on the role of local transmission (e.g. within school and household). 
+For both age groups we find the nRR to be higher with other pediatric age groups (0-4, 5-11, 12-17) than with the adult age groups throughout the time course of the pandemic, and within-group nRR curves are the highest.
+We see that the nRR curves with pediatric groups peak in spring 2020 and then sharply drop off for summer 2020.
+The pediatric nRR curves remain suppressed throughout the 2020-2021 school year and start to rise during the 2021-2022 school year, eventually peaking around spring and summer 2023.
+After summer 2023 there is again a drop-off in nRR curves, with the curves generally becoming noisier as sequence counts decreases. 
+
+
 \section{Discussion}
+
+\subsection{Computational Performance of Identical Sequences Method}
 
 \subsection{Geography and Scale of Transmission}
 The benefit of our approach is the ability to do high resolution geographic analyses even across a large study area.
@@ -323,7 +413,13 @@ However, using identical sequences we were able to capture some signal of longer
 One notable example of this is the conserved relationships identified between the Mideast states and Florida shown in figure \ref{fig:geo_time}C.
 This corridor is among the most densely populated in the United States and Florida is a major tourism hub for the United States (along with California and New York).
 Florida is also a major destination for "snowbirds": seasonal, often elderly migrants traveling to a warmer climate during winter months.\autocite{smithSnowbirdsSunbirdsStayers2006}
-This snowbird migration pattern has previously been studied and linked to increased pneumonia and influenza hospitalizations by non-residents in snowbird destination states including Florida, Arizona, and California
+This snowbird migration pattern has previously been studied and linked to increased pneumonia and influenza hospitalizations by non-residents in snowbird destination states including Florida, Arizona, and California.
+\textit{Still in progress}
+
+
+\subsection{Comparing Age Contact Matrices and Identical Sequence Matrices}
+
+\subsection{Capturing Temporal Signals Using Normalized Relative Risks}
 
 \subsection{Limitations}
 In this paper, we propose a framework to understand the identical sequence RR across time by normalizing against either a reference population or an average RR when no suitable reference population exists. 

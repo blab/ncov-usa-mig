@@ -1,6 +1,8 @@
 library(tidyverse)
 library(argparse)
 
+source("scripts/color_schemes.R")
+
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = 'CAM_1000', help = 'Scenario name')
@@ -10,7 +12,7 @@ collect_args <- function(){
 # Function to generate all three plots for a given dataset
 generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
   # Define age group order
-  age_order <- c("0-5y", "6-11y", "12-17y", "18-25y", "26-45y", "46-65y", "65-80y", "81y+")
+  age_order <- AGE_GROUP_LEVELS  # shared 7-group scheme from color_schemes.R
 
   # Set factor levels
   df_data <- df_data %>%
@@ -87,9 +89,9 @@ generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
     facet_wrap(~ x, scales = "free_y", nrow = 2, ncol = 4) +
     scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
     labs(
-      title = paste0("Baseline Normalized RR Over Time by Age Group (vs 26-45y)", title_suffix),
+      title = paste0("Baseline Normalized RR Over Time by Age Group (vs 25-64)", title_suffix),
       x = "Date",
-      y = "nRR (normalized to 26-45y)",
+      y = "nRR (normalized to 25-64)",
       color = "Paired Age Group"
     ) +
     theme_bw() +
@@ -111,7 +113,7 @@ generate_age_time_plots <- function(df_data, fig_path, title_suffix = "") {
 # Function to generate vaccine-period focused plots for elderly age groups
 generate_vaccine_period_plots <- function(df_data, fig_path, title_suffix = "") {
   # Define age group order
-  age_order <- c("0-5y", "6-11y", "12-17y", "18-25y", "26-45y", "46-65y", "65-80y", "81y+")
+  age_order <- AGE_GROUP_LEVELS  # shared 7-group scheme from color_schemes.R
 
   # Filter to vaccine rollout period (Nov 2020 - May 2021) and elderly age groups as sources
   vaccine_data <- df_data %>%
@@ -121,7 +123,7 @@ generate_vaccine_period_plots <- function(df_data, fig_path, title_suffix = "") 
     ) %>%
     filter(
       date >= as.Date("2020-11-01") & date <= as.Date("2021-05-31"),
-      x %in% c("65-80y", "81y+")
+      x %in% c("65-80", "80+")
     )
 
   # Plot 1: RR over time for elderly age groups
@@ -164,9 +166,9 @@ generate_vaccine_period_plots <- function(df_data, fig_path, title_suffix = "") 
     scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
     labs(
       title = paste0("Baseline Normalized RR During Vaccine Rollout", title_suffix),
-      subtitle = "Elderly age groups (65+) transmission to all age groups (normalized to 26-45y baseline), Nov 2020 - May 2021",
+      subtitle = "Elderly age groups (65+) transmission to all age groups (normalized to 25-64 baseline), Nov 2020 - May 2021",
       x = "Date",
-      y = "nRR (normalized to 26-45y)",
+      y = "nRR (normalized to 25-64)",
       color = "To Age Group"
     ) +
     theme_bw() +
@@ -200,56 +202,8 @@ generate_age_time_plots(df_age_time_all, fig_path_all, title_suffix = " (All Cou
 
 cat("Plots saved to:", fig_path_all, "\n")
 
-# 2. Generate plots for each country
-cat("Generating plots for individual countries...\n")
-data_path_countries <- paste0("results/", scenario, "/time_age/df_RR_by_time_age_countries.tsv")
-
-# Check if country-specific data exists
-if (file.exists(data_path_countries)) {
-  df_age_time_countries <- read_tsv(data_path_countries)
-
-  # Get unique countries
-  countries <- df_age_time_countries %>%
-    distinct(country) %>%
-    pull(country)
-
-  for (ctry in countries) {
-    cat("  Processing country:", ctry, "\n")
-
-    # Filter data for this country
-    df_country <- df_age_time_countries %>%
-      filter(country == ctry)
-
-    # Create country-specific figure directory
-    fig_path_country <- paste0("figs/", scenario, "/age_time/", ctry, "/")
-    dir.create(fig_path_country, recursive = TRUE, showWarnings = FALSE)
-
-    # Generate plots
-    generate_age_time_plots(df_country, fig_path_country, title_suffix = paste0(" (", ctry, ")"))
-
-    cat("  Plots saved to:", fig_path_country, "\n")
-  }
-} else {
-  cat("Country-specific data not found at:", data_path_countries, "\n")
-  cat("Skipping country-specific plots.\n")
-}
-
-# 3. Generate vaccine-period focused plots for all countries combined
+# 2. Generate vaccine-period focused plots for all countries combined
 cat("Generating vaccine-period plots for elderly age groups (all countries)...\n")
 generate_vaccine_period_plots(df_age_time_all, fig_path_all, title_suffix = " (All Countries)")
-
-# 4. Generate vaccine-period plots for each country (if data exists)
-if (file.exists(data_path_countries)) {
-  for (ctry in countries) {
-    cat("  Generating vaccine-period plots for country:", ctry, "\n")
-
-    df_country <- df_age_time_countries %>%
-      filter(country == ctry)
-
-    fig_path_country <- paste0("figs/", scenario, "/age_time/", ctry, "/")
-
-    generate_vaccine_period_plots(df_country, fig_path_country, title_suffix = paste0(" (", ctry, ")"))
-  }
-}
 
 cat("\nAll plots completed.\n")

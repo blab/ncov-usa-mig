@@ -96,14 +96,13 @@ if(aggregate_flag){
     mutate(
       age_aggr = case_when(
         is.na(age_adj) ~ "NA",
-        age_adj < 6 ~ "0-5y",
-        age_adj < 12 ~ "6-11y",
-        age_adj < 18 ~ "12-17y",
-        age_adj < 26 ~ "18-25y",
-        age_adj < 46 ~ "26-45y",
-        age_adj < 66 ~ "46-65y",
-        age_adj < 81 ~ "65-80y",
-        .default = "81y+"
+        age_adj <= 4  ~ "0-4",
+        age_adj <= 11 ~ "5-11",
+        age_adj <= 17 ~ "12-17",
+        age_adj <= 24 ~ "18-24",
+        age_adj <= 64 ~ "25-64",
+        age_adj <= 80 ~ "65-80",
+        .default = "80+"
       ),
       school_cat = case_when(
         is.na(age_adj) ~ "NA",
@@ -134,7 +133,7 @@ for(i in 1:length(lb_date_vector)){
     collect() %>%
     mutate(date = mean(c(lb_date_vector[i],ub_date_vector[i]))) %>%
     normalized_age_rr_diag() %>%
-    normalized_age_rr_fixed(baseline_grp = "26-45y")
+    normalized_age_rr_fixed(baseline_grp = "25-64")
 
   if(i == 1){
     age_rr_series <- rr_series
@@ -146,63 +145,6 @@ toc()
 
 fn_series <- paste0("results/",scenario,"/time_age/df_RR_by_time_age_series.tsv")
 write_tsv(age_rr_series,file=fn_series)
-
-# Country-specific age RR time series
-tic("Age by country and time analysis")
-age_country_time_rr <- NULL
-
-# Get list of countries
-countries <- df_meta %>%
-  filter(!is.na(country)) %>%
-  distinct(country) %>%
-  pull(country)
-
-# Create pairs with country information
-pairs_country <- con %>%
-  bind_pairs_exp("country", exclude_duplicates = exclude_duplicates) %>%
-  rename(country.x = x) %>%
-  rename(country.y = y) %>%
-  mutate(sameCountry = (country.x == country.y))
-
-for(i in 1:length(lb_date_vector)){
-  print(paste0("Processing date: ", mid_date_vector[i]))
-
-  # Bind pairs for the time period once
-  pairs_time <- con %>%
-    bind_pairs_exp("age_aggr", time_bounds = c(lb_date_vector[i], ub_date_vector[i]), exclude_duplicates = exclude_duplicates)
-  pairs_time <- pairs_time %>%
-    left_join(pairs_country, join_by(strain_1, strain_2))
-
-  for(country in countries){
-    # Filter pairs where both strains are from this country
-    pair_subset <- pairs_time %>%
-      filter(country.x == country & country.y == country) %>% collect()
-
-    # Skip if no pairs for this country
-    if(nrow(pair_subset) == 0) next
-
-    # Calculate RR matrix for this country
-    rr_country_time <- pair_subset %>%
-      calculate_rr_matrix() %>%
-      mutate(
-        date = mean(c(lb_date_vector[i], ub_date_vector[i])),
-        country = country
-      ) %>%
-      normalized_age_rr_diag(group_vars = c("date", "country")) %>%
-      normalized_age_rr_fixed(baseline_grp = "26-45y", group_vars = c("date", "country"))
-
-    # Bind to main dataframe
-    if(is.null(age_country_time_rr)){
-      age_country_time_rr <- rr_country_time
-    } else {
-      age_country_time_rr <- bind_rows(age_country_time_rr, rr_country_time)
-    }
-  }
-}
-toc()
-
-fn_country_time <- paste0("results/", scenario, "/time_age/df_RR_by_time_age_countries.tsv")
-write_tsv(age_country_time_rr, file = fn_country_time)
 
 
 pairs_state <- con %>%

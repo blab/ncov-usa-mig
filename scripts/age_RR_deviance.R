@@ -110,9 +110,9 @@ ggsave(plot_geo_dev, filename = sub("\\.jpg$", ".svg", fn_geo_dev_plot), units =
 
 # Compact version sized to slot beneath the subset-heatmap row in the stitched figure
 plot_geo_dev_compact <- plot_geo_dev +
-  theme(legend.key.size = unit(0.3, "cm"),
-        legend.title = element_text(size = 7),
-        legend.text = element_text(size = 7),
+  theme(legend.key.size = unit(0.4, "cm"),
+        legend.title = element_text(size = 10),
+        legend.text = element_text(size = 9),
         axis.title = element_text(size = 8),
         axis.text = element_text(size = 7))
 ggsave(plot_geo_dev_compact,
