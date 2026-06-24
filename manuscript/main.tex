@@ -80,101 +80,19 @@ Such trees recover transmission history and population-level mixing patterns and
 However, tree-based approaches are computationally costly because the number of possible phylogenies scales factorially with the number of genomes, limiting Bayesian and ML trees to thousands or tens of thousands of sequences.
 This is a major constraint given that genomic surveillance sequenced SARS-CoV-2 at an unprecedented rate, with 16.7 million genomes submitted to GISAID's EpiCoV database from December 2019 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
 This scale has driven innovations such as UShER and Nextclade\autocite{turakhiaUltrafastSamplePlacement2021,aksamentovNextcladeCladeAssignment2021} as well as tree-free statistical methods---similarity matrices, clustering, and dimensionality reduction---to identify structure across genomes.\autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024}
-One tree-free approach uses pairwise distances to identify likely transmission pairs: we have previously shown that clusters of identical pathogen sequences can estimate the epidemiological characteristics of outbreaks,\autocite{tran-kiemEstimatingReproductionNumber2024a} and extended this to a relative risk of identical sequences (seqRR) shared between two populations,\autocite{tran-kiemFinescalePatternsSARSCoV22025a} which we used to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from 114,298 sequences collected March 2021 to December 2022.
-Because this approach is a simple relative risk calculation, it has the potential to scale to even larger datasets and to measure relationships across space and time. 
+We have previously created a tree-free approach using pairwise distances to identify likely transmission pairs.
+Clusters of identical pathogen sequences can estimate the epidemiological characteristics of outbreaks,\autocite{tran-kiemEstimatingReproductionNumber2024a} and we have extended this to a relative risk of identical sequences (seqRR) shared between two populations.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+This was used to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from 114,298 sequences collected March 2021 to December 2022 and identify unexpected clusters of transmissions that would have been obscured by aggregation at the state level.
 
-Due to the constraints of prior phylogeographic methods, studies have generally looked at high-resolution relationships in a limited study area or focused more on coarse relationship across a larger area.
-Using a scalable method we should be able to investigate high-resolution relationships across a large area.
-One major question that this poses is whether a high-resolution analysis across a large area provides additional insight compared to aggregated analyses?
+Because this approach is a simple relative risk calculation, it has the potential to scale to even larger datasets, such as at the national or even multinational level. 
+Such analyses could help public health authorities and healthcare systems identify where to deploy resources for genomic surveillance, immunization campaigns, and other interventions.
+Additionally, detailed fine scale analyses of state/provincial spread and age group transmission can be helpful for testing if the existing contact datasets used in infectious disease modeling actually predict genetic linkage of infections. 
+Finally, the scalability of this method should allow us to measure changes in transmission across groups, particularly in response to policy changes that may have altered the mixing patterns of individuals during an outbreak or epidemic.
 
-We extend the relative risk of identical sequence method to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period.
+Large-scale genomic surveillance during the SARS-CoV-2 pandemic allows us to test whether our method can achieve these goals.
+In this paper, we used the relative risk of identical sequence method to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period.
 This framework is used to examine spatial relationships of SARS-CoV-2 at multiple spatial (interstate, interregional, and international) and temporal scales.
 Furthermore, we use this set of sequences to identify high-resolution relationships across age groups to compare with existing age contact matrices.
-
-\section{Methods}
-
-\subsection{Data Sources}
-5,765,925 human SARS-CoV-2 genomes were obtained from the EpiCoV database for Canada, Mexico, and the United States of America from January 2020 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
-Genomes were required to be from human hosts, have a valid collection date, and a minimum of 90\% sequencing coverage.
-Additionally, for sequences from the United States and Canada, the division field needed to be filled with a valid US state or Canadian province name.
-Genomes coming from US territories other than the District of Columbia were excluded due to small sample size.
-Age metadata was checked to be numeric.
-Any age value greater than 125 years treated as invalid and ages greater than 99 were aggregated into a single age category.
-
-\subsection{Sequence Processing}
-Identical sequences were identified using a similar pipeline to our previous work.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
-First a pairwise distance matrix of sequences was created.
-In order to minimize unnecessary comparisons, we only calculated distances for sequences within the same Nextstrain clade.\autocite{aksamentovNextcladeCladeAssignment2021}
-Within each clade, \texttt{pairsnp} was used to find all pairs of sequences with a Hamming distance equal to 0.\autocite{tonkin-hillGtonkinhillPairsnp2025}
-Sequences that were found to have over 1,000 identical pairs were removed from the analysis due to being extreme outliers.
-These sequences likely had missing bases at high entropy sites and therefore had an inflated number of matching identical sequences.
-Additionally, pairs where the sequences were collected within 3 days of each other and had the same host metadata (age, gender, division/location) were flagged as likely being sequences from the same host and excluded from the relative risk calculation.
-The final sequence metadata and list of identical pairs are then stored in a DuckDB relational database, which allows for fast database operations without loading the full list into system memory.
-This database is accessed within the R programming environment using the \texttt{dbplyr} library.\autocite{rcoreteamLanguageEnvironmentStatistical2025,wickhamDbplyrDplyrBack2025}
-
-\subsection{Relative Risk Calculation}
-We use our previously described relative risk calculation to measure the genetic connectivity of SARS-CoV-2 between different geographic units and age groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
-We define $n_{A,B}$ to be the number of pairs of genomes with a Hamming distance of 0 where one sequence belongs to group $A$ and the other sequence belongs to group $B$.
-We can then define $n_{A,\bullet}= \sum_{\forall B}n_{A,B}$ (i.e. all pairs of identical sequences where at least one sequence is in group $A$) and $n_{\bullet,\bullet} = \sum_{\forall A}n_{A,\bullet}$ (i.e. the total number of pairs of identical sequences).
-We calculate the $RR_{A,B}$ as follows:
-
-\[RR_{A,B} = \frac{n_{A,B}/n_{A,\bullet}}{n_{B,\bullet}/n_{\bullet,\bullet}}\]
-
-seqRR scores were calculated for geography, age, and gender.
-Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the seqRR of individuals with the same age within the same state/province compared to the seqRR of individuals with the same age not in the same state/province). 
-We calculated uncertainty through sampling sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
-
-In order to summarize how much a given deme's seqRR profile deviates from random mixing, we generated a deviance score.
-This is calculated by finding the root-mean-square of the deme's log-transformed RR scores:
-
-\[D_A = \sqrt{\frac{1}{n}\sum_{B} \left( \log_{10} RR_{A,B} \right)^2}\]
-
-By squaring the log-transformed seqRR, enrichment ($RR > 1$) and depletion ($RR < 1$) contribute equally to the deviance.
-$D_A = 0$ if and only if $RR_{A,B} = 1$ for all $B$, and $D_A$ will increase as there is greater departure from random mixing. 
-Of note, there is no fixed upper bound for $D_A$.
-This score can be compared across time or other scales, provided the structure of the demes are consistent across the scales and there is sufficient sampling for all demes across the scales.
-In this paper, we use this method to characterize the strength of non-random mixing across age groups, but the approach extends to any deme definition.  
-
-\subsection{Extending Relative Risk over Time}
-We can extend this approach to calculate the seqRR for a time period starting at date $t$ with length $\Delta t$ by only using pairs where both sequences' collection date fall between $t$ and $t + \Delta t$. 
-We denote this relative risk as $seqRR_{A,B}(t)$ and calculate this time-dependent seqRR for each calendar quarter.
-Comparing relative risks over time can be challenging to interpret.
-Changes in seqRR can be due to true changes in the transmission pattern between groups $A$ and $B$, but it can also be due to changes in the force of infection either in the pathogen (i.e. variants having differences in pathogenicity) or the host populations (i.e. behavioral/movement changes, immunizations).
-We therefore needed to introduce normalization methods to account for these changes in the force of infection.
-For time analyses of the age seqRR, our objective was to detect changes in transmission across age groups due to changes in mobility and interaction from public health interventions and voluntary behavioral changes.
-Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18-40 year olds) tended to have lower levels of social isolation and mitigation behaviors compared to other age groups.\autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns}
-Therefore we used young adults as a reference group (designated as $Y$) for normalization. 
-We then normalized other seqRR scores over time using the following equation: $nRR_{A,B}(t) = RR_{A,B}(t)/RR_{Y,Y}(t)$.  
-
-For time analyses of geographic seqRR, changes in circulating SARS-CoV-2 variants, public health interventions, and sequence sampling effort over time are all factors that may affect the number of genomes collected from a specific area.
-There is no specific geographic area that we can use as a reference population in this case.
-Based on our prior work, we anticipate the within area seqRR to be enriched with identical sequences (i.e. greater than 1).
-We sought to develop a metric that can capture temporal changes in mixing across different areas.
-For the seqRR of pairs of identical sequences in locations A and B we use the average of the within area seqRR for the two areas as the normalizing factor. This can be written as follows:
-\begin{align*}
-nRR_{A,B}(t) &= \frac{RR_{A,B}(t)}{\frac{1}{2}(RR_{A,A}(t)+RR_{B,B}(t))} \\
-             &= \frac{2\, RR_{A,B}(t)}{RR_{A,A}(t)+RR_{B,B}(t)}
-\end{align*}
-
-We used agent-based modeling with nucleotide mutation simulations to explore and validate this approach, including creating scenarios where movement changed between simulated demes.
-Further discussion of this validation approach can be found in the supplementary information.  
-
-\subsection{Geographic Clustering and Regional Analysis}
-
-States/provinces were sorted using hierarchical clustering to assess if states/provinces tended to be most related to other states within the same region. 
-For clustering and dimensionality reduction, seqRR was converted to a dissimilarity measure: $D_{A,B} = \exp{(-RR_{A,B})}$.
-Hierarchical clustering of states and provinces was calculated using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} package.\autocite{maechlerClusterClusterAnalysis2026}
-Principal coordinate analysis (PCoA) was conducted on the dissimilarity matrix with the \texttt{cmdscale} function from the base \texttt{stats} package.\autocite{rcoreteamLanguageEnvironmentStatistical2025}
-The absolute eigenvalue proportion was used for estimating the percent variance of each principal coordinate.
-For the time-varying geographic RR analysis, inter-regional state/province pairs were ranked into percentiles.
-Pairs with five or more quarters of being ranked in the 98th percentile or higher were defined to be conserved high-ranking interregional pairs.
-
-\subsection{Distance/Mobility Regression Analysis}
-
-For the continental United States, identical sequence relative risk scores were compared to multiple measures of distance and movement.
-These included the minimum geographic distance between core-based statistical areas (CBSA distance), ground travel RR calculated using the 2017 National Household Travel Survey (NHTS), air travel RR calculated using the 2019 Airline Origin and Destination Survey (DB1B), and individual mobility calculated from SafeGraph data.
-Pearson's correlation coefficients between identical sequence RR and these distance/movement variables were calculated, where all RR variables were first transformed to base-10 logarithmic scale. 
-To test the effect of interactions, we constructed generalized additive models to predict the sequence $\log(RR)$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
 
 \section{Results}
 
@@ -486,13 +404,107 @@ To determine if Florida's interrregional connection with the Mideast region were
 The within Florida and within Mideast heatmaps have similar RR patterns as the full age analysis heatmap in figure \ref{fig:age}A, and the between region heatmap shows weaker evidence of age structure, with RR regressing towards RR = 1.
 There are no major differences across time periods, suggesting seasonal differences in tourism and migration age patterns are less likely to impact identical sequence RR scores, but further work is necessary to corroborate this finding
 
+%TC:ignore
+
+\section{Methods}
+
+\subsection{Data Sources}
+5,765,925 human SARS-CoV-2 genomes were obtained from the EpiCoV database for Canada, Mexico, and the United States of America from January 2020 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
+We limited genomes to be from human hosts, have a valid collection date, and a minimum of 90\% sequencing coverage.
+Additionally, for sequences from the United States and Canada, the division field needed to be filled with a valid US state or Canadian province name.
+Genomes coming from US territories other than the District of Columbia were excluded due to small sample size.
+Age metadata was checked to be numeric and any age value greater than 125 years treated as invalid, with ages greater than 99 were aggregated into a single age category.
+
+We also aggregated several distance, movement, and contact variables to look for associations with identical sequence RR (seqRR).
+State geographic distance was defined to be the minimum geographic distance between core-based statistical areas (CBSAs) as defined by the US Census Bureau.\autocite{bureauMetropolitanMicropolitanStatistical} 
+Ground travel RR scores between states were calculated from the 2017 National Household Travel Survey's day trip file.\autocite{NationalHouseholdTravel}
+We calculated air travel RR using the 2019 Airline Origin and Destination Survey (DB1B).\autocite{DB1B_Dataset} 
+Cellphone timeshare data collected by SafeGraph was used to create a mobility RR score between states.\autocite{pullanoCharacterizingUSSpatial2025}
+Finally we used synthetic contact matrices based on survey data to compare with age seqRR in the US and Canada.\autocite{mistryInferringHighresolutionHuman2021}
+
+\subsection{SARS-CoV-2 Genome Processing}
+Identical sequences were identified using a similar pipeline to our previous work.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+First a pairwise distance matrix of sequences was created.
+In order to minimize unnecessary comparisons, we only calculated distances for sequences within the same Nextstrain clade.\autocite{aksamentovNextcladeCladeAssignment2021}
+Within each clade, \texttt{pairsnp} was used to find all pairs of sequences with a Hamming distance equal to 0.\autocite{tonkin-hillGtonkinhillPairsnp2025}
+Sequences that were found to have over 1,000 identical pairs were removed from the analysis due to being extreme outliers.
+These sequences likely had missing bases at high entropy sites and therefore had an inflated number of matching identical sequences.
+Additionally, pairs where the sequences were collected within 3 days of each other and had the same host metadata (age, gender, division/location) were flagged as likely being sequences from the same host and were excluded from the relative risk calculation.
+The final sequence metadata and list of identical pairs are then stored in a DuckDB relational database, which allowed for fast database operations without loading the full list into system memory.
+This database was accessed within the R programming environment using the \texttt{dbplyr} library.\autocite{rcoreteamLanguageEnvironmentStatistical2025,wickhamDbplyrDplyrBack2025}
+
+\subsection{Identical Sequence Relative Risk Calculation}
+We used our previously described relative risk calculation to measure the genetic connectivity of SARS-CoV-2 between different geographic units and age groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+We defined $n_{A,B}$ to be the number of pairs of genomes with a Hamming distance of 0 where one sequence belongs to group $A$ and the other sequence belongs to group $B$.
+We then defined $n_{A,\bullet}= \sum_{\forall B}n_{A,B}$ (i.e. all pairs of identical sequences where at least one sequence is in group $A$) and $n_{\bullet,\bullet} = \sum_{\forall A}n_{A,\bullet}$ (i.e. the total number of pairs of identical sequences).
+We calculated the $RR_{A,B}$ as follows:
+
+\[RR_{A,B} = \frac{n_{A,B}/n_{A,\bullet}}{n_{B,\bullet}/n_{\bullet,\bullet}}\]
+
+seqRR scores were calculated for geography and age.
+Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the seqRR of individuals with the same age within the same state/province compared to the seqRR of individuals with the same age not in the same state/province). 
+We calculated uncertainty through sampling sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+
+In order to summarize how much a given deme's seqRR profile deviates from random mixing, we generated a deviance score.
+This is calculated by finding the root-mean-square of the deme's log-transformed RR scores:
+
+\[D_A = \sqrt{\frac{1}{n}\sum_{B} \left( \log_{10} RR_{A,B} \right)^2}\]
+
+By squaring the log-transformed seqRR, enrichment ($RR > 1$) and depletion ($RR < 1$) contribute equally to the deviance.
+$D_A = 0$ if and only if $RR_{A,B} = 1$ for all $B$, and $D_A$ will increase as there is greater departure from random mixing. 
+Of note, there is no fixed upper bound for $D_A$.
+This score can be compared across time or other scales, provided the structure of the demes are consistent across the scales and there is sufficient sampling for all demes across the scales.
+In this paper, we used this method to characterize the strength of non-random mixing across age groups, but the approach can extend to any deme definition.  
+
+\subsection{Extending Relative Risk over Time}
+We extended this approach to calculate the seqRR for a time period starting at date $t$ with length $\Delta t$ by only using pairs where both sequences' collection date fall between $t$ and $t + \Delta t$. 
+We denote this relative risk as $seqRR_{A,B}(t)$ and can calculate this time-dependent seqRR for any time interval desired.
+Changes in seqRR can be due to true changes in the transmission pattern between groups $A$ and $B$, but it can also be due to changes in the force of infection either in the pathogen (i.e. variants having differences in pathogenicity) or the host populations (i.e. behavioral/movement changes, immunizations).
+We therefore normalized seqRR against a baseline population to account for these changes in the force of infection.
+For time analyses of the age seqRR, our objective was to detect changes in transmission across age groups due to changes in mobility and interaction from public health interventions and voluntary behavioral changes.
+Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18-40 year olds) tended to have lower levels of social isolation and mitigation behaviors compared to other age groups.\autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns}
+Therefore we used adults as a reference group (designated here as $Y$) for normalization. 
+We then normalized other seqRR scores over time using the following equation: $nRR_{A,B}(t) = RR_{A,B}(t)/RR_{Y,Y}(t)$.  
+
+For time analyses of geographic seqRR, changes in circulating SARS-CoV-2 variants, public health interventions, and sequence sampling effort over time could affect the number of genomes collected from a specific area.
+There is no single geographic area that we can use as a reference population in this case.
+Since our goal was to determine if we could find how much mixing changed between populations over time we used the average of the within area seqRR for the two areas as the normalizing factor. 
+This can be written as follows:
+\begin{align*}
+nRR_{A,B}(t) &= \frac{RR_{A,B}(t)}{\frac{1}{2}(RR_{A,A}(t)+RR_{B,B}(t))} \\
+             &= \frac{2\, RR_{A,B}(t)}{RR_{A,A}(t)+RR_{B,B}(t)}
+\end{align*}
+
+We used agent-based modeling where we simulate nucleotide mutation simulations to explore and validate this approach.
+This included creating scenarios where movement changed between simulated demes and introducing changes to the force of infection.
+Further discussion of these validation simulations can be found in the supplementary information.  
+
+\subsection{Geographic Clustering and Regional Analysis}
+
+States/provinces were sorted using hierarchical clustering to assess if states/provinces tended to be most related to other states within the same region. 
+For clustering and dimensionality reduction, seqRR was converted to a dissimilarity measure: $D_{A,B} = \exp{(-RR_{A,B})}$.
+Hierarchical clustering of states and provinces was calculated using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} package.\autocite{maechlerClusterClusterAnalysis2026}
+Principal coordinate analysis (PCoA) was conducted on the dissimilarity matrix with the \texttt{cmdscale} function from the base \texttt{stats} package.\autocite{rcoreteamLanguageEnvironmentStatistical2025}
+The absolute eigenvalue proportion was used for estimating the percent variance of each principal coordinate.
+We also sought to identify inter-regional state/province pairs that were persistently high scoring over time.
+Since the geographic normalized seqRR does not have a clear threshold for enrichment, inter-regional state/province pairs were ranked into percentiles.
+Pairs with five or more quarters of being ranked in the 98th percentile or higher were defined to be conserved high-ranking inter-regional pairs.
+Additionally, if pairs had two or more years of being ranked in the 98th percentile for a specific quarter they were flagged as a significant seasonal relationship.  
+
+\subsection{Distance/Mobility Regression Analysis}
+
+For the continental United States, identical sequence relative risk scores were compared to multiple measures of distance and movement.
+Pearson's correlation coefficients between identical sequence RR and these distance/movement variables were calculated, where all RR variables (both seqRR and travel/movement) were first transformed to a base-10 logarithmic scale.
+Same-state seqRR scores were excluded as were any pairs of states with a reported travel or movement score of zero. 
+To test for interactions between state distance and travel/movement variables we calculated partial correlation coefficients after controlling for distance and distance stratified correlation coefficients. 
+Finally, we constructed generalized additive models to predict the sequence $\log(RR)$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
+
 \clearpage
 
 \printbibliography
 
 \clearpage
 
-%TC:ignore
 \section{Acknowledgements}
 
 We gratefully acknowledge all data contributors, i.e., the Authors and their Originating laboratories responsible for obtaining the specimens, and their Submitting laboratories for generating the genetic sequence and metadata and sharing via the GISAID Initiative, on which this research is based.
