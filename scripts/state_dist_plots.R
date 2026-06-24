@@ -89,7 +89,7 @@ state_adj_plot <- state_rr%>%
                stat = "identity", fill = NA, width = 0.7) +
   scale_x_discrete(name= '') +
   scale_y_continuous(transform ='log10',
-                     name=expression(RR["identical sequences"]),
+                     name="seqRR",
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2, 1E3),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2}),expression(10^{3})),
                      expand = expansion(mult = c(0.18, 0.13)),
@@ -124,7 +124,7 @@ state_euclid_dist_plot <- state_rr %>%
                      breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
                      limits=c(0,2000)) +
   scale_y_continuous(transform ='log',
-                     name=expression(RR["identical sequences"]),
+                     name="seqRR",
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
@@ -157,7 +157,7 @@ state_cbsa_dist_plot <- state_rr %>%
                      breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
                      limits=c(0,2000)) +
   scale_y_continuous(transform ='log',
-                     name=expression(RR["identical sequences"]),
+                     name="seqRR",
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
@@ -192,7 +192,7 @@ state_euclid_cbsa_dist_plot <- state_rr %>%
                      breaks=c(0,500,1000,1500,2000,2500,3000,3500,4000,4500,5000,5500,6000,6500,7000,7500,8000,8500,9000,9500,10000),
                      limits=c(0,3000)) +
   scale_y_continuous(transform ='log',
-                     name=expression(RR["identical sequences"]),
+                     name="seqRR",
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
@@ -210,7 +210,7 @@ state_euclid_logdist_plot <- state_rr %>%
                      labels = c(0,expression(10^{1}),expression(10^{2}),expression(10^{3}),expression(10^{4}),expression(10^{5})),
                      limits=c(0,4)) +
   scale_y_continuous(transform ='log',
-                     name=expression(RR["identical sequences"]),
+                     name="seqRR",
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
@@ -245,7 +245,7 @@ state_nb_dist_plot <- state_rr %>%
                      "7th","8th","9th","10th","11th"),
                      limits= c(0,4)) +
   scale_y_continuous(transform ='log',
-                     name=expression(RR["identical sequences"]),
+                     name="seqRR",
                      breaks = c(1E-2,1E-1, 1, 1E1, 1E2),
                      labels = c(expression(10^{-2}),expression(10^{-1}),expression(10^{0}),expression(10^{1}),expression(10^{2})),
                      expand = expansion(mult = c(0.18, 0.13)),
@@ -295,7 +295,10 @@ PAIR_COLORS <- c("Same state" = "cornflowerblue",
 # itinerary) don't dominate the correlation.
 air_count <- paste0("pass_xy_", air_source)
 
-rho_cbsa <- cor(state_rr$min_cbsa_dist, log(state_rr$RR), method = "pearson", use = "complete.obs")
+rho_cbsa <- state_rr %>%
+  filter(x != y, RR > 0) %>%
+  summarize(rho = cor(min_cbsa_dist, log(RR), method = "pearson", use = "complete.obs")) %>%
+  pull(rho)
 rho_trips <- state_rr %>%
   filter(x != y, trips_xy > 0, RR_trips > 0, RR > 0) %>%
   summarize(rho = cor(log(RR_trips), log(RR), method = "pearson", use = "complete.obs")) %>%
@@ -318,7 +321,7 @@ POSTER_SUBT  <- 11
 
 poster_y_scale <- scale_y_continuous(
   transform = 'log',
-  name = expression(RR[identical]),
+  name = "seqRR",
   breaks = c(1E-1, 1, 1E1),
   labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
   limits = c(10^(-1.5), 10^(1.5))
@@ -329,10 +332,11 @@ poster_theme <- theme_classic(base_size = POSTER_BASE) +
 
 # 1. CBSA distance
 p_cbsa <- state_rr %>%
+  filter(x != y) %>%
   ggplot(aes(x = min_cbsa_dist, y = RR)) +
   geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
   geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
-  scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
+  scale_color_manual(values = PAIR_COLORS, name = "", drop = TRUE) +
   scale_x_continuous(name = "CBSA Distance (km)", limits = c(0, 3000)) +
   poster_y_scale +
   geom_hline(yintercept = 1, linetype = "dashed", alpha = 0.5) +
@@ -462,7 +466,7 @@ p_air_short <- state_rr_air %>%
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}))) +
   scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
+                     name = "seqRR",
                      breaks = c(1E-1, 1, 1E1),
                      labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
                      limits = c(10^(-1.5), 10^(1.5))) +
@@ -487,7 +491,7 @@ p_air_medium <- state_rr_air %>%
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}))) +
   scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
+                     name = "seqRR",
                      breaks = c(1E-1, 1, 1E1),
                      labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
                      limits = c(10^(-1.5), 10^(1.5))) +
@@ -512,7 +516,7 @@ p_air_long <- state_rr_air %>%
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}))) +
   scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
+                     name = "seqRR",
                      breaks = c(1E-1, 1, 1E1),
                      labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
                      limits = c(10^(-1.5), 10^(1.5))) +
@@ -541,7 +545,7 @@ p_air_all <- state_rr_air %>%
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}))) +
   scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
+                     name = "seqRR",
                      breaks = c(1E-1, 1, 1E1),
                      labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
                      limits = c(10^(-1.5), 10^(1.5))) +
@@ -609,7 +613,7 @@ p_air_intra <- state_rr_air_reg %>%
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}))) +
   scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
+                     name = "seqRR",
                      breaks = c(1E-1, 1, 1E1),
                      labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
                      limits = c(10^(-1.5), 10^(1.5))) +
@@ -637,7 +641,7 @@ p_air_inter <- state_rr_air_reg %>%
                      labels = c(expression(10^{-2}), expression(10^{-1}),
                                expression(10^{0}), expression(10^{1}))) +
   scale_y_continuous(transform = 'log',
-                     name = expression(RR[identical]),
+                     name = "seqRR",
                      breaks = c(1E-1, 1, 1E1),
                      labels = c(expression(10^{-1}), expression(10^{0}), expression(10^{1})),
                      limits = c(10^(-1.5), 10^(1.5))) +

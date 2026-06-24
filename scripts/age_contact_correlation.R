@@ -181,4 +181,11 @@ ggsave(sub("\\.png$", ".svg", fn_plot), p, width = 6, height = 4)
 ggsave(sub("\\.png$", "_compact.svg", fn_plot), p, width = 5, height = 3)
 message(paste0("Plot saved to ", fn_plot))
 
+# Supplemental figure PDF for the manuscript (this panel was pulled out of the
+# main age figure and now stands alone in the Supplementary Information).
+fn_supp_pdf <- "manuscript/figures/supp/age_contact_correlation.pdf"
+dir.create(dirname(fn_supp_pdf), recursive = TRUE, showWarnings = FALSE)
+ggsave(fn_supp_pdf, p, width = 6, height = 4)
+message(paste0("Supplemental PDF saved to ", fn_supp_pdf))
+
 cat("\nAge-contact correlation analysis complete.\n")

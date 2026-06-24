@@ -94,16 +94,17 @@ make_age_heatmap <- function(data, same_state = NULL, same_region = NULL, title 
 
   # Configure axis display
   if (show_axis) {
-    # Get unique age values and filter to every 10 years
+    # Get unique age values and filter to every 5 years
     age_breaks <- unique(c(filtered_data$x, filtered_data$y)) %>%
       sort() %>%
-      grep("*0y$", ., value = TRUE)
+      grep("[05]y$", ., value = TRUE)
     print(age_breaks)
     p <- p +
       scale_x_discrete(name = "Age Groups", breaks = age_breaks) +
       scale_y_discrete(name = "Age Groups", breaks = age_breaks) +
-      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = AXIS_SIZE),
-            axis.text.y = element_text(size = AXIS_SIZE))
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = AXIS_SIZE * 1.25),
+            axis.text.y = element_text(size = AXIS_SIZE * 1.25),
+            axis.title = element_text(size = AXIS_SIZE * 1.25))
   } else {
     p <- p + theme(
       axis.text = element_blank(),
@@ -237,12 +238,17 @@ ggsave(paste0("figs/", scenario, "/age_heatmaps/heatmap_different_region.jpg"),
        height = HEATMAP_HEIGHT,
        units = "in")
 
-# Vector outputs for the stitched manuscript figure
+# Vector outputs for the stitched manuscript figure.
+# Saved on a shorter (6 x 5.3) canvas: the heatmap square is width-limited by the
+# right-side legend, so a full 6" tall canvas leaves vertical whitespace above and
+# below. Trimming the height crops that slack. Keep height in sync with A_SRC_H_IN
+# in scripts/stitch/stitch_age.py.
 ggsave(paste0("figs/", scenario, "/age_heatmaps/full.svg"),
-       plot = age_heatmap, width = 6, height = 6, units = "in")
+       plot = age_heatmap + theme(plot.margin = margin(1, 1, 1, 1)),
+       width = 6, height = 5.3, units = "in")
 
 compact_subset_theme <- theme(
-  plot.title = element_text(size = 8, hjust = 0.5, margin = margin(b = 1)),
+  plot.title = element_text(size = 12, hjust = 0.5, margin = margin(b = 1)),
   plot.margin = margin(2, 2, 2, 2)
 )
 

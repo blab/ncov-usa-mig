@@ -4,7 +4,7 @@ TENSOR PRODUCT GAM: NB: NHTS × distance
 ================================================================================
 
 
-Family: Negative Binomial(5.695) 
+Family: Negative Binomial(5.73) 
 Link function: log 
 
 Formula:
@@ -12,28 +12,28 @@ N_pairs ~ offset(log_offset) + te(log_RR_trips, min_cbsa_dist)
 
 Parametric coefficients:
             Estimate Std. Error z value Pr(>|z|)    
-(Intercept) -0.24598    0.00854   -28.8   <2e-16 ***
+(Intercept)  -0.2434     0.0085  -28.64   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
                                  edf Ref.df Chi.sq p-value    
-te(log_RR_trips,min_cbsa_dist) 14.17  16.13   3394  <2e-16 ***
+te(log_RR_trips,min_cbsa_dist) 14.17  16.13   3431  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =   0.79   Deviance explained = 61.7%
--REML =  19832  Scale est. = 1         n = 2424
+R-sq.(adj) =  0.793   Deviance explained =   62%
+-REML =  21508  Scale est. = 1         n = 2424
 
-Dev. explained: 61.7%
-AIC: 39638.91
+Dev. explained: 62.0%
+AIC: 42991.44
 
 ================================================================================
 TENSOR PRODUCT GAM: NB: T100 × distance
 ================================================================================
 
 
-Family: Negative Binomial(5.927) 
+Family: Negative Binomial(5.922) 
 Link function: log 
 
 Formula:
@@ -41,57 +41,57 @@ N_pairs ~ offset(log_offset) + te(log_RR_air_t100, min_cbsa_dist)
 
 Parametric coefficients:
              Estimate Std. Error z value Pr(>|z|)    
-(Intercept) -0.142885   0.009111  -15.68   <2e-16 ***
+(Intercept) -0.141100   0.009104   -15.5   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
                                     edf Ref.df Chi.sq p-value    
-te(log_RR_air_t100,min_cbsa_dist) 19.57  21.12   3599  <2e-16 ***
+te(log_RR_air_t100,min_cbsa_dist) 19.57  21.13   3626  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.682   Deviance explained = 67.2%
--REML =  17354  Scale est. = 1         n = 2042
+R-sq.(adj) =  0.689   Deviance explained = 67.4%
+-REML =  18772  Scale est. = 1         n = 2042
 
-Dev. explained: 67.2%
-AIC: 34654.42
+Dev. explained: 67.4%
+AIC: 37490.52
 
 ================================================================================
 TENSOR PRODUCT GAM: NB: DB1B × distance
 ================================================================================
 
 
-Family: Negative Binomial(5.586) 
+Family: Negative Binomial(5.547) 
 Link function: log 
 
 Formula:
 N_pairs ~ offset(log_offset) + te(log_RR_air_db1b, min_cbsa_dist)
 
 Parametric coefficients:
-             Estimate Std. Error z value Pr(>|z|)    
-(Intercept) -0.251582   0.009012  -27.91   <2e-16 ***
+            Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -0.24726    0.00903  -27.38   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
                                     edf Ref.df Chi.sq p-value    
-te(log_RR_air_db1b,min_cbsa_dist) 15.98  18.47   3293  <2e-16 ***
+te(log_RR_air_db1b,min_cbsa_dist) 15.83  18.31   3297  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.642   Deviance explained = 62.6%
--REML =  18312  Scale est. = 1         n = 2218
+R-sq.(adj) =  0.641   Deviance explained = 62.7%
+-REML =  19863  Scale est. = 1         n = 2218
 
-Dev. explained: 62.6%
-AIC: 36589.81
+Dev. explained: 62.7%
+AIC: 39691.24
 
 ================================================================================
 TENSOR PRODUCT GAM: NB: SafeGraph × distance
 ================================================================================
 
 
-Family: Negative Binomial(6.373) 
+Family: Negative Binomial(6.447) 
 Link function: log 
 
 Formula:
@@ -99,21 +99,21 @@ N_pairs ~ offset(log_offset) + te(log_RR_move, min_cbsa_dist)
 
 Parametric coefficients:
              Estimate Std. Error z value Pr(>|z|)    
-(Intercept) -0.237197   0.008258  -28.72   <2e-16 ***
+(Intercept) -0.235424   0.008198  -28.72   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
-                               edf Ref.df Chi.sq p-value    
-te(log_RR_move,min_cbsa_dist) 16.3  18.41   4130  <2e-16 ***
+                                edf Ref.df Chi.sq p-value    
+te(log_RR_move,min_cbsa_dist) 16.31  18.43   4199  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.863   Deviance explained = 67.1%
--REML =  19007  Scale est. = 1         n = 2316
+R-sq.(adj) =  0.864   Deviance explained = 67.5%
+-REML =  20601  Scale est. = 1         n = 2316
 
-Dev. explained: 67.1%
-AIC: 37982.50
+Dev. explained: 67.5%
+AIC: 41171.02
 
 ================================================================================
 TENSOR PRODUCT GAM: RR: NHTS × distance
@@ -128,21 +128,21 @@ log10(RR_seq) ~ te(log_RR_trips, min_cbsa_dist)
 
 Parametric coefficients:
              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -0.145951   0.003886  -37.56   <2e-16 ***
+(Intercept) -0.144530   0.003862  -37.43   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
                                  edf Ref.df     F p-value    
-te(log_RR_trips,min_cbsa_dist) 14.07  16.04 196.9  <2e-16 ***
+te(log_RR_trips,min_cbsa_dist) 14.02     16 199.5  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.566   Deviance explained = 56.8%
--REML = -544.23  Scale est. = 0.036599  n = 2424
+R-sq.(adj) =  0.568   Deviance explained = 57.1%
+-REML = -559.46  Scale est. = 0.036145  n = 2424
 
-Dev. explained: 56.8%
-AIC: -1119.90
+Dev. explained: 57.1%
+AIC: -1150.19
 
 ================================================================================
 TENSOR PRODUCT GAM: RR: T100 × distance
@@ -157,21 +157,21 @@ log10(RR_seq) ~ te(log_RR_air_t100, min_cbsa_dist)
 
 Parametric coefficients:
              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -0.099340   0.004086  -24.31   <2e-16 ***
+(Intercept) -0.098604   0.004083  -24.15   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
                                     edf Ref.df     F p-value    
-te(log_RR_air_t100,min_cbsa_dist) 18.97   20.7 155.5  <2e-16 ***
+te(log_RR_air_t100,min_cbsa_dist) 18.93  20.68 156.6  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.612   Deviance explained = 61.5%
--REML = -513.44  Scale est. = 0.034092  n = 2042
+R-sq.(adj) =  0.613   Deviance explained = 61.7%
+-REML = -515.01  Scale est. = 0.034043  n = 2042
 
-Dev. explained: 61.5%
-AIC: -1081.28
+Dev. explained: 61.7%
+AIC: -1084.26
 
 ================================================================================
 TENSOR PRODUCT GAM: RR: DB1B × distance
@@ -185,22 +185,22 @@ Formula:
 log10(RR_seq) ~ te(log_RR_air_db1b, min_cbsa_dist)
 
 Parametric coefficients:
-            Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -0.14913    0.00405  -36.82   <2e-16 ***
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -0.147455   0.004056  -36.36   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
                                     edf Ref.df     F p-value    
-te(log_RR_air_db1b,min_cbsa_dist) 17.84  20.25 148.3  <2e-16 ***
+te(log_RR_air_db1b,min_cbsa_dist) 17.82  20.23 147.2  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.575   Deviance explained = 57.9%
--REML = -491.8  Scale est. = 0.036385  n = 2218
+R-sq.(adj) =  0.573   Deviance explained = 57.7%
+-REML = -488.89  Scale est. = 0.03648   n = 2218
 
-Dev. explained: 57.9%
-AIC: -1032.20
+Dev. explained: 57.7%
+AIC: -1026.32
 
 ================================================================================
 TENSOR PRODUCT GAM: RR: SafeGraph × distance
@@ -215,21 +215,21 @@ log10(RR_seq) ~ te(log_RR_move, min_cbsa_dist)
 
 Parametric coefficients:
              Estimate Std. Error t value Pr(>|t|)    
-(Intercept) -0.137985   0.003746  -36.83   <2e-16 ***
+(Intercept) -0.136666   0.003716  -36.78   <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 Approximate significance of smooth terms:
-                                edf Ref.df     F p-value    
-te(log_RR_move,min_cbsa_dist) 16.39  18.49 210.4  <2e-16 ***
+                               edf Ref.df     F p-value    
+te(log_RR_move,min_cbsa_dist) 16.4   18.5 213.2  <2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-R-sq.(adj) =  0.627   Deviance explained = 62.9%
--REML = -651.23  Scale est. = 0.032505  n = 2316
+R-sq.(adj) =   0.63   Deviance explained = 63.3%
+-REML = -669.94  Scale est. = 0.031983  n = 2316
 
-Dev. explained: 62.9%
-AIC: -1342.07
+Dev. explained: 63.3%
+AIC: -1379.57
 
 ================================================================================
 LRT: interaction significance — NHTS
@@ -242,8 +242,8 @@ Model 1: N_pairs ~ offset(log_offset) + ti(log_RR_trips) + ti(min_cbsa_dist)
 Model 2: N_pairs ~ offset(log_offset) + ti(log_RR_trips) + ti(min_cbsa_dist) + 
     ti(log_RR_trips, min_cbsa_dist)
   Resid. Df Resid. Dev     Df Deviance  Pr(>Chi)    
-1    2415.1      39693                              
-2    2407.5      39608 7.6146   85.903 1.922e-15 ***
+1    2415.0      43043                              
+2    2407.6      42960 7.3754   82.725 6.251e-15 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -253,9 +253,9 @@ Analysis of Deviance Table
 Model 1: log10(RR_seq) ~ ti(log_RR_trips) + ti(min_cbsa_dist)
 Model 2: log10(RR_seq) ~ ti(log_RR_trips) + ti(min_cbsa_dist) + ti(log_RR_trips, 
     min_cbsa_dist)
-  Resid. Df Resid. Dev     Df Deviance     F    Pr(>F)    
-1    2415.5     91.603                                    
-2    2408.0     88.283 7.4882   3.3201 12.11 3.611e-16 ***
+  Resid. Df Resid. Dev     Df Deviance      F    Pr(>F)    
+1    2415.4     90.442                                     
+2    2410.5     87.256 4.8964   3.1853 17.983 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -270,8 +270,8 @@ Model 1: N_pairs ~ offset(log_offset) + ti(log_RR_air_t100) + ti(min_cbsa_dist)
 Model 2: N_pairs ~ offset(log_offset) + ti(log_RR_air_t100) + ti(min_cbsa_dist) + 
     ti(log_RR_air_t100, min_cbsa_dist)
   Resid. Df Resid. Dev     Df Deviance  Pr(>Chi)    
-1    2032.8      34829                              
-2    2019.9      34611 12.931   217.28 < 2.2e-16 ***
+1    2032.8      37671                              
+2    2019.9      37448 12.964   223.78 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -281,9 +281,9 @@ Analysis of Deviance Table
 Model 1: log10(RR_seq) ~ ti(log_RR_air_t100) + ti(min_cbsa_dist)
 Model 2: log10(RR_seq) ~ ti(log_RR_air_t100) + ti(min_cbsa_dist) + ti(log_RR_air_t100, 
     min_cbsa_dist)
-  Resid. Df Resid. Dev     Df Deviance      F    Pr(>F)    
-1    2032.9     74.929                                     
-2    2020.2     68.992 12.706   5.9374 13.708 < 2.2e-16 ***
+  Resid. Df Resid. Dev   Df Deviance      F    Pr(>F)    
+1    2033.0     74.987                                   
+2    2020.2     68.908 12.8   6.0788 13.949 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -298,8 +298,8 @@ Model 1: N_pairs ~ offset(log_offset) + ti(log_RR_air_db1b) + ti(min_cbsa_dist)
 Model 2: N_pairs ~ offset(log_offset) + ti(log_RR_air_db1b) + ti(min_cbsa_dist) + 
     ti(log_RR_air_db1b, min_cbsa_dist)
   Resid. Df Resid. Dev     Df Deviance  Pr(>Chi)    
-1    2210.5      36733                              
-2    2196.1      36551 14.352   182.36 < 2.2e-16 ***
+1    2210.9      39829                              
+2    2196.3      39652 14.662   176.97 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -310,8 +310,8 @@ Model 1: log10(RR_seq) ~ ti(log_RR_air_db1b) + ti(min_cbsa_dist)
 Model 2: log10(RR_seq) ~ ti(log_RR_air_db1b) + ti(min_cbsa_dist) + ti(log_RR_air_db1b, 
     min_cbsa_dist)
   Resid. Df Resid. Dev     Df Deviance      F    Pr(>F)    
-1    2211.3     87.932                                     
-2    2195.0     80.024 16.321   7.9075 13.316 < 2.2e-16 ***
+1    2211.7     87.925                                     
+2    2194.9     80.223 16.827   7.7021 12.548 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -326,8 +326,8 @@ Model 1: N_pairs ~ offset(log_offset) + ti(log_RR_move) + ti(min_cbsa_dist)
 Model 2: N_pairs ~ offset(log_offset) + ti(log_RR_move) + ti(min_cbsa_dist) + 
     ti(log_RR_move, min_cbsa_dist)
   Resid. Df Resid. Dev     Df Deviance  Pr(>Chi)    
-1    2306.8      38297                              
-2    2297.5      37947 9.2807   350.09 < 2.2e-16 ***
+1    2306.8      41489                              
+2    2297.5      41135 9.3418   353.97 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -338,8 +338,8 @@ Model 1: log10(RR_seq) ~ ti(log_RR_move) + ti(min_cbsa_dist)
 Model 2: log10(RR_seq) ~ ti(log_RR_move) + ti(min_cbsa_dist) + ti(log_RR_move, 
     min_cbsa_dist)
   Resid. Df Resid. Dev     Df Deviance      F    Pr(>F)    
-1    2306.8     87.954                                     
-2    2295.7     74.749 11.107   13.206 36.586 < 2.2e-16 ***
+1    2306.8     86.688                                     
+2    2295.8     73.551 11.038   13.137 37.224 < 2.2e-16 ***
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
@@ -357,29 +357,29 @@ partial_smooth_dist = correlate residuals of gam(~ s(min_cbsa_dist)) for both va
       DB1B and understates how much of SafeGraph is just distance).
 
     source    n marginal partial_linear_dist partial_smooth_dist
-      NHTS 2424    0.681               0.489               0.252
-      T100 2042    0.277               0.106               0.113
-      DB1B 2218    0.290               0.076               0.232
- SafeGraph 2316    0.540               0.215               0.018
+      NHTS 2424    0.683               0.491               0.255
+      T100 2042    0.275               0.103               0.110
+      DB1B 2218    0.284               0.066               0.222
+ SafeGraph 2316    0.544               0.219               0.024
 
 Within distance-band Pearson(log travel-RR, log seq-RR):
   Shows where the association holds. SafeGraph is strongly + at short range,
   ~0 mid-range, and only - in the sparse >3000 km tail (artifact, low n).
 
     source          band    n pearson
-      NHTS       [0,250]  302   0.620
-      NHTS   (250,1e+03]  752   0.172
-      NHTS (1e+03,3e+03] 1140   0.325
-      NHTS (3e+03,5e+03]  230   0.476
-      T100       [0,250]  318  -0.248
-      T100   (250,1e+03]  668  -0.002
+      NHTS       [0,250]  302   0.616
+      NHTS   (250,1e+03]  752   0.174
+      NHTS (1e+03,3e+03] 1140   0.331
+      NHTS (3e+03,5e+03]  230   0.474
+      T100       [0,250]  318  -0.250
+      T100   (250,1e+03]  668  -0.007
       T100 (1e+03,3e+03]  898   0.343
-      T100 (3e+03,5e+03]  158   0.421
-      DB1B       [0,250]  254  -0.236
-      DB1B   (250,1e+03]  700   0.314
-      DB1B (1e+03,3e+03] 1058   0.358
-      DB1B (3e+03,5e+03]  206   0.544
- SafeGraph       [0,250]  310   0.676
- SafeGraph   (250,1e+03]  750   0.195
- SafeGraph (1e+03,3e+03] 1106  -0.060
- SafeGraph (3e+03,5e+03]  150  -0.319
+      T100 (3e+03,5e+03]  158   0.431
+      DB1B       [0,250]  254  -0.228
+      DB1B   (250,1e+03]  700   0.297
+      DB1B (1e+03,3e+03] 1058   0.353
+      DB1B (3e+03,5e+03]  206   0.531
+ SafeGraph       [0,250]  310   0.675
+ SafeGraph   (250,1e+03]  750   0.197
+ SafeGraph (1e+03,3e+03] 1106  -0.053
+ SafeGraph (3e+03,5e+03]  150  -0.309

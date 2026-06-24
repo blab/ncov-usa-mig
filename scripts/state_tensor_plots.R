@@ -92,8 +92,8 @@ plot_pred_nb_gam <- function(m, df, model_name) {
   ggplot(plot_df, aes(x = rr_hat, y = rr_obs)) +
     geom_point(alpha = 0.4) +
     geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-    scale_x_continuous(transform = "log10", name = "Predicted RR") +
-    scale_y_continuous(transform = "log10", name = "Observed RR") +
+    scale_x_continuous(transform = "log10", name = "Predicted seqRR") +
+    scale_y_continuous(transform = "log10", name = "Observed seqRR") +
     ggtitle(sprintf("%s - log10 RMSE: %.3f", model_name, rmse_val)) +
     coord_equal(xlim = range_vals, ylim = range_vals) +
     theme_bw()
@@ -110,8 +110,8 @@ plot_pred_rr_gam <- function(m, df, model_name) {
   ggplot(plot_df, aes(x = rr_hat, y = rr_obs)) +
     geom_point(alpha = 0.4) +
     geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-    scale_x_continuous(transform = "log10", name = "Predicted RR") +
-    scale_y_continuous(transform = "log10", name = "Observed RR") +
+    scale_x_continuous(transform = "log10", name = "Predicted seqRR") +
+    scale_y_continuous(transform = "log10", name = "Observed seqRR") +
     ggtitle(sprintf("%s - log10 RMSE: %.3f", model_name, rmse_val)) +
     coord_equal(xlim = range_vals, ylim = range_vals) +
     theme_bw()
@@ -504,6 +504,76 @@ ggsave(paste0("figs/", scenario, "/dist/gam_fit.jpg"),
 message("GAM fit plots saved to figs/", scenario, "/dist/gam_fit.jpg")
 
 # ============================================================================
+# COMMON-DATASET MODELS: s(travel) vs te(travel, dist) for NHTS & DB1B
+# ============================================================================
+# All four obs-vs-pred panels (row B) and the row-C prediction curves are fit
+# on ONE common set of pairs valid for BOTH travel sources, so RMSE and
+# deviance explained are directly comparable across all panels. NB: this
+# restricts to pairs with both ground (NHTS) and sampled air (DB1B) data.
+
+df_common <- df_model_data %>%
+  filter(N_pairs > 0, trips_xy > 0, pass_xy_db1b > 2,
+         is.finite(log_RR_trips), is.finite(log_RR_air_db1b))
+# +/-3 SD trim on each travel variable (sequential, matches make_model_df logic)
+for (v in c("log_RR_trips", "log_RR_air_db1b")) {
+  keep <- abs(df_common[[v]] - mean(df_common[[v]])) <= 3 * sd(df_common[[v]])
+  df_common <- df_common[keep, ]
+}
+df_common <- as.data.frame(df_common)
+message(sprintf("Common-dataset N = %d pairs (valid for both NHTS and DB1B)", nrow(df_common)))
+
+c_gam_s_trips  <- mgcv::gam(log10(RR_seq) ~ s(log_RR_trips),                  data = df_common, method = "REML")
+c_gam_te_trips <- mgcv::gam(log10(RR_seq) ~ te(log_RR_trips, min_cbsa_dist),  data = df_common, method = "REML")
+c_gam_s_db1b   <- mgcv::gam(log10(RR_seq) ~ s(log_RR_air_db1b),               data = df_common, method = "REML")
+c_gam_te_db1b  <- mgcv::gam(log10(RR_seq) ~ te(log_RR_air_db1b, min_cbsa_dist), data = df_common, method = "REML")
+
+# ============================================================================
+# COMPACT OBSERVED-VS-EXPECTED ROW (shared extents, square panels)
+# ============================================================================
+
+# Compact obs-vs-pred panel: fitted() is on log10(RR_seq) scale (RR-form GAM).
+# Shared range_vals + coord_equal keep all panels on identical square extents.
+# Title shows log10 RMSE and deviance explained.
+plot_obs_exp_compact <- function(m, df, model_name, range_vals) {
+  if (is.null(m)) return(patchwork::plot_spacer())
+  eps <- 1e-10
+  rr_obs <- df$RR_seq + eps
+  rr_hat <- 10^fitted(m) + eps
+  rmse_val <- as.numeric(yardstick::rmse_vec(log10(rr_obs), log10(rr_hat)))
+  dev_pct  <- summary(m)$dev.expl * 100
+  ggplot(data.frame(rr_obs = rr_obs, rr_hat = rr_hat), aes(x = rr_hat, y = rr_obs)) +
+    geom_point(alpha = 0.4) +
+    geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+    scale_x_continuous(transform = "log10", name = "Predicted seqRR") +
+    scale_y_continuous(transform = "log10", name = "Observed seqRR") +
+    ggtitle(sprintf("%s\nRMSE %.3f · %.0f%% dev", model_name, rmse_val, dev_pct)) +
+    coord_equal(xlim = range_vals, ylim = range_vals) +
+    theme_bw(base_size = 12) +
+    theme(axis.text = element_blank(), axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5, size = rel(1)))
+}
+
+# All four models share df_common; s(travel) vs te(travel, dist) for each source
+oe_models <- list(
+  list(m = c_gam_s_trips,  name = "NHTS Only"),
+  list(m = c_gam_te_trips, name = "NHTS x Dist"),
+  list(m = c_gam_s_db1b,   name = "DB1B Only"),
+  list(m = c_gam_te_db1b,  name = "DB1B x Dist")
+)
+oe_range <- range(unlist(lapply(oe_models, function(s) {
+  if (is.null(s$m)) return(NULL)
+  c(df_common$RR_seq, 10^fitted(s$m))
+})), na.rm = TRUE)
+
+oe_plots <- lapply(oe_models, function(s) plot_obs_exp_compact(s$m, df_common, s$name, oe_range))
+oe_row <- patchwork::wrap_plots(oe_plots, ncol = 4, nrow = 1)
+ggsave(paste0("figs/", scenario, "/dist/lm_gam_obs_exp.jpg"),
+       plot = oe_row, width = 10, height = 2.8, units = "in", dpi = 300)
+ggsave(paste0("figs/", scenario, "/dist/lm_gam_obs_exp.svg"),
+       plot = oe_row, width = 10, height = 2.8, units = "in")
+message("GAM obs-exp row saved to figs/", scenario, "/dist/lm_gam_obs_exp.jpg / .svg")
+
+# ============================================================================
 # ti() DECOMPOSITION SURFACES
 # ============================================================================
 
@@ -665,7 +735,7 @@ plot_rr_distance_curves <- function(m, df, travel_var, travel_label,
     scale_x_continuous(transform = "log10", name = travel_label,
                        breaks = x_breaks,
                        labels = formatC(x_breaks, digits = 2, format = "g")) +
-    scale_y_continuous(transform = "log10", name = "Predicted Sequence RR",
+    scale_y_continuous(transform = "log10", name = "Predicted seqRR",
                        breaks = c(0.1, 0.25, 0.5, 1, 2, 4, 10),
                        labels = c("0.1", "0.25", "0.5", "1", "2", "4", "10")) +
     scale_color_viridis_d(name = "CBSA Distance", direction = -1, option = "plasma") +
@@ -675,14 +745,15 @@ plot_rr_distance_curves <- function(m, df, travel_var, travel_label,
           plot.title = element_text(hjust = 0.5, face = "bold"))
 }
 
-p_curves_db1b <- plot_rr_distance_curves(gam_rr_db1b, df_db1b_data, "log_RR_air_db1b",
+# Row-C prediction curves use the common-dataset te() models (same data as row B)
+p_curves_db1b <- plot_rr_distance_curves(c_gam_te_db1b, df_common, "log_RR_air_db1b",
                                           "Air Travel RR (DB1B)",
                                           custom_breaks = c(0.1, 0.3, 0.5, 1, 2, 3))
 ggsave(paste0("figs/", scenario, "/dist/pred_rr_curves_db1b.jpg"),
        plot = p_curves_db1b, width = 7, height = 5, units = "in", dpi = 300)
 message("RR curves saved: pred_rr_curves_db1b.jpg")
 
-p_curves_trips <- plot_rr_distance_curves(gam_rr_trips, df_trips_data, "log_RR_trips",
+p_curves_trips <- plot_rr_distance_curves(c_gam_te_trips, df_common, "log_RR_trips",
                                            "Ground Travel RR (NHTS)")
 ggsave(paste0("figs/", scenario, "/dist/pred_rr_curves_trips.jpg"),
        plot = p_curves_trips, width = 7, height = 5, units = "in", dpi = 300)

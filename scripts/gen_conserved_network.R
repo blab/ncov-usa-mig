@@ -143,7 +143,12 @@ if (gen_viz) {
   # ============================================================================
   cat("\n=== Creating Geographic Map Overlay ===\n")
 
-  states_involved <- unique(c(edge_counts$x, edge_counts$y))
+  # Drop Canadian provinces from the geographic map panel (left panel)
+  canada_states <- REGION_DATA %>% filter(country == "Canada") %>% pull(state)
+  edge_counts_map <- edge_counts %>%
+    filter(!(x %in% canada_states), !(y %in% canada_states))
+
+  states_involved <- unique(c(edge_counts_map$x, edge_counts_map$y))
 
   generate_curved_path <- function(lon1, lat1, lon2, lat2, n = 20, curvature = 0.15) {
     t <- seq(0, 1, length.out = n)
@@ -160,7 +165,7 @@ if (gen_viz) {
     data.frame(lon = lon_curved, lat = lat_curved)
   }
 
-  edges_for_plot <- edge_counts %>%
+  edges_for_plot <- edge_counts_map %>%
     left_join(state_centroids, by = c("x" = "state")) %>%
     rename(lon_x = lon, lat_x = lat) %>%
     left_join(state_centroids, by = c("y" = "state")) %>%
@@ -186,6 +191,7 @@ if (gen_viz) {
   cam_map_with_region <- cam_map %>%
     left_join(REGION_DATA %>% select(state, bea_reg), by = c("NAME_En" = "state")) %>%
     filter(
+      !(NAME_En %in% canada_states),
       !(NAME_En %in% c("Hawaii", "Alaska", "Mexico", "Yukon", "Northwest Territories", "Nunavut")) |
       NAME_En %in% states_involved
     )

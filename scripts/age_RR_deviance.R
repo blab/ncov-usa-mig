@@ -80,7 +80,7 @@ df_age_state_RR <- df_age_state_RR %>%
     geo_class = case_when(
       sameState == TRUE  ~ "Same State",
       sameRegion == TRUE ~ "Same Region",
-      TRUE               ~ "Inter-Region"
+      TRUE               ~ "Different Region"
     )
   )
 
@@ -92,7 +92,7 @@ df_geo_dev <- df_age_state_RR %>%
             .groups = "drop") %>%
   mutate(
     age = substr(x, 1, 2) %>% as.numeric(),
-    geo_class = factor(geo_class, levels = c("Same State", "Same Region", "Inter-Region"))
+    geo_class = factor(geo_class, levels = c("Same State", "Same Region", "Different Region"))
   )
 
 # Combined deviance curve by geographic class
@@ -100,7 +100,7 @@ plot_geo_dev <- ggplot(df_geo_dev, aes(x = age, y = deviance, color = geo_class)
   geom_point(alpha = 0.6, size = 1.5) +
   geom_smooth(method = "gam") +
   theme_bw() +
-  scale_color_brewer(palette = "Set1", name = "Geographic Relationship") +
+  scale_color_brewer(palette = "Set1", name = "Geography") +
   labs(x = "Age", y = "RR Deviance") +
   theme(legend.position = "bottom")
 
@@ -110,11 +110,11 @@ ggsave(plot_geo_dev, filename = sub("\\.jpg$", ".svg", fn_geo_dev_plot), units =
 
 # Compact version sized to slot beneath the subset-heatmap row in the stitched figure
 plot_geo_dev_compact <- plot_geo_dev +
-  theme(legend.key.size = unit(0.4, "cm"),
-        legend.title = element_text(size = 10),
-        legend.text = element_text(size = 9),
-        axis.title = element_text(size = 8),
-        axis.text = element_text(size = 7))
+  theme(legend.key.size = unit(0.45, "cm"),
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 10))
 ggsave(plot_geo_dev_compact,
        filename = paste0("figs/", scenario, "/age_RR_deviance_geographic_compact.png"),
        dpi = 300, units = "in", width = 5, height = 3.33)

@@ -60,7 +60,6 @@ seq_map <- plot_cam_choropleth(cam_map,
                     value_col = num_seq,
                     fill_mapper = log10,
                     scale_fun = log_seq_scale,
-                    title = "Sequence Counts",
                     bottom_legend = TRUE,
                     line_size = STATE_LINE,
                     box_size = BOX_LINE) +
@@ -137,9 +136,10 @@ plot_natl_effort <- ggplot(natl_week_effort,
        aes(x = week_start, y = seq_effort, color = country)) +
   geom_line(linewidth = 1.0) +
   scale_x_date(date_breaks = "4 months",name = "Date") +
-  scale_y_continuous(name = "Weekly Sequences (per 100,000)") +
+  scale_y_continuous(name = "Weekly Sequences per 100,000") +
   theme_bw()  +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.y = element_text(size = 9)) +
   country_color_scale()
 
 ggsave(paste0(FN_PATH,"natl_effort.png"),
@@ -172,22 +172,16 @@ ggsave(paste0(FN_PATH,"effort_box.png"),
   create.dir = TRUE
 )
 
-age_sex_seq <- meta_tbl |>
-  group_by(sex,age_adj) |>
+age_seq <- meta_tbl |>
+  group_by(age_adj) |>
   summarize(num_seq = n()) |>
-  select(age_adj,sex,num_seq)
+  select(age_adj,num_seq)
 
-pyramid_limit <- age_sex_seq %>%
-  filter(!is.na(sex)) %>%
-  filter(!is.na(age_adj)) %>%
-  pull(num_seq) %>% max()
-
-plot_age_sex <- ggplot(
-  data = age_sex_seq,
+plot_age_hist <- ggplot(
+  data = age_seq,
   aes(x=age_adj,
-      fill = sex,
-      y = ifelse(sex == "Male",num_seq,-num_seq))) +
-  geom_bar(stat="identity") +
+      y = num_seq)) +
+  geom_bar(stat="identity", fill = "#4575b4") +
   scale_x_continuous(
     limits = c(-1,91),
     n.breaks = 9,
@@ -195,26 +189,22 @@ plot_age_sex <- ggplot(
     name = "Age"
   ) +
   scale_y_continuous(
-    labels = abs, 
-    limits = pyramid_limit * c(-1,1),
     name = "Number of Sequences"
   ) +
-  sex_fill_scale() +
   coord_flip() +
-  theme_bw()  + 
-  theme(legend.position = "bottom")
+  theme_bw()
 
-ggsave(paste0(FN_PATH,"age_sex.png"),
-  plot_age_sex, height = 4, width = 3, units = "in", dpi = 300, create.dir = TRUE
+ggsave(paste0(FN_PATH,"age_hist.png"),
+  plot_age_hist, height = 4, width = 3, units = "in", dpi = 300, create.dir = TRUE
 )
-ggsave(paste0(FN_PATH,"age_sex.svg"),
-  plot_age_sex, height = 4, width = 3, units = "in", device = "svg"
+ggsave(paste0(FN_PATH,"age_hist.svg"),
+  plot_age_hist, height = 4, width = 3, units = "in", device = "svg"
 )
 
-sex_seq <- age_sex_seq %>%
+sex_seq <- meta_tbl %>%
   filter(!is.na(sex)) %>%
   group_by(sex) %>%
-  summarize(num_seq = sum(num_seq)) %>%
+  summarize(num_seq = n()) %>%
   mutate(perc_sex = round(100 *num_seq/sum(num_seq),1))
   
 plot_age_region <- ggplot(
@@ -293,7 +283,7 @@ reposition_legend(plot_clade_reg_time,
 
 #Stitch the main figures together
 combined_fig <- seq_map + seq_eff_map +
-  plot_age_sex + (plot_natl_effort / plot_effort_box) +
+  plot_age_hist + (plot_natl_effort / plot_effort_box) +
   plot_layout(ncol=2,
             byrow = TRUE,
             heights = c(1, 0.6)) +

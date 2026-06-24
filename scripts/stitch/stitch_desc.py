@@ -6,12 +6,12 @@ Layout (subfigure letters a-d), dimensions from original Inkscape assembly:
   | a  seq_map           | b  natl_effort               |
   |    (left, full ht)   |    (top-right, 6x3in → 2:1)  |
   |                      +-----------+------------------+
-  |                      | c age_sex | d  age_region    |
+  |                      | c age_hist| d  age_region    |
   |                      |  (3x4in)  |    (5x4in)       |
   +----------------------+-----------+------------------+
 
 Source SVG dimensions (set in descriptive_figures.R):
-  seq_map:     6x7in   age_sex:    3x4in
+  seq_map:     6x7in   age_hist:   3x4in
   natl_effort: 6x3in   age_region: 5x4in
 """
 
@@ -36,7 +36,7 @@ MM_TO_PT = (TARGET_W_IN * PT_PER_IN) / ORIG_W_MM
 PANELS = {
     "seq_map":     dict(x=-2.1166668, y=0,           w=43.542858, h=50.799999, native_w_in=6),
     "natl_effort": dict(x=40.110756,  y=0.094874,    w=50.799999, h=25.4,      native_w_in=6),
-    "age_sex":     dict(x=39.077778,  y=25.434631,   w=19.049999, h=25.4,      native_w_in=3),
+    "age_hist":    dict(x=39.077778,  y=25.434631,   w=19.049999, h=25.4,      native_w_in=3),
     "age_region":  dict(x=59.282818,  y=25.036949,   w=31.75,     h=25.4,      native_w_in=5),
 }
 

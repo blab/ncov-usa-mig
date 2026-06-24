@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Stitch the age-analysis figures into a single multi-panel SVG.
 
-Layout (subfigure letters A-E):
+Layout (subfigure letters A-D; contact correlation moved to a supplement):
   +------------------------------------------------------+
-  | A | full heatmap         | B | subsets_row          |
-  |   |                      |   | C | deviance         |
+  |             A | full heatmap (expanded, centered)    |
   +------------------------------------------------------+
-  | D | young_0_24 heatmap   | E | contact correlation  |
+  | B | young_0_24 heatmap | C | subsets_row             |
+  |                        | D | deviance                |
   +------------------------------------------------------+
 """
 
@@ -27,29 +27,37 @@ LABEL_SIZE = 18
 LEFT_MARGIN = 24
 LETTER_X = 8
 
-# Row heights (inches)
-A_H_IN = 5
-BC_H_IN = 4
-TOTAL_H_IN = A_H_IN + BC_H_IN
+# ----- Panel A (top row): full heatmap, expanded and centered -----
+# full.svg is saved on a 6 (W) x 5.3 (H) canvas (trimmed to remove vertical
+# whitespace around the heatmap; keep A_SRC_H_IN in sync with the ggsave height
+# in age_heatmap.R). A_SIDE_IN is the single knob for how wide A renders; its
+# height follows from the native aspect ratio.
+A_SRC_W_IN = 6
+A_SRC_H_IN = 5.3
+A_SIDE_IN = 10                              # rendered width of panel A
+A_SCALE = A_SIDE_IN / A_SRC_W_IN
+A_H_IN = A_SIDE_IN * (A_SRC_H_IN / A_SRC_W_IN)
+A_X_IN = (PANEL_W_IN - A_SIDE_IN) / 2.0     # horizontal centering offset
 
-# Panel A internal layout (within 10" wide, 5" tall)
-A_FULL_W_IN = 5            # left half: full heatmap area
-A_RIGHT_W_IN = 5
-A_SUBSETS_H_IN = 2.0       # top of right column (B, enlarged)
-A_DEV_H_IN = A_H_IN - A_SUBSETS_H_IN  # 3.0 (C, shrunk to give B room)
+# ----- Bottom row: young heatmap (B) left, subsets(C)/deviance(D) stack right -----
+# Mirrors the old top-right composite: subsets row sits on top of the deviance
+# line plot. The young heatmap is a square filling the row height on the left.
+RIGHT_W_IN = 5             # width of the subsets/deviance stack (native subsets width)
+BOTTOM_H_IN = 5            # subsets (2") + deviance (3")
+SUBSETS_H_IN = 2.0
 
-# Panel C (deviance) saved at 5 x 3.33; scaled to fit its (reduced) height
-# allotment, then nudged right so its content clears the "C" letter label.
+YOUNG_SRC_IN = 6           # young_0_24.svg native canvas (square)
+YOUNG_SIDE_IN = BOTTOM_H_IN
+YOUNG_SCALE = YOUNG_SIDE_IN / YOUNG_SRC_IN  # square heatmap fills the row height
+
+# Deviance saved at 5 x 3.33; scaled to its reduced height allotment and nudged
+# right so its content clears the "D" letter label.
 DEV_NATIVE_H_IN = 3.33
 DEV_INSET_IN = 0.25
-DEV_SCALE = A_DEV_H_IN / DEV_NATIVE_H_IN  # height-driven shrink
+DEV_H_IN = BOTTOM_H_IN - SUBSETS_H_IN  # 3.0
+DEV_SCALE = DEV_H_IN / DEV_NATIVE_H_IN  # height-driven shrink
 
-# Bottom row: D is a single square heatmap (3x3), E is the two-panel contact
-# correlation (7x3). Widths intentionally unequal — they sum to the full width.
-D_W_IN = BC_H_IN           # 4 -> square young_0_24 heatmap
-E_W_IN = PANEL_W_IN - D_W_IN  # 6 -> native age_contact_correlation.svg (6x4)
-YOUNG_SRC_IN = 6           # young_0_24.svg native canvas (square)
-YOUNG_SCALE = BC_H_IN / YOUNG_SRC_IN  # fit the 3" row height
+TOTAL_H_IN = A_H_IN + BOTTOM_H_IN
 
 
 def in_pt(x):
@@ -86,54 +94,46 @@ def stitch(scenario, out_path):
 
     elements = [Rect(total_w, total_h, fill="white")]
 
-    # ----- Panel A: heatmap composite -----
-    a_y = 0
-    # Full heatmap saved at 6x6 — uniformly scale to fit A_FULL_W_IN square.
-    full_scale = A_FULL_W_IN / 6.0
+    # ----- Panel A (top row): full heatmap, expanded and centered -----
+    a_x = LEFT_MARGIN + in_pt(A_X_IN)
     elements.append(
         add_panel(f"{fig_dir}/age_heatmaps/full.svg",
-                  LEFT_MARGIN, a_y, scale=full_scale)
-    )
-    # Subsets row saved at 5 x 1.67 — slot top-right.
-    elements.append(
-        add_panel(f"{fig_dir}/age_heatmaps/subsets_row.svg",
-                  LEFT_MARGIN + in_pt(A_FULL_W_IN), a_y)
-    )
-    # Compact deviance saved at 5 x 3.33 — slot below the subset row, nudged
-    # right and scaled down a touch so its content clears the "C" label.
-    elements.append(
-        add_panel(f"{fig_dir}/age_RR_deviance_geographic_compact.svg",
-                  LEFT_MARGIN + in_pt(A_FULL_W_IN) + in_pt(DEV_INSET_IN),
-                  a_y + in_pt(A_SUBSETS_H_IN),
-                  scale=DEV_SCALE)
+                  a_x, 0, scale=A_SCALE)
     )
 
-    # ----- Panel D: young 0-24yo heatmap (bottom-left, single square) -----
+    # ----- Bottom row -----
     bc_y = in_pt(A_H_IN)
+    right_x = LEFT_MARGIN + in_pt(YOUNG_SIDE_IN)
+
+    # Panel B: young 0-24yo heatmap (bottom-left square).
     elements.append(
         add_panel(f"{fig_dir}/age_heatmaps/young_0_24.svg",
                   LEFT_MARGIN, bc_y, scale=YOUNG_SCALE)
     )
-
-    # ----- Panel E: contact correlation (bottom-right, two panels, 7x3) -----
+    # Panel C: subsets row (top of the bottom-right stack), native 5 x 2.
     elements.append(
-        add_panel(f"{fig_dir}/age_contact_correlation.svg",
-                  LEFT_MARGIN + in_pt(D_W_IN), bc_y)
+        add_panel(f"{fig_dir}/age_heatmaps/subsets_row.svg",
+                  right_x, bc_y)
+    )
+    # Panel D: deviance (below subsets), nudged right so it clears the "D" label.
+    elements.append(
+        add_panel(f"{fig_dir}/age_RR_deviance_geographic_compact.svg",
+                  right_x + in_pt(DEV_INSET_IN),
+                  bc_y + in_pt(SUBSETS_H_IN),
+                  scale=DEV_SCALE)
     )
 
     # ----- Subfigure letters -----
-    # A: full heatmap (left gutter, top of panel A)
-    # B: subsets_row top-left (inside)
-    # C: deviance top-left (inside, below subsets row)
-    # D: young 0-24 heatmap (left gutter, bottom row)
-    # E: contact correlation top-left (inside, at the D/E boundary)
+    # A: full heatmap (top-left edge of the centered panel)
+    # B: young 0-24 heatmap (left gutter, bottom row)
+    # C: subsets_row top-left (inside, top of right stack)
+    # D: deviance top-left (inside, below subsets row)
     INSET = 4
     letters = [
-        ("A", LETTER_X,                                       0),
-        ("B", LEFT_MARGIN + in_pt(A_FULL_W_IN) + INSET,       INSET),
-        ("C", LEFT_MARGIN + in_pt(A_FULL_W_IN) + INSET,       in_pt(A_SUBSETS_H_IN) + INSET),
-        ("D", LETTER_X,                                       bc_y),
-        ("E", LEFT_MARGIN + in_pt(D_W_IN) + INSET,            bc_y + INSET),
+        ("A", a_x,                       INSET),
+        ("B", LETTER_X,                  bc_y),
+        ("C", right_x + INSET,           bc_y + INSET),
+        ("D", right_x + INSET,           bc_y + in_pt(SUBSETS_H_IN) + INSET),
     ]
     for letter, lx, ly in letters:
         elements.append(

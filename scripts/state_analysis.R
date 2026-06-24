@@ -6,7 +6,6 @@
 #--scenario: Scenario corresponding to data files, typically will be a geographic division (e.g. USA or Washington)
 #--threads: Number of threads for the parallelization, default is 1 if no parallelization
 
-options(python_cmd = "C:/Users/magus/miniconda3/python.exe")
 library(argparse)
 library(tidyverse)
 library(data.table)
