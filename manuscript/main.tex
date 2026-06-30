@@ -50,17 +50,25 @@
 }
 \usepackage{cleveref}   % Smart references: \cref{fig:x} -> "Figure 1"
 
+% Comments
+\usepackage{ulem}
+\usepackage{color}
+\definecolor{orange}{RGB}{245,143,27}
+\def\ctk#1#2{\sout{#1} \textcolor{orange}{#2}}
+\def\ctkc#1{\textcolor{orange}{[CTK: #1]}}
+
 % === METADATA ===
 \title{Exploring Transmission Patterns of SARS-CoV-2 from Identical Sequences Across Canada, Mexico, and the United States}
 \author{
     Amin Bemanian$^{1,2,3*}$, 
-    Cécile Tran Kiem$^{1}$, 
-    Trevor Bedford$^{1,4}$\\[1ex]
-    \small $^1$Vaccine and Infectious Diseases Division, Fred Hutchinson Cancer Center\\
+    Cécile Tran Kiem$^{1,\dagger}$, 
+    Trevor Bedford$^{1,4,\dagger}$\\[1ex]
+    \small $^1$Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Center\\
     \small $^2$Division of Infectious Diseases, Seattle Children's Hospital\\
     \small $^3$Department of Pediatrics, University of Washington\\
     \small $^4$Howard Hughes Medical Institute\\[1ex]
-    \small $^*$Corresponding author: bemanian@uw.edu
+    \small $^*$Corresponding author: bemanian@uw.edu\\
+    \small $\dagger$ These authors jointly supervised this work
 }
 \date{\today}
 
@@ -101,9 +109,18 @@ Furthermore, we use this set of sequences to identify high-resolution relationsh
 \begin{figure}[t]
     \centering
     \includegraphics[width=\textwidth]{desc.pdf}
-    \caption{Exploratory analyses of GISAID SARS-CoV-2 sequences. A: Sequence counts for each geographic unit. B: Weekly moving average of per capita sequences for each country.  C: Age-sex pyramid of sequences across all countries for ages 0-90. D: Violin/box plots of age distribution by country/region}
+    \caption{
+        Characteristics of publicly available SARS-CoV-2 sequences in North America from January 2020 to December 2024.
+        A: Number of sequences available for each geographic unit.
+        B: Weekly sequences per 100,000 persons by country.
+        C: Number of sequences with valid age metadata by age.
+        D: Age distribution of sequences by geographic location among sequences with valid age and region metadata.
+        \ctkc{For B, need to specify the smoothing, if it's a rolling average specify the window size, if it's another smoothing (LOESS...) also mention}.
+        \ctkc{Increase label sizes (I'm reading a printed version and the labels are too small).}}
+    %\caption{Exploratory analyses of GISAID SARS-CoV-2 sequences. A: Sequence counts for each geographic unit. B: Weekly moving average of per capita sequences for each country.  C: Age-sex pyramid of sequences across all countries for ages 0-90. D: Violin/box plots of age distribution by country/region}
     \label{fig:desc}
 \end{figure}
+
 
 The EpiCoV dataset provides rich sequencing data across Canada, the United States, and Mexico.
 The geographic distribution of sequences is shown in panel A of figure \ref{fig:desc}, demonstrating the heterogeneity in sequence volume by state.
@@ -120,7 +137,16 @@ These findings suggest our dataset covers a broad age, geographic, and temporal 
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{geo_clust.pdf}
-    \caption{Geographical analysis of SARS-CoV-2 identical sequence pairs. A: Identical sequence RR maps for Ontario, New York State, and Mexico (left to right), where the asterisk represents the geographical unit. B: Map of regions used for clustering analysis. The Yukon, Northwest, and Nunavut Territories in Canada were not assigned any region as they did not have any sequences in our dataset. C: Heatmap of identical sequence RR by geographical unit, sorted using hierarchical clustering. Colored labels on the left side indicate the unit’s region membership. Heatmap colors are plotted on a logarithmic scale. D: Principal coordinate analysis of geographic units. Points represent specific provinces/states and polygon is the convex hull for the region.}
+    \caption{Spatial structure of SARS-CoV-2 transmission in North America inferred from identical sequence pairs.
+    A: Pairwise RR of observing identical sequences between the Ontario province (left), New York state (center) and Mexico (right) and other North American subdivisions. Asterisks represent the focal geographical unit (Ontario, New York and Mexico).
+    \ctkc{For A, increase font size and include full labels at the top of the heatmaps instead of only the abbreviations.}
+    B: Geographic regions used to annotated results of the clustering analysis. Sequences from the Yukon, Northwest, and Nunavut Territories in Canada were not available, so these territories were not assigned to any region.
+    C: Relative risk of observing identical sequences between North American subdivisions, sorted using hierarchical clustering. Colored rectangles on the left side indicate region membership.
+    \ctkc{For C, increase font size for legend}
+    D: Principal coordinate analysis from distances based on identical sequence RR. Points represent individuals North American subdivisions and polygons convex hulls for each region. Percentages indicate the proportion of variance explained by each component. 
+    In A and C, we display the RR on a logarithmic scale. 
+    }
+    %\caption{Geographical analysis of SARS-CoV-2 identical sequence pairs. A: Identical sequence RR maps for Ontario, New York State, and Mexico (left to right), where the asterisk represents the geographical unit. B: Map of regions used for clustering analysis. The Yukon, Northwest, and Nunavut Territories in Canada were not assigned any region as they did not have any sequences in our dataset. C: Heatmap of identical sequence RR by geographical unit, sorted using hierarchical clustering. Colored labels on the left side indicate the unit’s region membership. Heatmap colors are plotted on a logarithmic scale. D: Principal coordinate analysis of geographic units. Points represent specific provinces/states and polygon is the convex hull for the region.}
     \label{fig:geo_clust}
 \end{figure}
 
@@ -155,7 +181,14 @@ The combined PC1/PC2 plot summarizes how the geographic relationships in North A
 \begin{figure}[tp]
     \centering
     \includegraphics[width=0.75\textwidth]{geo_time.pdf}
-    \caption{Changes in geographic identical sequence RR over time. A: Distribution of normalized RR scores for each calendar quarter stratified by within region, domestic between region, and international pairings. B: Heatmap of fold change for nRR scores with each column representing one state/province pairing. Fold change set relative to 2023 Q1.  C: Between region nRR scores staying in the top 98\%ile across multiple quarters (left side) and across multiple years for the same quarter (right side).}
+    \caption{Temporal changes in spatial patterns of SARS-CoV-2 transmission in the United States inferred from identical sequence pairs.
+    A: Distribution of normalized identical sequence RR scores for each calendar quarter stratified by within region (red), domestic between region (green), and international pairings (blue). 
+    B: Heatmap of fold change in identical sequence nRR scores relative to the first quarter of 2023 (2023 Q1) by quarter (y-axis) with each column representing a state/province pairing. 
+    C: Between region nRR scores staying in the top 98\%ile across multiple quarters (left side) and across multiple years for the same quarter (right side).
+    \ctkc{The label in C is not precise enough (meaning I don't fully understand when I read it how you defined the conserved connections, on why distributions the outliers were based etc.), worth clarifying.}
+    \ctkc{Did you plot all the links that were conserved at least twice? If so, maybe specify ("in at least 2 quarters").}
+    \ctkc{Be consistent with subpanel titles, either put some on every panel or no subtitle at all (they're not necessarily necessary).}}
+    %\caption{Changes in geographic identical sequence RR over time. A: Distribution of normalized RR scores for each calendar quarter stratified by within region, domestic between region, and international pairings. B: Heatmap of fold change for nRR scores with each column representing one state/province pairing. Fold change set relative to 2023 Q1.  C: Between region nRR scores staying in the top 98\%ile across multiple quarters (left side) and across multiple years for the same quarter (right side).}
     \label{fig:geo_time}
 \end{figure}
 
@@ -185,7 +218,22 @@ The persistence of Florida's conserved connections year-round highlights the imp
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{geo_dist.pdf}
-    \caption{Relationship between Continental US seqRR scores with distance/travel patterns. A: Scatter plots of distance/travel covariates with seqRR with points colored by geographic relationship. Solid line indicates LOESS best-fit and Pearson correlation coefficient placed in each plot title. B: Observed vs Expected seqRR values for generalizied additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained in each title. Model predictors from left to right: ground travel only, interaction of ground travel and CBSA distance,  air travel only, and interaction of air travel and CBSA distance  C: Predicted values from combined movement/distance GAM models. Colored curves each represent a fixed CBSA distance value. Movement RR extent was limited to observed extent in data for the distance. Note for all plots, relative risks are plotted on logarithmic scale; for rows B and C dataset excluded any state pairs with zero ground or air travel reported or if a travel variable was an outlier ($\geq3$ SD).}
+    \caption{Relationship between identical sequence RR in the United States and movement metrics across scales. 
+    A: Relationship between identical sequence RR and distance between states and RR of movements between states. 
+    Solid line indicates LOESS fit and we report Pearson correlation coefficient $r$ at the top of each plot.
+    B: Observed vs predicted identical sequence RR from generalizied additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained by each model.
+     Model predictors from left to right: ground travel only, interaction of ground travel and CBSA distance,  air travel only, and interaction of air travel and CBSA distance  
+    \ctkc{Inverse observed and predicted on the axes.}
+    \ctkc{B is nice to actually show that the models in C are relevant but this probably rather has a place in the supplement.
+    If the aim if to show that jointly modelling distance + RR of movement gives a better description of the data, I'd recommend a figure directly depicting it with different combinations of predictors as categorical values on the x axis and bars or diamonds on the y-axis depicting the percentage of deviance explained by each model.
+    I think this is also lacking distance only as a predictor.}
+    C: Predicted identical sequence RR from GAM models with interaction terms between distance and movement predictors. 
+    Colored curves represent the predicted identical sequence RR when fixing the CBSA distance between states. 
+    We only depict predicted identical sequence RR for values of the RR of movement observed at the distance of interest.
+    \ctkc{Mention how this was done.}
+    For all plots, relative risks are plotted on logarithmic scale; for rows B and C dataset excluded any state pairs with zero ground or air travel reported or if a travel variable was an outlier ($\geq3$ SD).
+    \ctkc{Was this latter to avoid outliers from low counts and sparse data? If yes, justify.}}
+    %\caption{Relationship between Continental US seqRR scores with distance/travel patterns. A: Scatter plots of distance/travel covariates with seqRR with points colored by geographic relationship. Solid line indicates LOESS best-fit and Pearson correlation coefficient placed in each plot title. B: Observed vs Expected seqRR values for generalizied additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained in each title. Model predictors from left to right: ground travel only, interaction of ground travel and CBSA distance,  air travel only, and interaction of air travel and CBSA distance  C: Predicted values from combined movement/distance GAM models. Colored curves each represent a fixed CBSA distance value. Movement RR extent was limited to observed extent in data for the distance. Note for all plots, relative risks are plotted on logarithmic scale; for rows B and C dataset excluded any state pairs with zero ground or air travel reported or if a travel variable was an outlier ($\geq3$ SD).}
     \label{fig:geo_dist}
 \end{figure}
 
@@ -205,23 +253,25 @@ These findings suggest that the movement/travel variables may have different rel
 
 \begin{table}[]
     \centering
-    \caption{Pearson's correlations (on $\log_{10}$ scale) between identical-sequence RR and each movement/distance RR metric, stratified by minimum CBSA distance band. SafeGraph mobility is positively associated with transmission at short range and only negatively associated in the sparse $>3000$~km tail; air travel (T-100, DB1B) shows the opposite pattern, with its association concentrated at longer distances.}
+    \caption{Pearson correlation coefficients (on a $\log_{10}$ scale) between identical sequence RR and different movement and distance metric, stratified by CBSA distance band. 
+    SafeGraph mobility is positively associated with transmission at short range and only negatively associated in the sparse $>3000$~km tail; air travel (T-100, DB1B) shows the opposite pattern, with its association concentrated at longer distances.
+    \ctkc{Nice table. Could you maybe also add a p-value for the significance of each association?}}
     \label{tab:band_corr}
     \begin{tabular}{llrr}
         \toprule
         Travel source & CBSA distance band (km) & $n$ & Pearson $r$ \\
         \midrule
-        Ground Travel      & 0--250      & 302  & $0.620$ \\
+        RR Ground Travel      & 0--250      & 302  & $0.620$ \\
                            & 250--1000   & 752  & $0.172$ \\
                            & 1000--3000  & 1140 & $0.325$ \\
                            & 3000--5000  & 230  & $0.476$ \\
         \addlinespace
-        Air Travel         & 0--250      & 254  & $-0.236$ \\
+        RR Air Travel         & 0--250      & 254  & $-0.236$ \\
                            & 250--1000   & 700  & $0.314$ \\
                            & 1000--3000  & 1058 & $0.358$ \\
                            & 3000--5000  & 206  & $0.544$ \\
         \addlinespace
-        Cellphone Mobility & 0--250      & 310  & $0.676$ \\
+        RR Cellphone Mobility & 0--250      & 310  & $0.676$ \\
                            & 250--1000   & 750  & $0.195$ \\
                            & 1000--3000  & 1106 & $-0.060$ \\
                            & 3000--5000  & 150  & $-0.319$ \\
@@ -254,7 +304,21 @@ This highlights the non-linear nature of the relationship between air travel and
 \begin{figure}[tp]
     \centering
     \includegraphics[width=0.9\textwidth]{age.pdf}
-    \caption{Investigation of identical sequences with age. A: Heatmap of all identical sequence RR from age 0 to 80 years old. B: Focused heatmap of identical sequence RR of children and young adults, plotted on an expanded color scale (RR 0.5--2). C: Identical sequence RR heatmaps stratified by same state/province pairs, intraregional but different state/province pairs, and different region pairs. D: RR deviance by age at different geographies where higher deviance indicates greater evidence of non-random mixing.}
+    \caption{Detailed patterns of SARS-CoV-2 transmission between age groups in North America. 
+    A: Identical sequence RR between age groups (defined in 1-year bins) for individuals aged between 0 and 80 years old.
+    \ctkc{In A and B "Age group" instead of "Age groups"}
+    B: Zoomed heatmap of identical sequence RR between children and young adults, plotted on an expanded color scale (RR 0.5--2).
+    \ctkc{Maybe highlight the 18y on the x and y axis by adding it as a tick.}
+    C: Pairwise identical sequence RR between age groups stratified by within North American subdivision, across North American subdivision but intraregional and across regions.
+    \ctkc{For C, change labels to "Same subdivision" (except of this is only a US analysis in which case specify), "Same region, different subdivisions, "Different regions"}
+    D: Identical sequence RR deviance by age across different geographic scales. Higher deviance indicates greater evidence of non-random mixing.
+    \ctkc{Same modification for legend labels in D.  
+    You could consider coloring the labels of C with the same as the colors in D to make it obvious you're looking at the same scale.
+    }
+    \ctkc{Not compulsory, but you already use this red / blue / green color scale 1B and 3A and they don't mean exactly the same thing (3A could especially be a bit confusing). 
+    In general, I like using distinct color scales in a manuscript when referring to different stratifications}
+    }
+    %\caption{Investigation of identical sequences with age. A: Heatmap of all identical sequence RR from age 0 to 80 years old. B: Focused heatmap of identical sequence RR of children and young adults, plotted on an expanded color scale (RR 0.5--2). C: Identical sequence RR heatmaps stratified by same state/province pairs, intraregional but different state/province pairs, and different region pairs. D: RR deviance by age at different geographies where higher deviance indicates greater evidence of non-random mixing.}
     \label{fig:age}
 \end{figure}
 
@@ -287,7 +351,17 @@ These deviance curves reinforce that age structure plays a stronger role in tran
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{age_time.pdf}
-    \caption{Changes in age-based identical sequence RR over time, normalized against the working-age adults (25-64y) within-group RR ($nRR$). A: Elderly transmission during the vaccine rollout period (November 2020--May 2021). Each trace shows the $nRR$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% bootstrap confidence intervals. B: Within-state, school-age $nRR$ traces by 3 month seasons, pooled across all states. Each trace shows the $nRR$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% bootstrap confidence intervals. The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 bootstraps per time point.}
+    \caption{Temporal changes in SARS-CoV-2 transmission patterns between ages, using identical sequence RR normalized against the working-age adults (25-64y) within-group RR ($nRR$) (see Methods). 
+    A: Identical sequence $nRR$ between elderly groups and other age groups during the vaccine rollout period (November 2020--May 2021). 
+    Each trace shows the $nRR$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% bootstrap confidence intervals. 
+    \ctkc{Are these bootstrap or subsampling CI? If this is bootstrap, what's the unit of resampling?}
+    B: Within-state identical sequence $nRR$ between school-age children and other age groups 3 month seasons pooled across all states. 
+    Each trace shows the $nRR$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% bootstrap confidence intervals. 
+    \ctkc{Are these bootstrap or subsampling CI?}
+    The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 bootstraps per time point.
+    \ctkc{Need to increase x-axis labels font size}
+    }
+    %\caption{Changes in age-based identical sequence RR over time, normalized against the working-age adults (25-64y) within-group RR ($nRR$). A: Elderly transmission during the vaccine rollout period (November 2020--May 2021). Each trace shows the $nRR$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% bootstrap confidence intervals. B: Within-state, school-age $nRR$ traces by 3 month seasons, pooled across all states. Each trace shows the $nRR$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% bootstrap confidence intervals. The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 bootstraps per time point.}
     \label{fig:age_time}
 \end{figure}
 
