@@ -58,7 +58,8 @@
 \def\ctkc#1{\textcolor{orange}{[CTK: #1]}}
 
 % === METADATA ===
-\title{Exploring Transmission Patterns of SARS-CoV-2 from Identical Sequences Across Canada, Mexico, and the United States}
+%\title{Exploring Transmission Patterns of SARS-CoV-2 from Identical Sequences Across Canada, Mexico, and the United States}
+\title{High-resolution SARS-CoV-2 transmission structure in North America from over 5.7 million viral genomes}
 \author{
     Amin Bemanian$^{1,2,3*}$, 
     Cécile Tran Kiem$^{1,\dagger}$, 
@@ -83,24 +84,53 @@
 
 \section{Introduction}
 
-Phylodynamic methods have been important tools for understanding pathogen spread and evolution, typically by reconstructing an ancestral tree from sequence data using Maximum Likelihood or Bayesian inference.\autocite{volzViralPhylodynamics2013}
-Such trees recover transmission history and population-level mixing patterns and have been instrumental across epidemics including SARS-CoV-2 and seasonal influenza.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015}
-However, tree-based approaches are computationally costly because the number of possible phylogenies scales factorially with the number of genomes, limiting Bayesian and ML trees to thousands or tens of thousands of sequences.
-This is a major constraint given that genomic surveillance sequenced SARS-CoV-2 at an unprecedented rate, with 16.7 million genomes submitted to GISAID's EpiCoV database from December 2019 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
-This scale has driven innovations such as UShER and Nextclade\autocite{turakhiaUltrafastSamplePlacement2021,aksamentovNextcladeCladeAssignment2021} as well as tree-free statistical methods---similarity matrices, clustering, and dimensionality reduction---to identify structure across genomes.\autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024}
-We have previously created a tree-free approach using pairwise distances to identify likely transmission pairs.
-Clusters of identical pathogen sequences can estimate the epidemiological characteristics of outbreaks,\autocite{tran-kiemEstimatingReproductionNumber2024a} and we have extended this to a relative risk of identical sequences (seqRR) shared between two populations.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
-This was used to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from 114,298 sequences collected March 2021 to December 2022 and identify unexpected clusters of transmissions that would have been obscured by aggregation at the state level.
+Genomic surveillance has become a fundamental tool for understanding pathogen spread and evolution.
+In particular, the COVID-19 pandemic has led to the sequencing of SARS-CoV-2 at an unprecedented rate, with 16.7 million genomes submitted to GISAID's EpiCoV database from December 2019 through December 2024.\autocite{khareGISAIDsRolePandemic2021}.
+Data at this scale should theoretically make it possible to study transmission in incredible detail. 
+Phylodynamics methods leveraging such sequence data typically rely on ancestral tree reconstruction to recover transmission history and population-level mixing patterns.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015}
+These tree-based approaches are powerful, but they scale poorly because the number of possible phylogenies increases factorially with the number of genomes, limiting analyses to thousands or tens of thousands of sequences.
+The number of sequences that can be included in an analysis limits the resolution at which transmission can be studied.
+Characterizing spread patterns between $n$ population groups indeed involves inferring transmission between $\sim n^2$ pairs of groups, and sequence data requirements become substantial for a large number of groups.
+Overcoming these limitations would thus make it possible to study spread across many fine-grained groups and better understand complex transmission structure.
 
-Because this approach is a simple relative risk calculation, it has the potential to scale to even larger datasets, such as at the national or even multinational level. 
-Such analyses could help public health authorities and healthcare systems identify where to deploy resources for genomic surveillance, immunization campaigns, and other interventions.
-Additionally, detailed fine scale analyses of state/provincial spread and age group transmission can be helpful for testing if the existing contact datasets used in infectious disease modeling actually predict genetic linkage of infections. 
-Finally, the scalability of this method should allow us to measure changes in transmission across groups, particularly in response to policy changes that may have altered the mixing patterns of individuals during an outbreak or epidemic.
+Statistical methods that identify structure across genomes without building phylogenies \autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024} offer a promising avenue. 
+In prior work, we demonstrated that the composition of clusters of identical sequences is informative about transmission between population groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+Because pathogens accumulate mutations along transmission chains, identical sequences tend to capture epidemiologically linked individuals, and the rate at which two groups share identical sequences reflects the intensity of transmission between them.
+We introduced an identical sequence relative risk (RR) metric that measures how the rate at which identical sequences are observed between two groups compares with what is expected under random mixing while accounting for sequencing effort.
+Explicitly accounting for sequencing effort also enables to fully leverage existing genome datasets, and understand the role all groups, including less sampled ones, in transmission.
+We used this framework to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from over 100,000 sequences. 
+Given this approach only relies on genetic distance calculations, it has the potential to scale to even larger datasets and reconstruct transmission patterns at a high-resolution.
 
-Large-scale genomic surveillance during the SARS-CoV-2 pandemic allows us to test whether our method can achieve these goals.
-In this paper, we used the relative risk of identical sequence method to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period.
-This framework is used to examine spatial relationships of SARS-CoV-2 at multiple spatial (interstate, interregional, and international) and temporal scales.
-Furthermore, we use this set of sequences to identify high-resolution relationships across age groups to compare with existing age contact matrices.
+Here, we analyse patterns of occurrence of identical sequences among 5.7 million publicly available SARS-CoV-2 genoomes from North America (Canada, Mexico, and the United States (US)) collected between January 2020 and December 2024.
+We investigate transmission between \ctk{}{xxx} North American subdivisions \ctkc{Add number of subdivisions}, at the level of US states and Canadian provinces.
+This granularity enables us to characterize transmission structure comprehensively across a continent through time, and to understand how it relates to administrative boundaries typically used for aggregation.
+We also investigate how different types of mobility indicators recapitulate transmission at different spatial scales.
+Finally, we characterize transmission between age groups at single-year resolution, a level of detailed not previously achieved from either epidemiological or genomic data, and difficult to reach with methods relying on more divergent genomes. \ctkc{Cite phylogeo-signal paper in Proc B}
+\ctkc{The last sentence might need a bit of rephrasing, but this is actually true and a major sell for the paper. }
+
+
+%Phylodynamic methods have been important tools for understanding pathogen spread and evolution, typically by reconstructing an ancestral tree from sequence data using Maximum Likelihood or Bayesian inference.\autocite{volzViralPhylodynamics2013}
+%Such trees recover transmission history and population-level mixing patterns and have been instrumental across epidemics including SARS-CoV-2 and seasonal influenza.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015}
+%However, tree-based approaches are computationally costly because the number of possible phylogenies scales factorially with the number of genomes, limiting Bayesian and ML trees to thousands or tens of thousands of sequences.
+%This is a major constraint given that genomic surveillance sequenced SARS-CoV-2 at an unprecedented rate, with 16.7 million genomes submitted to GISAID's EpiCoV database from December 2019 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
+%This scale has driven innovations such as UShER and Nextclade\autocite{turakhiaUltrafastSamplePlacement2021,aksamentovNextcladeCladeAssignment2021} as well as tree-free statistical methods---similarity matrices, clustering, and dimensionality reduction---to identify structure across genomes.\autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024}
+%We have previously created a tree-free approach using pairwise distances to identify likely transmission pairs.
+%Clusters of identical pathogen sequences can estimate the epidemiological characteristics of outbreaks,\autocite{tran-kiemEstimatingReproductionNumber2024a} and we have extended this to a relative risk of identical sequences (seqRR) shared between two populations.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+%This was used to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from 114,298 sequences collected March 2021 to December 2022 and identify unexpected clusters of transmissions that would have been obscured by aggregation at the state level.
+
+%Because this approach is a simple relative risk calculation, it has the potential to scale to even larger datasets, such as at the national or even multinational level. 
+%Such analyses could help public health authorities and healthcare systems identify where to deploy resources for genomic surveillance, immunization campaigns, and other interventions.
+% CTK: This is nice, but a bit vague - I wonder whether this might better be in the discussion?
+%Additionally, detailed fine scale analyses of state/provincial spread and age group transmission can be helpful for testing if the existing contact datasets used in infectious disease modeling actually predict genetic linkage of infections. 
+%Finally, the scalability of this method should allow us to measure changes in transmission across groups, particularly in response to policy changes that may have altered the mixing patterns of individuals during an outbreak or epidemic.
+
+%Large-scale genomic surveillance during the SARS-CoV-2 pandemic allows us to test whether our method can achieve these goals.
+%In this paper, we used the relative risk of identical sequence method to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period.
+%This framework is used to examine spatial relationships of SARS-CoV-2 at multiple spatial (interstate, interregional, and international) and temporal scales.
+%Furthermore, we use this set of sequences to identify high-resolution relationships across age groups to compare with existing age contact matrices.
+
+\ctkc{I've tried refactoring a little bit the introduction to better tie the different elements together and make it a bit stronger.
+ I believe the big selling point if this granularity you're able to get at and that enables you to look at all these different questions.}
 
 \section{Results}
 
@@ -169,7 +199,7 @@ For example, Eastern Canada, Western Canada, Mideast, and Plains regions had all
 There were other US regions however that did not perfectly sort along regional definitions.
 For example, states from the Southeast are split into three different small clusters (\ref{fig:hclust_subset}): (1) the District of Columbia (DC), Maryland, Virginia, and North Carolina were closest to the Mideast and New England clusters; (2) Arkansas, Louisiana, and Mississippi were closest to Southwest states and Mexico; and (3) the remainder of the states were mixed with the Great Lakes states.
 Similarly, we find that in the Far West that Alaska, Oregon and Washington had transmission patterns closer to certain Rocky Mountain states (Idaho and Utah), while California, Hawaii, and Nevada cluster with Arizona and Texas.  
-We also conducted dimensionality reduction on the geographic seqRR matrix using principle coordinate analysis (fig \ref{fig:geo_clust}D) to further describe geographic patterns of transmission.
+We also conducted dimensionality reduction on the geographic seqRR matrix using principal coordinate analysis (fig \ref{fig:geo_clust}D) to further describe geographic patterns of transmission.
 The first principal coordinate mapped to US/Canada country differences with Canadian provinces having negative values (-0.549 to -0.655) and US states having more positive values (-0.059 to +0.279).
 Mexico has a PC1 of essentially zero (-0.0004), which places it near the negative edge of the US cloud. 
 The second principal coordinate generally tends to map onto an East-West axis with New England, Mideast, and Eastern Canada having the greatest positive values.
@@ -221,7 +251,7 @@ The persistence of Florida's conserved connections year-round highlights the imp
     \caption{Relationship between identical sequence RR in the United States and movement metrics across scales. 
     A: Relationship between identical sequence RR and distance between states and RR of movements between states. 
     Solid line indicates LOESS fit and we report Pearson correlation coefficient $r$ at the top of each plot.
-    B: Observed vs predicted identical sequence RR from generalizied additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained by each model.
+    B: Observed vs predicted identical sequence RR from generalized additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained by each model.
      Model predictors from left to right: ground travel only, interaction of ground travel and CBSA distance,  air travel only, and interaction of air travel and CBSA distance  
     \ctkc{Inverse observed and predicted on the axes.}
     \ctkc{B is nice to actually show that the models in C are relevant but this probably rather has a place in the supplement.
@@ -399,8 +429,8 @@ However, in-person schooling policies were highly variable across the geographie
 \subsection{Computational Performance of Identical Sequences Method}
 
 As we discussed earlier, traditional phylogeographic methods are generally not feasible for conducting an analysis with tens of thousands of sequences, much less hundreds of thousands or millions of sequences.
-Previously, our lab has shown that the identical sequence method was able to identify relationships across a large dataset of 114,288 sequences from Washington state,\autocite{tran-kiemFinescalePatternsSARSCoV22025a} and a major motivation for this paper was to test its computational scalability at a multinational scale.
-There were two main computational challenges we had to overcome when using 5.7 million sequences: identifying all identical pairs within the dataset of comparisons and parsing large datas tructures to calculate the relative risks.
+Previously, our lab has shown that the identical sequence method was able to identify relationships across a large dataset of 114,298 sequences from Washington state,\autocite{tran-kiemFinescalePatternsSARSCoV22025a} and a major motivation for this paper was to test its computational scalability at a multinational scale.
+There were two main computational challenges we had to overcome when using 5.7 million sequences: identifying all identical pairs within the dataset of comparisons and parsing large data structures to calculate the relative risks.
 Our computational approach to overcome these challenges involves preprocessing the sequence data into a portable database, which then allows rapid calculation of RR across different demes and strata with low memory cost.
 Details of this technique and the hardware requirements can be found in the supplementary information. 
 This approach allows for post hoc analyses to be done on local machines rather than relying on a computational cluster, with a small enough database to allow collaboration between researchers without relying on large cloud storage. 
@@ -468,13 +498,13 @@ Even with these limitations, the normalized seqRR allows for description of tran
 With sufficient sequencing effort, it could be used to test the response to policy changes or other interventions in an outbreak.
 
 Additionally, we used the normalized seqRR scores to identify persistent and seasonal significant inter-regional relationships in figure \ref{fig:geo_time}C.
-Being able to identify and describe seasonal geographic patterns of COIVD-19 identical sequences is important for disease modeling, as holiday/vacation patterns were related to SARS-CoV-2 introductions of the original virus and new variants.\autocite{muenchhoffGenomicEpidemiologyReveals2021,mangrumJUEInsightCollege2022,lemeyUntanglingIntroductionsPersistence2021}
+Being able to identify and describe seasonal geographic patterns of COVID-19 identical sequences is important for disease modeling, as holiday/vacation patterns were related to SARS-CoV-2 introductions of the original virus and new variants.\autocite{muenchhoffGenomicEpidemiologyReveals2021,mangrumJUEInsightCollege2022,lemeyUntanglingIntroductionsPersistence2021}
 These analyses found that inter-regional transmission was centered around major tourist areas and larger states such as California, Texas, Florida, New York, and New Jersey.
 We hypothesize this may be related to increased travel due to summer vacation and school breaks, but there were also persistent year-round relationships, such as those between the Mideast states and Florida.
 Florida stood out as the most common inter-regional node for both the year-round and seasonal analyses.
 This fits with its role as both a major tourism hub for the United States, drawing 87.7 to 145.3 million person-trips per year from 2020 to 2024 and also a major destination for ``snowbirds'': seasonal, often elderly migrants traveling to a warmer climate during winter months.\autocite{EconomicImpactTravel,smithSnowbirdsSunbirdsStayers2006}
 Snowbird migration has previously been linked to increased pneumonia and influenza hospitalizations by non-residents in destination states(including Florida, Arizona, and California).\autocite{chuiSnowbirdsInfectionnewPhenomena2011} 
-To determine if Florida's interrregional connection with the Mideast region were linked to seasonal travel from a particular age group, we calculated age seqRR matrices, stratified by season and geography (Florida-Florida, Mideast-Mideast, and Florida-Mideast pairings), shown in figure \ref{fig:fl_me_season}.
+To determine if Florida's interregional connection with the Mideast region were linked to seasonal travel from a particular age group, we calculated age seqRR matrices, stratified by season and geography (Florida-Florida, Mideast-Mideast, and Florida-Mideast pairings), shown in figure \ref{fig:fl_me_season}.
 The within Florida and within Mideast heatmaps have similar RR patterns as the full age analysis heatmap in figure \ref{fig:age}A, and the between region heatmap shows weaker evidence of age structure, with RR regressing towards RR = 1.
 There are no major differences across time periods, suggesting seasonal differences in tourism and migration age patterns are less likely to impact identical sequence RR scores, but further work is necessary to corroborate this finding
 
