@@ -96,7 +96,7 @@ Overcoming these limitations would thus make it possible to study spread across 
 Statistical methods that identify structure across genomes without building phylogenies \autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024} offer a promising avenue. 
 In prior work, we demonstrated that the composition of clusters of identical sequences is informative about transmission between population groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
 Because pathogens accumulate mutations along transmission chains, identical sequences tend to capture epidemiologically linked individuals, and the rate at which two groups share identical sequences reflects the intensity of transmission between them.
-We introduced an identical sequence relative risk (RR) metric that measures how the rate at which identical sequences are observed between two groups compares with what is expected under random mixing while accounting for sequencing effort.
+We introduced an identical sequence relative risk ($RR_{seq}$) metric that measures how the rate at which identical sequences are observed between two groups compares with what is expected under random mixing while accounting for sequencing effort.
 Explicitly accounting for sequencing effort also enables to fully leverage existing genome datasets, and understand the role all groups, including less sampled ones, in transmission.
 We used this framework to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from over 100,000 sequences. 
 Given this approach only relies on genetic distance calculations, it has the potential to scale to even larger datasets and reconstruct transmission patterns at a high-resolution.
@@ -148,20 +148,23 @@ Finally, we characterize transmission between age groups at single-year resoluti
         \ctkc{For B, need to specify the smoothing, if it's a rolling average specify the window size, if it's another smoothing (LOESS...) also mention}.
         \ctkc{Increase label sizes (I'm reading a printed version and the labels are too small).}}
     %\caption{Exploratory analyses of GISAID SARS-CoV-2 sequences. A: Sequence counts for each geographic unit. B: Weekly moving average of per capita sequences for each country.  C: Age-sex pyramid of sequences across all countries for ages 0-90. D: Violin/box plots of age distribution by country/region}
-    \label{fig:desc}
+     \label{fig:desc}
 \end{figure}
 
-
-The EpiCoV dataset provides rich sequencing data across Canada, the United States, and Mexico.
-The geographic distribution of sequences is shown in panel A of figure \ref{fig:desc}, demonstrating the heterogeneity in sequence volume by state.
-California had the highest absolute number of sequences with 935,874 sequences and per capita sequencing effort varied across states/provinces with a median of 1468.7 sequences per 100,000 persons (IQR: 934.9 - 2288.9).
-Wyoming had the highest per capita sequences of any state/province (5,935.5 sequences per 100,000 persons) while Mexico had the lowest number of sequences per capita of any country or state/province (76.5 sequences per 100,000 persons).
-The sequencing effort plots for each country in \ref{fig:desc}B show that Mexico consistently had the fewest sequences per capita of the three countries throughout the study period.
-All three countries had similar sequence count trajectories, with the number of sequences increasing in early 2021 and peaking in late 2021/early 2022 following the Delta and Omicron waves.
-Sequence counts decreased in all three countries by 2024.
-The age distribution of sequences is shown in figure \ref{fig:desc}C with 52.0\% of sequences having valid age data.
-There were some differences in the age distribution across geography, shown in figure \ref{fig:desc}D, but all regions generally included a wide range of ages from young childhood through the elderly.
-These findings suggest our dataset covers a broad age, geographic, and temporal range which enables us to conduct an in-depth analysis of transmission patterns.
+Between January 2020 and December 2024, \ctk{}{xxx} SARS-CoV-2 sequences were deposited in the GISAID EpiCoV database across Canada, the US and Mexico (hereafter referred to as North America). \ctkc{Cite GISAID}
+We defined North American subdivision as states in the US, provinces in Canada and the country of Mexico as this was the geographic resolution at which metadata was available for the 3 countries.
+Among these sequences, \ctk{}{xxx} had valid subdivision metadata.
+Figure \ref{fig:desc}A displays the geographic distribution of sequences by North American subdivisions.
+We find considerable heterogeneity in sequence volume by subdivision.
+California has the highest number of sequences available with 935,874 sequences and \ctk{}{xxx} the lowest with \ctk{}{xxx} sequences.
+When adjusting for population size, sequencing effort still varied across subdivision with a median of 1468.7 sequences per 100,000 persons (IQR: 934.9 - 2288.9)
+Wyoming had the highest per capita sequence count of any subdivision (5,935.5 sequences per 100,000 persons) while Mexico had the lowest number of sequences per capita of any subdivision (76.5 sequences per 100,000 persons).
+Looking across countries, all of them had similar sequence count trajectories, with the number of sequences per capita increasing in early 2021 and peaking in late 2021/early 2022 following the Delta and Omicron waves (Figure \ref{fig:desc}B) and sequencing intensity decreasing in all three countries by 2024.
+Mexico also consistently had the fewest number of sequences per capita of the three countries (Figure \ref{fig:desc}B).
+Among the 5.7 million of sequences available in North America, 52.0\% have valid age metadata (age distribution shown in Figure \ref{fig:desc}C) with age information available across regions (Figure \ref{fig:desc}D).
+%There were some differences in the age distribution across geography, shown in Figure \ref{fig:desc}D, but all regions generally included a wide range of ages from young childhood through the elderly.
+%CTK: I didn't fully see the value of that sentence here for the following
+Publicly available SARS-CoV-2 sequences in North America thus represent a particularly rich dataset with detailed metadata, which enables us to conduct an in-depth analysis of transmission patterns across ages, geography, and time.
 
 \subsection{Relationship between Geography and Identical Sequences}
 \begin{figure}[tp]
@@ -173,23 +176,24 @@ These findings suggest our dataset covers a broad age, geographic, and temporal 
     B: Geographic regions used to annotated results of the clustering analysis. Sequences from the Yukon, Northwest, and Nunavut Territories in Canada were not available, so these territories were not assigned to any region.
     C: Relative risk of observing identical sequences between North American subdivisions, sorted using hierarchical clustering. Colored rectangles on the left side indicate region membership.
     \ctkc{For C, increase font size for legend}
-    D: Principal coordinate analysis from distances based on identical sequence RR. Points represent individuals North American subdivisions and polygons convex hulls for each region. Percentages indicate the proportion of variance explained by each component. 
+    D: Principal coordinate analysis from distances based on identical sequence $RR_{seq}$. Points represent individuals North American subdivisions and polygons convex hulls for each region. Percentages indicate the proportion of variance explained by each component. 
     In A and C, we display the RR on a logarithmic scale. 
     }
     %\caption{Geographical analysis of SARS-CoV-2 identical sequence pairs. A: Identical sequence RR maps for Ontario, New York State, and Mexico (left to right), where the asterisk represents the geographical unit. B: Map of regions used for clustering analysis. The Yukon, Northwest, and Nunavut Territories in Canada were not assigned any region as they did not have any sequences in our dataset. C: Heatmap of identical sequence RR by geographical unit, sorted using hierarchical clustering. Colored labels on the left side indicate the unit’s region membership. Heatmap colors are plotted on a logarithmic scale. D: Principal coordinate analysis of geographic units. Points represent specific provinces/states and polygon is the convex hull for the region.}
     \label{fig:geo_clust}
 \end{figure}
 
-
-SeqRR scores were calculated between all states and provinces in the US and Canada and with the country of Mexico to identify spatial patterns of transmission. 
-Representative seqRR maps are shown for Ontario, New York State, and Mexico in figure \ref{fig:geo_clust}A, show that transmission tends to correlate with geographic proximity. 
-In all three areas, we see the highest seqRR values are within the unit and seqRR generally decays with distance.
-Transmission diminishes across the US-Canada border, with the New York and Ontario maps having no cross border seqRR > 1 despite both states/provinces being on the border.
-In contrast, we find enriched seqRR scores between Mexico and several US states including California, Texas, New Mexico, and Oklahoma.
-To check this difference in cross border pattern was not an artifact from Mexico's aggregation, we aggregated Canada into a single unit, recalculated seqRR, and found there were no state-Canada seqRR > 1 (max seqRR: 0.26).
+We calculated $RR_{seq}$ scores between all North American subdivisions to identify spatial patterns of transmission. 
+Figure \ref{fig:geo_clust}A represents chloropleth maps that illustrate patterns for a few focal subdivisions (Ontario province, New York state, and Mexico).
+In all three example, $RR_{seq}$ values are highest withint the focal subdivision and $RR_{seq}$ tends to decay with distance, highlighting that transmission increases with geographic proximity.
+Despite New York state and Ontario being adjacent, we don't find evidence for enriched transmission between these two subdivisions ($RR_{seq}^{NY,ON} = xxx < 1$ \ctk{}{Add value}).
+By contrast, we find $RR_{seq}$ scores greater than 1 (indicating enrichment) between Mexico and several US states including California, Texas, New Mexico, and Oklahoma.
+To evaluate whether this difference in cross border pattern could be an artifact from not being able to split Mexico into subdivisions, we perform a sensitivity analysis aggregating Canada into a single unit and find $RR_{seq} < 1$ across all states (max $RR_{seq}$ of 0.26).
+This suggests that transmission is not fully described by proximity alone and that administrative (here national) boundaries may further shape transmission risk.
 Oklahoma-Mexico was a significant outlier relationship with a seqRR of 4.13 (bootstrap 95\% CI: 3.86-4.54) compared to the other enriched US-Mexico relationships (seqRR ranging from 1.09-1.37).
 Further investigation found that a disproportionate number of Oklahoma sequences were from the Omicron BA.1 wave (45.0\%) compared to California, Texas, and Mexico (17.9\%-22.0\%), which likely would have decreased the Oklahoma's captured genetic diversity.
 In-depth results of this analysis are shown in supplemental figure \ref{fig:ba1_epiweek}.
+\ctkc{I feel like this paragraph is a strong opening, but the Oklahoma-Mexico feels very anecdotal, drop?}
 
 
 To further describe the geographic patterns of transmission, we constructed a heatmap of the full matrix of seqRR scores by state/province in figure \ref{fig:geo_clust}C, with rows sorted using hierarchical clustering and then annotated by geographic regions defined in figure \ref{fig:geo_clust}B.
