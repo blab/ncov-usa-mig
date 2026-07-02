@@ -183,7 +183,7 @@ Publicly available SARS-CoV-2 sequences in North America thus represent a partic
     \label{fig:geo_clust}
 \end{figure}
 
-We calculated $RR_{seq}$ scores between all North American subdivisions to identify spatial patterns of transmission. 
+We calculate $RR_{seq}$ scores between all North American subdivisions to identify spatial patterns of transmission. 
 Figure \ref{fig:geo_clust}A represents chloropleth maps that illustrate patterns for a few focal subdivisions (Ontario province, New York state, and Mexico).
 In all three example, $RR_{seq}$ values are highest withint the focal subdivision and $RR_{seq}$ tends to decay with distance, highlighting that transmission increases with geographic proximity.
 Despite New York state and Ontario being adjacent, we don't find evidence for enriched transmission between these two subdivisions ($RR_{seq}^{NY,ON} = xxx < 1$ \ctk{}{Add value}).
@@ -196,18 +196,29 @@ In-depth results of this analysis are shown in supplemental figure \ref{fig:ba1_
 \ctkc{I feel like this paragraph is a strong opening, but the Oklahoma-Mexico feels very anecdotal, drop?}
 
 
-To further describe the geographic patterns of transmission, we constructed a heatmap of the full matrix of seqRR scores by state/province in figure \ref{fig:geo_clust}C, with rows sorted using hierarchical clustering and then annotated by geographic regions defined in figure \ref{fig:geo_clust}B.
-Transmission was highest within geographic units, demonstrated by the high seqRR scores along the diagonal.
-We find clusters of enriched transmission across geographic units, which generally matched our predefined geographic regions.
-For example, Eastern Canada, Western Canada, Mideast, and Plains regions had all of their states/provinces sit on contiguous branches of the hierarchical cluster tree. 
-There were other US regions however that did not perfectly sort along regional definitions.
-For example, states from the Southeast are split into three different small clusters (\ref{fig:hclust_subset}): (1) the District of Columbia (DC), Maryland, Virginia, and North Carolina were closest to the Mideast and New England clusters; (2) Arkansas, Louisiana, and Mississippi were closest to Southwest states and Mexico; and (3) the remainder of the states were mixed with the Great Lakes states.
-Similarly, we find that in the Far West that Alaska, Oregon and Washington had transmission patterns closer to certain Rocky Mountain states (Idaho and Utah), while California, Hawaii, and Nevada cluster with Arizona and Texas.  
-We also conducted dimensionality reduction on the geographic seqRR matrix using principal coordinate analysis (fig \ref{fig:geo_clust}D) to further describe geographic patterns of transmission.
-The first principal coordinate mapped to US/Canada country differences with Canadian provinces having negative values (-0.549 to -0.655) and US states having more positive values (-0.059 to +0.279).
-Mexico has a PC1 of essentially zero (-0.0004), which places it near the negative edge of the US cloud. 
-The second principal coordinate generally tends to map onto an East-West axis with New England, Mideast, and Eastern Canada having the greatest positive values.
-The combined PC1/PC2 plot summarizes how the geographic relationships in North America can be reconstructed from the identical sequence patterns of SARS-CoV-2 while also finding which regions are more closely related based on their distance in principal coordinate space. 
+To further characterize geographic structure in SARS-CoV-2 transmission in North America, we perform hierarchical clustering using a genetic distance measure based on $RR_{seq}$ values between subdivisions.
+Figure \ref{fig:geo_clust}C represents a heatmap of pairwise $RR_{seq}$ between subdivisions with rows and columns ordered based on hierarchical clustering results.
+Rows are further annotated based on geographic regions defined in figure \ref{fig:geo_clust}B.
+We identify a block structure along the diagonal, where blocks corresponds to groups of subdivisions with elevated rate of identical sequence occurrence.
+These blocks can be interpreted as relevant transmission unit for SARS-CoV-2 and generally match our predefined geographic regions.
+%CTK: Isn't this just a consequence of having performed hierarchical clustering to have higher values along the diagonal given you ordered accordingly? - I've suggested a modification
+%Transmission was highest within geographic units, demonstrated by the high seqRR scores along the diagonal.
+%We find clusters of enriched transmission across geographic units, which generally matched our predefined geographic regions.
+For example, Eastern Canada, Western Canada, Mideast, and Plains regions had all of their subdivisions sit on contiguous branches of the hierarchical cluster tree. 
+By contrast, a few US regions did not perfectly sort along regional definitions.
+For example, states from the Southeast do not form a single transmission unit and are split into different smaller clusters (\ref{fig:hclust_subset}):
+(1) the District of Columbia (DC), Maryland, Virginia, and North Carolina cluster with the Mideast and New England states,
+(2) Arkansas, Louisiana, and Mississippi group with Southwestern states and Mexico;
+and (3) the remaining states seem to rather cluster with states from the Great Lakes area.
+We observe a similar pattern in the Far West, with Alaska, Oregon and Washington displaying greater transmission link with Idaho and Utah (Rocky Mountain), while California, Hawaii, and Nevada rather cluster with Arizona and Texas
+
+To investigate whether transmission patterns reflect continental geographic structure, we conduct dimensionality reduction using principal coordinate analysis (fig \ref{fig:geo_clust}D), with a distance metric based on the likelihood of subdivisions sharing identical sequences.
+\ctkc{The exact values obtained from dimensionality reduction are not meaningful - what matters is rather the overall structure. I've rephrased to account for this.}
+The first principal coordinate (PC1) cleanly partitions Canadian provinces from US states, with Mexico close to the US cloud but well separated from the Canadian provinces.
+The second principal coordinate (PC2) corresponds broadly to an East-West axis.
+Although these first two coordinates map well onto geographic structure, they only capture $\sim$30\% of the total variance in identical sequence occurrence patterns.
+\ctkc{If you don't talk about PC3 and there is nothing more to say, you should drop the last plot with PC2/PC3}
+This indicates that, while geographic proximity between subdivisions is an important determinant of transmission risk, it is insufficient to explain the full structure of transmission.
 
 
 \subsection{Temporal and Seasonal Relationships for Geographic RR}
