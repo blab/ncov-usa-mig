@@ -13,20 +13,12 @@ b_list <- list( #Bounds
   'Mexico' = c(0.02,0.1,1,10,50)
 )
 
-place_abbrv <- list( #Abbreviatons
-  'Ontario' = 'ON',
-  'New York' = 'NY',
-  #'California' = 'CA',
-  'Mexico' = 'MX'
-)
-
 map_list <- vector("list", length(b_list))
 names(map_list) <- names(b_list)
 
 # Loop over each and make a map
 for (ORI in names(b_list)) {
   b <- b_list[[ORI]]
-  abrv <- place_abbrv[[ORI]]
   df_subset <- df_RR_state %>%
     filter(x == ORI) %>%
     rename(state = y)
@@ -41,10 +33,15 @@ for (ORI in names(b_list)) {
     value_col = RR,
     fill_mapper = fill_mapper,
     scale_fun = scale_fun,
-    title = abrv,
+    title = ORI,
     ori = ORI,
     line_size = 0.1,
-    box_size = 0.2
+    box_size = 0.2,
+    theme_override = theme(
+      plot.title = element_text(size = 16),
+      legend.title = element_text(size = 16),
+      legend.text = element_text(size = 12)
+    )
   )
   
   ggsave(paste0("figs/CAM_1000/RR_maps/", ORI, ".jpg"),

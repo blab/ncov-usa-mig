@@ -23,7 +23,7 @@ from svgutils.compose import Figure, Image, SVG, Text
 from svg_helpers import Rect
 
 PT_PER_IN = 72
-TARGET_W_IN = 7
+TARGET_W_IN = 9  # bumped from 7in for print legibility
 
 # Original Inkscape canvas (mm) — proportions preserved, scale to TARGET_W_IN
 ORIG_W_MM = 91.032816
@@ -48,7 +48,7 @@ LABELS = [
     ("D", 58.678082,  27.988649),
 ]
 LABEL_FONT = "Arial"
-LABEL_SIZE = 10
+LABEL_SIZE = 13  # scaled up alongside TARGET_W_IN (was 10 at 7in width)
 
 
 def mm(v):

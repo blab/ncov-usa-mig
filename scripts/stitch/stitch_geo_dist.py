@@ -5,7 +5,7 @@ Layout (subfigure letters A-C):
   +------------------------------------------+
   | A | state_distance_poster      (10x2.5in) |
   +------------------------------------------+
-  | B | lm_gam_obs_exp             (10x2.8in)  |
+  | B | gam_dev_by_predictor       (10x2.8in) |
   +------------------------------------------+
   | C | pred_rr_curves_combined    (10x4in)   |
   +------------------------------------------+
@@ -27,10 +27,10 @@ LABEL_SIZE = 18
 
 # Native dimensions of each source figure (inches)
 DIST_W_IN, DIST_H_IN  = 10, 2.5
-OBSE_W_IN, OBSE_H_IN  = 10, 2.8
+DEVX_W_IN, DEVX_H_IN  = 10, 2.8
 COMB_W_IN, COMB_H_IN  = 10, 4
 
-TOTAL_H_IN = DIST_H_IN + OBSE_H_IN + COMB_H_IN   # 9.3
+TOTAL_H_IN = DIST_H_IN + DEVX_H_IN + COMB_H_IN   # 9.3
 
 
 def in_pt(x):
@@ -61,22 +61,22 @@ def stitch(scenario, out_path):
         LEFT_MARGIN, 0
     ))
 
-    # Row B: lm_gam_obs_exp — native width matches TOTAL_W_IN, no scaling
+    # Row B: gam_dev_by_predictor — native width matches TOTAL_W_IN, no scaling
     elements.append(add_svg(
-        f"{fig_dir}/lm_gam_obs_exp.svg",
+        f"{fig_dir}/gam_dev_by_predictor.svg",
         LEFT_MARGIN, in_pt(DIST_H_IN)
     ))
 
     # Row C: pred_rr_curves_combined — native width matches TOTAL_W_IN, no scaling
     elements.append(add_svg(
         f"{fig_dir}/pred_rr_curves_combined.svg",
-        LEFT_MARGIN, in_pt(DIST_H_IN + OBSE_H_IN)
+        LEFT_MARGIN, in_pt(DIST_H_IN + DEVX_H_IN)
     ))
 
     # Subfigure letters
     INSET  = 4
     row2_y = in_pt(DIST_H_IN)
-    row3_y = in_pt(DIST_H_IN + OBSE_H_IN)
+    row3_y = in_pt(DIST_H_IN + DEVX_H_IN)
     letters = [
         ("A", LETTER_X, INSET),
         ("B", LETTER_X, row2_y + INSET),

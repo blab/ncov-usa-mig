@@ -100,8 +100,8 @@ make_age_heatmap <- function(data, same_state = NULL, same_region = NULL, title 
       grep("[05]y$", ., value = TRUE)
     print(age_breaks)
     p <- p +
-      scale_x_discrete(name = "Age Groups", breaks = age_breaks) +
-      scale_y_discrete(name = "Age Groups", breaks = age_breaks) +
+      scale_x_discrete(name = "Age Group", breaks = age_breaks) +
+      scale_y_discrete(name = "Age Group", breaks = age_breaks) +
       theme(axis.text.x = element_text(angle = 45, hjust = 1, size = AXIS_SIZE * 1.25),
             axis.text.y = element_text(size = AXIS_SIZE * 1.25),
             axis.title = element_text(size = AXIS_SIZE * 1.25))
@@ -156,19 +156,42 @@ young_breaks <- unique(c(age_rr_young$x, age_rr_young$y)) %>%
   sort() %>%
   grep("[05]y$", ., value = TRUE)
 
+# Native font size for panel B: 2x panel A's AXIS_SIZE * 1.25, offsetting the
+# opposite scaling the two panels get in scripts/stitch/stitch_age.py.
+YOUNG_FONT <- AXIS_SIZE * 1.25 * 2
+
+# Highlight the 18yo row/column (and its diagonal cell) with bold black outlines.
+young_levels <- sort(unique(c(age_rr_young$x, age_rr_young$y)))
+HL_AGE <- "18y"
+hl_idx <- match(HL_AGE, young_levels)
+n_young <- length(young_levels)
+
 age_heatmap_young <- ggplot(age_rr_young, aes(x = x, y = y, fill = fill_RR)) +
   geom_tile() +
   RR_log_grad(LB = SUBSET_LB, UB = SUBSET_UB) +
-  scale_x_discrete(name = "Age Groups", breaks = young_breaks) +
-  scale_y_discrete(name = "Age Groups", breaks = young_breaks) +
+  annotate("rect",
+           xmin = hl_idx - 0.5, xmax = hl_idx + 0.5,
+           ymin = 0.5, ymax = n_young + 0.5,
+           fill = NA, colour = "black", linewidth = 0.8) +
+  annotate("rect",
+           xmin = 0.5, xmax = n_young + 0.5,
+           ymin = hl_idx - 0.5, ymax = hl_idx + 0.5,
+           fill = NA, colour = "black", linewidth = 0.8) +
+  annotate("text", x = hl_idx, y = hl_idx, label = "*",
+           colour = "black", fontface = "bold", size = 10, vjust = 0.75) +
+  scale_x_discrete(name = "Age Group", breaks = young_breaks) +
+  scale_y_discrete(name = "Age Group", breaks = young_breaks) +
   theme_minimal() +
-  # Native font bumped to AXIS_SIZE*1.25 so that, after the heatmap is scaled
-  # down more than the full (A) panel in the stitch (4/6 vs 5/6), the rendered
-  # axis labels match A's size.
+  # Native fonts/colourbar are set to 2x panel A's so they render at the same
+  # on-page size: the stitch scales A up by 10/6 but B down by 5/6.
+  guides(fill = guide_colourbar(barheight = unit(4.2, "cm"),
+                                barwidth = unit(0.85, "cm"))) +
   theme(plot.title = element_text(hjust = 0.5),
-        axis.title = element_text(size = 11 * 1.25),
-        axis.text.x = element_text(angle = 45, hjust = 1, size = AXIS_SIZE * 1.25),
-        axis.text.y = element_text(size = AXIS_SIZE * 1.25)) +
+        axis.title = element_text(size = YOUNG_FONT),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = YOUNG_FONT),
+        axis.text.y = element_text(size = YOUNG_FONT),
+        legend.title = element_text(size = YOUNG_FONT * 1.1),
+        legend.text = element_text(size = YOUNG_FONT * 0.9)) +
   coord_equal()
 
 ggsave(paste0("figs/", scenario, "/age_heatmaps/young_0_24.jpg"),
@@ -190,7 +213,7 @@ ggsave(paste0("figs/", scenario, "/age_heatmaps/young_0_24.svg"),
 age_heatmap_same_state <- make_age_heatmap(
   age_state_rr,
   same_state = TRUE,
-  title = "Same State",
+  title = "Same Division",
   show_legend = FALSE
 )
 
@@ -198,7 +221,7 @@ age_heatmap_same_region <- make_age_heatmap(
   age_state_rr,
   same_state = FALSE,
   same_region = TRUE,
-  title = "Same Region, Different State",
+  title = "Diff Div/Same Reg",
   show_legend = FALSE
 )
 
@@ -247,17 +270,29 @@ ggsave(paste0("figs/", scenario, "/age_heatmaps/full.svg"),
        plot = age_heatmap + theme(plot.margin = margin(1, 1, 1, 1)),
        width = 6, height = 5.3, units = "in")
 
-compact_subset_theme <- theme(
-  plot.title = element_text(size = 12, hjust = 0.5, margin = margin(b = 1)),
-  plot.margin = margin(2, 2, 2, 2)
-)
+# Titles are rendered as facet strips rather than plot titles so they can carry a
+# filled background. Each plot gets a single-level facet_wrap(~"<label>"), which
+# draws one strip bar across the top; the fill comes from GEO_CLASS_COLORS
+# (scripts/color_schemes.R) so the labels match the curve colors in panel D.
+labelled_subset <- function(p, label){
+  p +
+    labs(title = NULL) +
+    facet_wrap(as.formula(paste0('~ "', label, '"'))) +
+    theme(
+      strip.background = element_rect(fill = GEO_CLASS_COLORS[[label]], colour = NA),
+      # 11pt: the longest label ("Diff Div/Same Reg") runs to the strip edge at 12.
+      strip.text = element_text(colour = "white", face = "bold", size = 11,
+                                margin = margin(2, 2, 2, 2)),
+      plot.margin = margin(2, 2, 2, 2)
+    )
+}
 
 # Add a left spacer so the row of heatmaps aligns with the deviance plot panel
 # (deviance has ~0.5" of y-axis space on its left in the stitched figure).
 subsets_row <- plot_spacer() +
-  (age_heatmap_same_state       + labs(title = "Same State")       + compact_subset_theme) +
-  (age_heatmap_same_region      + labs(title = "Same Region")      + compact_subset_theme) +
-  (age_heatmap_different_region + labs(title = "Different Region") + compact_subset_theme) +
+  labelled_subset(age_heatmap_same_state,       "Same Division") +
+  labelled_subset(age_heatmap_same_region,      "Diff Div/Same Reg") +
+  labelled_subset(age_heatmap_different_region, "Different Region") +
   plot_layout(ncol = 4, widths = c(0.15, 1.5, 1.5, 1.5))
 
 ggsave(paste0("figs/", scenario, "/age_heatmaps/subsets_row.svg"),

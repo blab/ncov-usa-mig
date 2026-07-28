@@ -159,8 +159,8 @@ p <- ggplot(df_corr, aes(x = contact_RR, y = RR, color = same_age)) +
   coord_equal() +
   facet_wrap(~ country) +
   labs(
-    x = expression(RR[Contact~Matrix]),
-    y = expression(RR[Sequence])
+    x = expression(RR[CM]),
+    y = expression(RR[seq])
   ) +
   theme_bw() +
   theme(

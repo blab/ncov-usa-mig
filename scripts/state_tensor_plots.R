@@ -92,8 +92,8 @@ plot_pred_nb_gam <- function(m, df, model_name) {
   ggplot(plot_df, aes(x = rr_hat, y = rr_obs)) +
     geom_point(alpha = 0.4) +
     geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-    scale_x_continuous(transform = "log10", name = "Predicted seqRR") +
-    scale_y_continuous(transform = "log10", name = "Observed seqRR") +
+    scale_x_continuous(transform = "log10", name = expression(Predicted~RR[seq])) +
+    scale_y_continuous(transform = "log10", name = expression(Observed~RR[seq])) +
     ggtitle(sprintf("%s - log10 RMSE: %.3f", model_name, rmse_val)) +
     coord_equal(xlim = range_vals, ylim = range_vals) +
     theme_bw()
@@ -110,8 +110,8 @@ plot_pred_rr_gam <- function(m, df, model_name) {
   ggplot(plot_df, aes(x = rr_hat, y = rr_obs)) +
     geom_point(alpha = 0.4) +
     geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-    scale_x_continuous(transform = "log10", name = "Predicted seqRR") +
-    scale_y_continuous(transform = "log10", name = "Observed seqRR") +
+    scale_x_continuous(transform = "log10", name = expression(Predicted~RR[seq])) +
+    scale_y_continuous(transform = "log10", name = expression(Observed~RR[seq])) +
     ggtitle(sprintf("%s - log10 RMSE: %.3f", model_name, rmse_val)) +
     coord_equal(xlim = range_vals, ylim = range_vals) +
     theme_bw()
@@ -528,8 +528,95 @@ c_gam_s_db1b   <- mgcv::gam(log10(RR_seq) ~ s(log_RR_air_db1b),               da
 c_gam_te_db1b  <- mgcv::gam(log10(RR_seq) ~ te(log_RR_air_db1b, min_cbsa_dist), data = df_common, method = "REML")
 
 # ============================================================================
-# COMPACT OBSERVED-VS-EXPECTED ROW (shared extents, square panels)
+# MODEL COMPARISON: DEVIANCE EXPLAINED BY PREDICTOR COMBINATION (row B)
 # ============================================================================
+# Categorical comparison of predictor sets: distance alone, each movement
+# variable alone, and each movement variable interacted with distance. All
+# models are fit on one dataset (df_dev, = df_common further restricted to
+# pairs with SafeGraph mobility) so deviance explained is directly comparable
+# across every bar. Predictor names match the axis labels used in rows A and C.
+
+df_dev <- df_common %>%
+  filter(n_move_avg > 0, is.finite(log_RR_move))
+keep_move <- abs(df_dev$log_RR_move - mean(df_dev$log_RR_move)) <= 3 * sd(df_dev$log_RR_move)
+df_dev <- as.data.frame(df_dev[keep_move, ])
+message(sprintf("Model-comparison dataset N = %d pairs (NHTS, DB1B and SafeGraph)", nrow(df_dev)))
+
+fit_dev_gam <- function(rhs) {
+  mgcv::gam(as.formula(paste("log10(RR_seq) ~", rhs)), data = df_dev, method = "REML")
+}
+
+dev_models <- list(
+  cbsa       = list(m = fit_dev_gam("s(min_cbsa_dist)"),
+                    label = "CBSA\nDistance",              family = "Distance only",
+                    oe_name = "CBSA Distance"),
+  trips      = list(m = fit_dev_gam("s(log_RR_trips)"),
+                    label = "Ground Travel\nRR (NHTS)",     family = "Movement only",
+                    oe_name = "Ground Travel (NHTS)"),
+  db1b       = list(m = fit_dev_gam("s(log_RR_air_db1b)"),
+                    label = "Air Travel\nRR (DB1B)",        family = "Movement only",
+                    oe_name = "Air Travel (DB1B)"),
+  move       = list(m = fit_dev_gam("s(log_RR_move)"),
+                    label = "Mobility\nRR (SafeGraph)",   family = "Movement only",
+                    oe_name = "Mobility (SafeGraph)"),
+  trips_dist = list(m = fit_dev_gam("te(log_RR_trips, min_cbsa_dist)"),
+                    label = "Ground Travel\nRR × Distance", family = "Movement × distance",
+                    oe_name = "Ground Travel × Distance"),
+  db1b_dist  = list(m = fit_dev_gam("te(log_RR_air_db1b, min_cbsa_dist)"),
+                    label = "Air Travel\nRR × Distance",  family = "Movement × distance",
+                    oe_name = "Air Travel × Distance"),
+  move_dist  = list(m = fit_dev_gam("te(log_RR_move, min_cbsa_dist)"),
+                    label = "Mobility\nRR × Distance",    family = "Movement × distance",
+                    oe_name = "Mobility × Distance")
+)
+
+df_dev_models <- bind_rows(lapply(dev_models, function(s) {
+  if (is.null(s$m)) return(NULL)
+  data.frame(label   = s$label,
+             family  = s$family,
+             dev_pct = summary(s$m)$dev.expl * 100,
+             rmse    = as.numeric(yardstick::rmse_vec(log10(df_dev$RR_seq),
+                                                      fitted(s$m))))
+})) %>%
+  mutate(label  = factor(label,  levels = vapply(dev_models, function(s) s$label, character(1))),
+         family = factor(family, levels = c("Distance only", "Movement only", "Movement × distance")))
+
+sink(results_file, append = TRUE)
+cat(paste0("\n", strrep("=", 80), "\n"))
+cat("MODEL COMPARISON (common dataset): deviance explained by predictor set\n")
+cat(paste0(strrep("=", 80), "\n\n"))
+print(as.data.frame(df_dev_models), row.names = FALSE)
+sink()
+
+# theme_classic at base_size 12 to match the axis/legend typography of rows A and C
+p_dev_models <- ggplot(df_dev_models, aes(x = label, y = dev_pct, fill = family)) +
+  geom_col(width = 0.65) +
+  geom_text(aes(label = sprintf("%.0f%%", dev_pct)), vjust = -0.5, size = 3.9) +
+  scale_fill_manual(values = c("Distance only"          = "grey55",
+                               "Movement only"          = "firebrick",
+                               "Movement × distance" = "steelblue"),
+                    name = NULL) +
+  scale_y_continuous(name = "Deviance explained (%)",
+                     limits = c(0, 100), expand = expansion(mult = c(0, 0.02))) +
+  scale_x_discrete(name = NULL) +
+  theme_classic(base_size = 12) +
+  theme(legend.position = "right",
+        legend.text = element_text(size = 11),
+        axis.text.x = element_text(size = 10))
+
+ggsave(paste0("figs/", scenario, "/dist/gam_dev_by_predictor.jpg"),
+       plot = p_dev_models, width = 10, height = 2.8, units = "in", dpi = 300)
+ggsave(paste0("figs/", scenario, "/dist/gam_dev_by_predictor.svg"),
+       plot = p_dev_models, width = 10, height = 2.8, units = "in")
+message("Model deviance comparison saved to figs/", scenario, "/dist/gam_dev_by_predictor.jpg / .svg")
+
+# ============================================================================
+# COMPACT OBSERVED-VS-EXPECTED GRID (supplement to row B)
+# ============================================================================
+# Same seven models as the deviance comparison above, all fit on df_dev, so
+# the RMSE / deviance in each title is comparable across every panel.
+# Row 1: ground and air travel (alone and interacted with distance).
+# Row 2: SafeGraph mobility (alone and interacted) plus distance-only.
 
 # Compact obs-vs-pred panel: fitted() is on log10(RR_seq) scale (RR-form GAM).
 # Shared range_vals + coord_equal keep all panels on identical square extents.
@@ -544,8 +631,8 @@ plot_obs_exp_compact <- function(m, df, model_name, range_vals) {
   ggplot(data.frame(rr_obs = rr_obs, rr_hat = rr_hat), aes(x = rr_hat, y = rr_obs)) +
     geom_point(alpha = 0.4) +
     geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
-    scale_x_continuous(transform = "log10", name = "Predicted seqRR") +
-    scale_y_continuous(transform = "log10", name = "Observed seqRR") +
+    scale_x_continuous(transform = "log10", name = expression(Predicted~RR[seq])) +
+    scale_y_continuous(transform = "log10", name = expression(Observed~RR[seq])) +
     ggtitle(sprintf("%s\nRMSE %.3f · %.0f%% dev", model_name, rmse_val, dev_pct)) +
     coord_equal(xlim = range_vals, ylim = range_vals) +
     theme_bw(base_size = 12) +
@@ -553,25 +640,26 @@ plot_obs_exp_compact <- function(m, df, model_name, range_vals) {
           plot.title = element_text(hjust = 0.5, size = rel(1)))
 }
 
-# All four models share df_common; s(travel) vs te(travel, dist) for each source
-oe_models <- list(
-  list(m = c_gam_s_trips,  name = "NHTS Only"),
-  list(m = c_gam_te_trips, name = "NHTS x Dist"),
-  list(m = c_gam_s_db1b,   name = "DB1B Only"),
-  list(m = c_gam_te_db1b,  name = "DB1B x Dist")
-)
-oe_range <- range(unlist(lapply(oe_models, function(s) {
+oe_order  <- c("trips", "trips_dist", "db1b", "db1b_dist",
+               "move",  "move_dist",  "cbsa")
+oe_models <- dev_models[oe_order]
+oe_range  <- range(unlist(lapply(oe_models, function(s) {
   if (is.null(s$m)) return(NULL)
-  c(df_common$RR_seq, 10^fitted(s$m))
+  c(df_dev$RR_seq, 10^fitted(s$m))
 })), na.rm = TRUE)
 
-oe_plots <- lapply(oe_models, function(s) plot_obs_exp_compact(s$m, df_common, s$name, oe_range))
-oe_row <- patchwork::wrap_plots(oe_plots, ncol = 4, nrow = 1)
+oe_plots <- lapply(oe_models, function(s) plot_obs_exp_compact(s$m, df_dev, s$oe_name, oe_range))
+oe_plots <- c(oe_plots, list(patchwork::plot_spacer()))   # pad row 2 to four columns
+oe_grid  <- patchwork::wrap_plots(oe_plots, ncol = 4, nrow = 2)
 ggsave(paste0("figs/", scenario, "/dist/lm_gam_obs_exp.jpg"),
-       plot = oe_row, width = 10, height = 2.8, units = "in", dpi = 300)
+       plot = oe_grid, width = 10, height = 5.6, units = "in", dpi = 300)
 ggsave(paste0("figs/", scenario, "/dist/lm_gam_obs_exp.svg"),
-       plot = oe_row, width = 10, height = 2.8, units = "in")
-message("GAM obs-exp row saved to figs/", scenario, "/dist/lm_gam_obs_exp.jpg / .svg")
+       plot = oe_grid, width = 10, height = 5.6, units = "in")
+fn_supp_pdf <- "manuscript/figures/supp/lm_gam_obs_exp.pdf"
+dir.create(dirname(fn_supp_pdf), recursive = TRUE, showWarnings = FALSE)
+ggsave(fn_supp_pdf, plot = oe_grid, width = 10, height = 5.6, units = "in")
+message("GAM obs-exp grid saved to figs/", scenario,
+        "/dist/lm_gam_obs_exp.jpg / .svg and ", fn_supp_pdf)
 
 # ============================================================================
 # ti() DECOMPOSITION SURFACES
@@ -735,7 +823,7 @@ plot_rr_distance_curves <- function(m, df, travel_var, travel_label,
     scale_x_continuous(transform = "log10", name = travel_label,
                        breaks = x_breaks,
                        labels = formatC(x_breaks, digits = 2, format = "g")) +
-    scale_y_continuous(transform = "log10", name = "Predicted seqRR",
+    scale_y_continuous(transform = "log10", name = expression(Predicted~RR[seq]),
                        breaks = c(0.1, 0.25, 0.5, 1, 2, 4, 10),
                        labels = c("0.1", "0.25", "0.5", "1", "2", "4", "10")) +
     scale_color_viridis_d(name = "CBSA Distance", direction = -1, option = "plasma") +

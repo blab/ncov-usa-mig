@@ -3,16 +3,14 @@
 
 Layout:
   +------------------+
-  |        A         |   8.000 x 2.133 in  patched_maps.jpg     (raster)
-  +----------+-------+
-  |    B     |       |   4.290 x 3.754 in  bea_region_map.png   (raster)
-  +----------+   D   |
-  |    C     |       |   4.290 x 3.575 in  state_heatmap_clustered.svg (vector)
-  +----------+-------+
-                         3.710 x 7.329 in  pcoa_combined.svg    (vector)
+  |        A         |   8.000 x 2.133 in  patched_maps.jpg              (raster)
+  +------------------+
+  |        B         |   8.000 x 6.667 in  state_heatmap_clustered.svg   (vector)
+  +------------------+
 
-H_B + H_C = H_D = 7.329 in
-W_left + W_D = W_A = 8.000 in
+(The region map + PCoA panels that used to sit below this as C/D now live
+in their own figure -- see stitch_geo_pc.py -- since this one was getting
+too tall.)
 """
 
 import argparse
@@ -27,21 +25,12 @@ PT_PER_IN = 72
 # Total figure width
 TARGET_W_IN = 8.0
 
-# Column widths (derived from H_B + H_C = H_D constraint at TARGET_W_IN = 8in)
-W_LEFT_IN = 4.290
-W_D_IN    = 3.710
-
-# Panel heights
+# Panel heights (both rows are full width)
 H_A_IN = 2.133   # patched_maps scaled to full width
-H_B_IN = 3.754   # region map scaled to W_LEFT_IN
-H_C_IN = 3.575   # heatmap scaled to W_LEFT_IN
-H_D_IN = 7.329   # H_B + H_C
+H_B_IN = 6.667   # heatmap scaled to full width
 
-# Native ggsave widths (used to compute scale factors)
-NATIVE_W_A_IN = 15   # patched_maps.jpg
-NATIVE_W_B_IN =  8   # bea_region_map.png
-NATIVE_W_C_IN = 12   # state_heatmap_clustered.svg
-NATIVE_W_D_IN =  3   # pcoa_combined.svg
+# Native ggsave width for the heatmap svg (used to compute its scale factor)
+NATIVE_W_B_IN = 12   # state_heatmap_clustered.svg
 
 LABEL_FONT = "Arial"
 LABEL_SIZE = 18
@@ -74,12 +63,10 @@ def stitch(scenario, out_path):
     fig_dir = f"figs/{scenario}"
 
     total_w = pt(TARGET_W_IN)
-    total_h = pt(H_A_IN + H_D_IN)
+    total_h = pt(H_A_IN + H_B_IN)
 
     row1_y = 0
     row2_y = pt(H_A_IN)
-    row3_y = pt(H_A_IN + H_B_IN)
-    d_x    = pt(W_LEFT_IN)
 
     elements = [Rect(total_w, total_h, fill="white")]
 
@@ -87,24 +74,14 @@ def stitch(scenario, out_path):
         f"{fig_dir}/RR_maps/patched_maps.jpg",
         0, row1_y, TARGET_W_IN, H_A_IN
     ))
-    elements.append(add_raster(
-        f"{fig_dir}/bea_region_map.png",
-        0, row2_y, W_LEFT_IN, H_B_IN
-    ))
     elements.append(add_svg(
         f"{fig_dir}/state_heatmap_clustered.svg",
-        0, row3_y, W_LEFT_IN, NATIVE_W_C_IN
-    ))
-    elements.append(add_svg(
-        f"{fig_dir}/clust/pcoa_combined.svg",
-        d_x, row2_y, W_D_IN, NATIVE_W_D_IN
+        0, row2_y, TARGET_W_IN, NATIVE_W_B_IN
     ))
 
     for letter, lx, ly in [
-        ("A", INSET,        row1_y + INSET),
-        ("B", INSET,        row2_y + INSET),
-        ("C", INSET,        row3_y + INSET),
-        ("D", d_x + INSET,  row2_y + INSET),
+        ("A", INSET, row1_y + INSET),
+        ("B", INSET, row2_y + INSET),
     ]:
         elements.append(
             Text(letter, lx, ly + LABEL_SIZE,
@@ -113,7 +90,8 @@ def stitch(scenario, out_path):
 
     os.makedirs(os.path.dirname(out_path) or ".", exist_ok=True)
     Figure(f"{total_w}pt", f"{total_h}pt", *elements).save(out_path)
-    print(f"Saved: {out_path}  ({TARGET_W_IN:.3f} x {H_A_IN + H_D_IN:.3f} in)")
+    total_h_in = H_A_IN + H_B_IN
+    print(f"Saved: {out_path}  ({TARGET_W_IN:.3f} x {total_h_in:.3f} in)")
     return out_path
 
 

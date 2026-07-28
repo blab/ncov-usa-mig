@@ -51,11 +51,13 @@
 \usepackage{cleveref}   % Smart references: \cref{fig:x} -> "Figure 1"
 
 % Comments
-\usepackage{ulem}
+\usepackage[normalem]{ulem}
 \usepackage{color}
 \definecolor{orange}{RGB}{245,143,27}
+\definecolor{navy}{RGB}{14,115,192}
 \def\ctk#1#2{\sout{#1} \textcolor{orange}{#2}}
 \def\ctkc#1{\textcolor{orange}{[CTK: #1]}}
+\def\abc#1{\textcolor{navy}{[AB: #1]}}
 
 % === METADATA ===
 %\title{Exploring Transmission Patterns of SARS-CoV-2 from Identical Sequences Across Canada, Mexico, and the United States}
@@ -85,12 +87,12 @@
 \section{Introduction}
 
 Genomic surveillance has become a fundamental tool for understanding pathogen spread and evolution.
-In particular, the COVID-19 pandemic has led to the sequencing of SARS-CoV-2 at an unprecedented rate, with 16.7 million genomes submitted to GISAID's EpiCoV database from December 2019 through December 2024.\autocite{khareGISAIDsRolePandemic2021}.
+In particular, the COVID-19 pandemic has led to the sequencing of SARS-CoV-2 at an unprecedented rate, with 16.7 million genomes submitted to GISAID's EpiCoV database from December 2019 through December 2024.\autocite{khareGISAIDsRolePandemic2021}
 Data at this scale should theoretically make it possible to study transmission in incredible detail. 
 Phylodynamics methods leveraging such sequence data typically rely on ancestral tree reconstruction to recover transmission history and population-level mixing patterns.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015}
 These tree-based approaches are powerful, but they scale poorly because the number of possible phylogenies increases factorially with the number of genomes, limiting analyses to thousands or tens of thousands of sequences.
 The number of sequences that can be included in an analysis limits the resolution at which transmission can be studied.
-Characterizing spread patterns between $n$ population groups indeed involves inferring transmission between $\sim n^2$ pairs of groups, and sequence data requirements become substantial for a large number of groups.
+Characterizing spread patterns between $n$ population groups indeed involves inferring transmission between $\sim n^2$ pairs of groups, and sequence data requirements become substantial as the number of groups increase.
 Overcoming these limitations would thus make it possible to study spread across many fine-grained groups and better understand complex transmission structure.
 
 Statistical methods that identify structure across genomes without building phylogenies \autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024} offer a promising avenue. 
@@ -99,14 +101,14 @@ Because pathogens accumulate mutations along transmission chains, identical sequ
 We introduced an identical sequence relative risk ($RR_{seq}$) metric that measures how the rate at which identical sequences are observed between two groups compares with what is expected under random mixing while accounting for sequencing effort.
 Explicitly accounting for sequencing effort also enables to fully leverage existing genome datasets, and understand the role all groups, including less sampled ones, in transmission.
 We used this framework to map county-level geographic patterns of SARS-CoV-2 spread in Washington State from over 100,000 sequences. 
-Given this approach only relies on genetic distance calculations, it has the potential to scale to even larger datasets and reconstruct transmission patterns at a high-resolution.
+Given this approach only relies on genetic distance calculations, it has the potential to scale to even larger datasets and reconstruct transmission patterns at high resolution.
 
-Here, we analyse patterns of occurrence of identical sequences among 5.7 million publicly available SARS-CoV-2 genoomes from North America (Canada, Mexico, and the United States (US)) collected between January 2020 and December 2024.
-We investigate transmission between \ctk{}{xxx} North American subdivisions \ctkc{Add number of subdivisions}, at the level of US states and Canadian provinces.
+Here, we analyse patterns of occurrence of identical sequences among 5.7 million publicly available SARS-CoV-2 genomes from North America (Canada, Mexico, and the United States (US)) collected between January 2020 and December 2024.
+We investigate transmission between 62 North American subdivisions, at the level of US states and Canadian provinces.
 This granularity enables us to characterize transmission structure comprehensively across a continent through time, and to understand how it relates to administrative boundaries typically used for aggregation.
 We also investigate how different types of mobility indicators recapitulate transmission at different spatial scales.
-Finally, we characterize transmission between age groups at single-year resolution, a level of detailed not previously achieved from either epidemiological or genomic data, and difficult to reach with methods relying on more divergent genomes. \ctkc{Cite phylogeo-signal paper in Proc B}
-\ctkc{The last sentence might need a bit of rephrasing, but this is actually true and a major sell for the paper. }
+Finally, we characterize transmission between age groups at single-year resolution, a level of detailed not previously achieved from either epidemiological or genomic data, and difficult to reach with methods relying on more divergent genomes.\autocite{tran-kiemCharacterizingInformativenessPathogen2026}
+The combination of extremely rich sequence data and our highly scalable method enables a rich analysis that finds nuanced relationships that would have been obscured by subsampling or aggregating the units of analyses.
 
 
 %Phylodynamic methods have been important tools for understanding pathogen spread and evolution, typically by reconstructing an ancestral tree from sequence data using Maximum Likelihood or Bayesian inference.\autocite{volzViralPhylodynamics2013}
@@ -128,10 +130,6 @@ Finally, we characterize transmission between age groups at single-year resoluti
 %In this paper, we used the relative risk of identical sequence method to study SARS-CoV-2 transmission across Canada, Mexico, and the United States from January 2020 through December 2024, taking advantage of the 5.7 million sequences that are available in the EpiCoV database from those countries in that time period.
 %This framework is used to examine spatial relationships of SARS-CoV-2 at multiple spatial (interstate, interregional, and international) and temporal scales.
 %Furthermore, we use this set of sequences to identify high-resolution relationships across age groups to compare with existing age contact matrices.
-
-\ctkc{I've tried refactoring a little bit the introduction to better tie the different elements together and make it a bit stronger.
- I believe the big selling point if this granularity you're able to get at and that enables you to look at all these different questions.}
-
 \section{Results}
 
 \subsection{Description of EpiCoV Data}
@@ -142,82 +140,89 @@ Finally, we characterize transmission between age groups at single-year resoluti
     \caption{
         Characteristics of publicly available SARS-CoV-2 sequences in North America from January 2020 to December 2024.
         A: Number of sequences available for each geographic unit.
-        B: Weekly sequences per 100,000 persons by country.
+        B: Weekly sequences per 100,000 persons by country with a rolling 3-week centered simple moving average.
         C: Number of sequences with valid age metadata by age.
         D: Age distribution of sequences by geographic location among sequences with valid age and region metadata.
-        \ctkc{For B, need to specify the smoothing, if it's a rolling average specify the window size, if it's another smoothing (LOESS...) also mention}.
-        \ctkc{Increase label sizes (I'm reading a printed version and the labels are too small).}}
+    }
     %\caption{Exploratory analyses of GISAID SARS-CoV-2 sequences. A: Sequence counts for each geographic unit. B: Weekly moving average of per capita sequences for each country.  C: Age-sex pyramid of sequences across all countries for ages 0-90. D: Violin/box plots of age distribution by country/region}
      \label{fig:desc}
 \end{figure}
 
-Between January 2020 and December 2024, \ctk{}{xxx} SARS-CoV-2 sequences were deposited in the GISAID EpiCoV database across Canada, the US and Mexico (hereafter referred to as North America). \ctkc{Cite GISAID}
-We defined North American subdivision as states in the US, provinces in Canada and the country of Mexico as this was the geographic resolution at which metadata was available for the 3 countries.
-Among these sequences, \ctk{}{xxx} had valid subdivision metadata.
+Between January 2020 and December 2024, 6,187,049 SARS-CoV-2 sequences were deposited in the GISAID EpiCoV database across Canada, the US and Mexico (hereafter referred to as North America).\autocite{khareGISAIDsRolePandemic2021}
+We defined North American subdivisions as states in the US (including the District of Columbia but excluding all other territories), provinces in Canada and the country of Mexico based on the available geographic resolution in the sequence metadata for the 3 countries.
+Among these sequences, 5,765,925 had valid subdivision metadata and coverage greater than 90\%.
 Figure \ref{fig:desc}A displays the geographic distribution of sequences by North American subdivisions.
 We find considerable heterogeneity in sequence volume by subdivision.
-California has the highest number of sequences available with 935,874 sequences and \ctk{}{xxx} the lowest with \ctk{}{xxx} sequences.
+California has the highest number of sequences available with 935,874 sequences and Prince Edward Island has the lowest with 1,148 sequences.
 When adjusting for population size, sequencing effort still varied across subdivision with a median of 1468.7 sequences per 100,000 persons (IQR: 934.9 - 2288.9)
 Wyoming had the highest per capita sequence count of any subdivision (5,935.5 sequences per 100,000 persons) while Mexico had the lowest number of sequences per capita of any subdivision (76.5 sequences per 100,000 persons).
 Looking across countries, all of them had similar sequence count trajectories, with the number of sequences per capita increasing in early 2021 and peaking in late 2021/early 2022 following the Delta and Omicron waves (Figure \ref{fig:desc}B) and sequencing intensity decreasing in all three countries by 2024.
-Mexico also consistently had the fewest number of sequences per capita of the three countries (Figure \ref{fig:desc}B).
-Among the 5.7 million of sequences available in North America, 52.0\% have valid age metadata (age distribution shown in Figure \ref{fig:desc}C) with age information available across regions (Figure \ref{fig:desc}D).
+Mexico consistently had the fewest number of sequences per capita of the three countries (Figure \ref{fig:desc}B).
+Among the 5.7 million of sequences available in North America, 52.0\% have valid age metadata. The full age distribution shown in Figure \ref{fig:desc}C) and stratified across regions in Figure \ref{fig:desc}D.
+Publicly available SARS-CoV-2 sequences in North America thus represent a particularly rich dataset with detailed metadata, which enables us to conduct an in-depth analysis of transmission patterns across ages, geography, and time.
 %There were some differences in the age distribution across geography, shown in Figure \ref{fig:desc}D, but all regions generally included a wide range of ages from young childhood through the elderly.
 %CTK: I didn't fully see the value of that sentence here for the following
-Publicly available SARS-CoV-2 sequences in North America thus represent a particularly rich dataset with detailed metadata, which enables us to conduct an in-depth analysis of transmission patterns across ages, geography, and time.
+
 
 \subsection{Relationship between Geography and Identical Sequences}
 \begin{figure}[tp]
     \centering
     \includegraphics[width=\textwidth]{geo_clust.pdf}
     \caption{Spatial structure of SARS-CoV-2 transmission in North America inferred from identical sequence pairs.
-    A: Pairwise RR of observing identical sequences between the Ontario province (left), New York state (center) and Mexico (right) and other North American subdivisions. Asterisks represent the focal geographical unit (Ontario, New York and Mexico).
-    \ctkc{For A, increase font size and include full labels at the top of the heatmaps instead of only the abbreviations.}
-    B: Geographic regions used to annotated results of the clustering analysis. Sequences from the Yukon, Northwest, and Nunavut Territories in Canada were not available, so these territories were not assigned to any region.
-    C: Relative risk of observing identical sequences between North American subdivisions, sorted using hierarchical clustering. Colored rectangles on the left side indicate region membership.
-    \ctkc{For C, increase font size for legend}
-    D: Principal coordinate analysis from distances based on identical sequence $RR_{seq}$. Points represent individuals North American subdivisions and polygons convex hulls for each region. Percentages indicate the proportion of variance explained by each component. 
-    In A and C, we display the RR on a logarithmic scale. 
+    A: Pairwise relative risk of observing identical sequences ($RR_{seq}$) between the Ontario province (left), New York state (center) and Mexico (right) and other North American subdivisions. 
+    Asterisks represent the focal geographical unit (Ontario, New York and Mexico).
+    B: Relative risk of observing identical sequences between North American subdivisions, sorted using hierarchical clustering.
+    Each row's subunit is designated using the standard 2 letter US state/Canadian provincial codes with Mexico represented as MX. 
+    Colored rectangles on the left side indicate region membership (see Figure \ref{fig:geo_pc}A for the region legend). 
+    In both panels $RR_{seq}$ is colored according to a logarithmic scale.
     }
-    %\caption{Geographical analysis of SARS-CoV-2 identical sequence pairs. A: Identical sequence RR maps for Ontario, New York State, and Mexico (left to right), where the asterisk represents the geographical unit. B: Map of regions used for clustering analysis. The Yukon, Northwest, and Nunavut Territories in Canada were not assigned any region as they did not have any sequences in our dataset. C: Heatmap of identical sequence RR by geographical unit, sorted using hierarchical clustering. Colored labels on the left side indicate the unit’s region membership. Heatmap colors are plotted on a logarithmic scale. D: Principal coordinate analysis of geographic units. Points represent specific provinces/states and polygon is the convex hull for the region.}
     \label{fig:geo_clust}
 \end{figure}
 
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\textwidth]{geo_pc.pdf}
+    \caption{Dimensionality reduction of identical-sequence transmission patterns.
+    A: Geographic regions used to annotate results of the clustering analysis.
+    Sequences from the Yukon, Northwest, and Nunavut Territories in Canada were not available, so these territories were not assigned to any region.
+    B: Principal coordinate analysis using dissimilarity of each subdivision's $RR_{seq}$ values.
+    Points represent individual North American subdivisions and polygons are the convex hulls for each region. 
+    Percentages indicate the proportion of variance explained by each PC.
+    }
+    \label{fig:geo_pc}
+\end{figure}
+
 We calculate $RR_{seq}$ scores between all North American subdivisions to identify spatial patterns of transmission. 
-Figure \ref{fig:geo_clust}A represents chloropleth maps that illustrate patterns for a few focal subdivisions (Ontario province, New York state, and Mexico).
-In all three example, $RR_{seq}$ values are highest withint the focal subdivision and $RR_{seq}$ tends to decay with distance, highlighting that transmission increases with geographic proximity.
-Despite New York state and Ontario being adjacent, we don't find evidence for enriched transmission between these two subdivisions ($RR_{seq}^{NY,ON} = xxx < 1$ \ctk{}{Add value}).
+Figure \ref{fig:geo_clust}A shows chloropleth maps that illustrate patterns for a few focal subdivisions (Ontario province, New York state, and Mexico).
+In all three examples, $RR_{seq}$ values are highest within the focal subdivision and $RR_{seq}$ tends to decay with distance, highlighting that transmission increases with geographic proximity.
+Despite New York state and Ontario being adjacent, we do not find evidence for enriched transmission between these two subdivisions ($RR_{seq}^{NY,ON} = 0.396 < 1$).
 By contrast, we find $RR_{seq}$ scores greater than 1 (indicating enrichment) between Mexico and several US states including California, Texas, New Mexico, and Oklahoma.
 To evaluate whether this difference in cross border pattern could be an artifact from not being able to split Mexico into subdivisions, we perform a sensitivity analysis aggregating Canada into a single unit and find $RR_{seq} < 1$ across all states (max $RR_{seq}$ of 0.26).
 This suggests that transmission is not fully described by proximity alone and that administrative (here national) boundaries may further shape transmission risk.
-Oklahoma-Mexico was a significant outlier relationship with a seqRR of 4.13 (bootstrap 95\% CI: 3.86-4.54) compared to the other enriched US-Mexico relationships (seqRR ranging from 1.09-1.37).
-Further investigation found that a disproportionate number of Oklahoma sequences were from the Omicron BA.1 wave (45.0\%) compared to California, Texas, and Mexico (17.9\%-22.0\%), which likely would have decreased the Oklahoma's captured genetic diversity.
+Oklahoma-Mexico was a significant outlier relationship with a $RR_{seq} = 4.13$ (bootstrap 95\% CI: 3.86-4.54) compared to the other enriched US-Mexico relationships ($RR_{seq}$ ranging from 1.09-1.37).
+Further investigation found that a disproportionate number of Oklahoma sequences were from the Omicron BA.1 wave (45.0\%) compared to California, Texas, and Mexico (17.9\%-22.0\%), which likely would have decreased the Oklahoma's captured genetic diversity and inflated its enrichment with Mexico.
 In-depth results of this analysis are shown in supplemental figure \ref{fig:ba1_epiweek}.
 \ctkc{I feel like this paragraph is a strong opening, but the Oklahoma-Mexico feels very anecdotal, drop?}
+\abc{My thought had been to include the OK example since it is a pretty noticeable and somewhat surprising finding if you just look at the Mexico map, and people may be confused why it stands out more than CA, AZ, or TX}
 
 
 To further characterize geographic structure in SARS-CoV-2 transmission in North America, we perform hierarchical clustering using a genetic distance measure based on $RR_{seq}$ values between subdivisions.
-Figure \ref{fig:geo_clust}C represents a heatmap of pairwise $RR_{seq}$ between subdivisions with rows and columns ordered based on hierarchical clustering results.
-Rows are further annotated based on geographic regions defined in figure \ref{fig:geo_clust}B.
-We identify a block structure along the diagonal, where blocks corresponds to groups of subdivisions with elevated rate of identical sequence occurrence.
-These blocks can be interpreted as relevant transmission unit for SARS-CoV-2 and generally match our predefined geographic regions.
-%CTK: Isn't this just a consequence of having performed hierarchical clustering to have higher values along the diagonal given you ordered accordingly? - I've suggested a modification
-%Transmission was highest within geographic units, demonstrated by the high seqRR scores along the diagonal.
-%We find clusters of enriched transmission across geographic units, which generally matched our predefined geographic regions.
+Figure \ref{fig:geo_clust}B represents a heatmap of pairwise $RR_{seq}$ between subdivisions with rows and columns ordered based on hierarchical clustering results.
+Rows are further annotated based on geographic regions defined in figure \ref{fig:geo_pc}A.
+We identify a block structure along the diagonal, where blocks correspond to groups of subdivisions with elevated rate of identical sequence occurrence.
+These blocks can be interpreted as relevant transmission units for SARS-CoV-2 and generally match existing geographic regions.
 For example, Eastern Canada, Western Canada, Mideast, and Plains regions had all of their subdivisions sit on contiguous branches of the hierarchical cluster tree. 
 By contrast, a few US regions did not perfectly sort along regional definitions.
-For example, states from the Southeast do not form a single transmission unit and are split into different smaller clusters (\ref{fig:hclust_subset}):
-(1) the District of Columbia (DC), Maryland, Virginia, and North Carolina cluster with the Mideast and New England states,
+For example, states from the Southeast do not form a single transmission unit and are split into different smaller clusters (shown in depth in supplemental figure \ref{fig:hclust_subset}):
+(1) the District of Columbia (DC), Maryland, Virginia, and North Carolina cluster with the Mideast and New England states;
 (2) Arkansas, Louisiana, and Mississippi group with Southwestern states and Mexico;
-and (3) the remaining states seem to rather cluster with states from the Great Lakes area.
+and (3) the remaining states cluster with states from the Great Lakes area.
 We observe a similar pattern in the Far West, with Alaska, Oregon and Washington displaying greater transmission link with Idaho and Utah (Rocky Mountain), while California, Hawaii, and Nevada rather cluster with Arizona and Texas
 
-To investigate whether transmission patterns reflect continental geographic structure, we conduct dimensionality reduction using principal coordinate analysis (fig \ref{fig:geo_clust}D), with a distance metric based on the likelihood of subdivisions sharing identical sequences.
-\ctkc{The exact values obtained from dimensionality reduction are not meaningful - what matters is rather the overall structure. I've rephrased to account for this.}
+To investigate whether transmission patterns reflect continental geographic structure, we conduct dimensionality reduction using principal coordinate analysis (fig \ref{fig:geo_pc}B), using the same dissimilarity matrix as the hierarchical clustering.
 The first principal coordinate (PC1) cleanly partitions Canadian provinces from US states, with Mexico close to the US cloud but well separated from the Canadian provinces.
 The second principal coordinate (PC2) corresponds broadly to an East-West axis.
 Although these first two coordinates map well onto geographic structure, they only capture $\sim$30\% of the total variance in identical sequence occurrence patterns.
-\ctkc{If you don't talk about PC3 and there is nothing more to say, you should drop the last plot with PC2/PC3}
 This indicates that, while geographic proximity between subdivisions is an important determinant of transmission risk, it is insufficient to explain the full structure of transmission.
 
 
@@ -225,38 +230,37 @@ This indicates that, while geographic proximity between subdivisions is an impor
 
 \begin{figure}[tp]
     \centering
-    \includegraphics[width=0.75\textwidth]{geo_time.pdf}
+    \includegraphics[width=0.72\textwidth]{geo_time.pdf}
     \caption{Temporal changes in spatial patterns of SARS-CoV-2 transmission in the United States inferred from identical sequence pairs.
-    A: Distribution of normalized identical sequence RR scores for each calendar quarter stratified by within region (red), domestic between region (green), and international pairings (blue). 
-    B: Heatmap of fold change in identical sequence nRR scores relative to the first quarter of 2023 (2023 Q1) by quarter (y-axis) with each column representing a state/province pairing. 
-    C: Between region nRR scores staying in the top 98\%ile across multiple quarters (left side) and across multiple years for the same quarter (right side).
-    \ctkc{The label in C is not precise enough (meaning I don't fully understand when I read it how you defined the conserved connections, on why distributions the outliers were based etc.), worth clarifying.}
-    \ctkc{Did you plot all the links that were conserved at least twice? If so, maybe specify ("in at least 2 quarters").}
-    \ctkc{Be consistent with subpanel titles, either put some on every panel or no subtitle at all (they're not necessarily necessary).}}
+    A: Distribution of normalized identical sequence RR scores ($nRR_{seq}$) for each calendar quarter stratified by within region (red), domestic between region (green), and international pairings (blue). 
+    B: Heatmap of fold change in $nRR_{seq}$ relative to the first quarter of 2023 (2023 Q1) by quarter (y-axis) with each column representing a state/province pairing. 
+    C: Between region pairs of states with consistently high $nRR_{seq}$ scores. 
+    Left: State pairs across all quarters with $nRR_{seq}$ within the top 2\%ile for at least 5 quarters.
+    Right: State pairs with $nRR_{seq}$ within the top 2\%ile for at least 2 years for a specific quarter.}
     %\caption{Changes in geographic identical sequence RR over time. A: Distribution of normalized RR scores for each calendar quarter stratified by within region, domestic between region, and international pairings. B: Heatmap of fold change for nRR scores with each column representing one state/province pairing. Fold change set relative to 2023 Q1.  C: Between region nRR scores staying in the top 98\%ile across multiple quarters (left side) and across multiple years for the same quarter (right side).}
     \label{fig:geo_time}
 \end{figure}
 
-In order to investigate temporal relationships across states and provinces, we calculated quarterly seqRR scores normalized by the average of the within unit seqRR scores.
-Normalized seqRR were highly variable in Q1 2020 and rapidly decreased to a minimum in 2020 Q4 (fig \ref{fig:geo_time}A), indicating a global reduction of across unit transmission.
-Transmission slowly increased during 2021 and reached a peak during 2022.
-Throughout all time periods, state/province pairs within the same region had higher identical sequence transmission compared to inter-region and international pairs.
-Fold-change of normalized seqRRs were also calculated with respect to 2023 Q1 to track how individual pairs changed over time (fig \ref{fig:geo_time}B).
-We again see a sharp decrease in transmission across most state/provincial pairs from 2020 Q1 to 2020 Q2 which persists through the remainder of 2020.
-The normalized seqRR begin to increase in a gradated fashion during 2021 as within region nRR scores increased in early 2021 and across region nRR scores increased in late 2021.
-International normalized seqRR scores remained low throughout 2021 and had a delayed rise in 2022.
+In order to investigate temporal relationships across states and provinces, we calculate quarterly $RR_{seq}$ scores normalized by the average of within subdivision $RR_{seq}$ scores.
+Normalized $RR_{seq}$ ($nRR_{seq}$) were highly variable in Q1 2020 and rapidly decreased to a minimum in 2020 Q4 (fig \ref{fig:geo_time}A), indicating a global reduction of across subdivision transmission.
+Across subdivision transmission slowly increased during 2021 and reached a peak during 2022.
+Throughout all time periods, subdivision pairs within the same region had higher identical sequence transmission compared to between region and international pairs.
+Fold-change of $nRR_{seq}$ are also calculated with respect to 2023 Q1 to track trajectories of individual pairs changed over time (fig \ref{fig:geo_time}B).
+We again see a sharp decrease in transmission across most subdivision pairs from 2020 Q1 to 2020 Q2 which persists through the remainder of 2020.
+The $nRR_{seq}$ scores began to increase in a gradated fashion during 2021 as within region nRR scores increased in early 2021 and between region nRR scores increased in late 2021.
+International normalized $RR_{seq}$ scores remained low throughout 2021 and had a delayed rise in 2022.
 These results suggest that much of the early pandemic transmission tended to be local and slowly expanded across scales. 
 
-Given that the bulk of geographic relationships we identified were intra-regional, we sought to see if the normalized seqRR could be used to identify inter-regional state/province pairs with consistent transmission throughout the study period.
-We defined conserved high scoring pairs as inter-regional state/province pairs whose normalized seqRR scores were above the 98th percentile of for at least five of the twenty quarters during the study time period (shown in fig \ref{fig:geo_time}C).
-There were 21 state pairings that had at least 5 quarters within the upper 98th percentile, and all of these were between US states.
-Florida had the highest involvement (9 connections) followed by New York and New Jersey (both with 6 connections).
+Given that our analysis had mainly identified within region pairs as enriched for identical sequences, we sought to see if relatively high scoring $nRR_{seq}$ scores could be used to identify between region subdivision pairs with significant transmission throughout the study period.
+We define conserved high scoring pairs as between region subdivision pairs whose $nRR_{seq}$ scores were above the 98th percentile (i.e. top second percentile) of for at least five of the twenty quarters during the study time period (shown in fig \ref{fig:geo_time}C).
+There were 21 between region pairings that had at least 5 quarters meeting these criteria, and all of these were between US states.
+Florida had the most high scoring connections (9) followed by New York and New Jersey (both with 6 connections).
 Of specific pairings, Florida - New Jersey and Florida - Pennsylvania were the most common conserved connections, with each having 10 quarters of nRR within the top 98th percentile.
 This suggests that Florida acted as a major hub for inter-regional transmission, especially between the Southeast and the Mideast regions.
-We then further investigated conserved connections stratified by quarters to look for seasonal variation.
-We found that the number of conserved connections vary by season with Q1 (January - March) and Q3 (July - September) having the most conserved connections and Q2 (April - June) having the least.
+We then stratify this analysis by quarters to look for between state pairs which had at least 2 years of high scoring $nRR_{seq}$ for each quarter.
+We find that the number of conserved connections vary by season with Q1 (January - March) and Q3 (July - September) having the most conserved connections and Q2 (April - June) having the least.
 Florida had the most conserved connections across all four quarters, with the majority of these connections tended to be with Mideast states (New Jersey, Pennsylvania, and New York), but also with Texas and California across multiple quarters.
-The persistence of Florida's conserved connections year-round highlights the importance it plays in transmission patterns across the United States.
+The persistence of Florida's conserved connections year-round highlights the importance it plays in between region transmission patterns across the United States.
 
 \subsection{Geographical Predictors of Transmission}
 
@@ -266,120 +270,125 @@ The persistence of Florida's conserved connections year-round highlights the imp
     \caption{Relationship between identical sequence RR in the United States and movement metrics across scales. 
     A: Relationship between identical sequence RR and distance between states and RR of movements between states. 
     Solid line indicates LOESS fit and we report Pearson correlation coefficient $r$ at the top of each plot.
-    B: Observed vs predicted identical sequence RR from generalized additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained by each model.
-     Model predictors from left to right: ground travel only, interaction of ground travel and CBSA distance,  air travel only, and interaction of air travel and CBSA distance  
+    B: Summary of generalized additive model (GAM) performance for predicting $RR_{seq}$ using different travel/movement, with and without geographic distance.
+    Each bar represents a different model with the X axis listing the predictors included and the Y axis indicating the percent of deviance explained by the model.
+    For all models, the dataset excluded any state pairs where any of the travel or movement variables was missing or was a significant outlier ($\geq$ 3 SD).
+    This was done to account for states with sparse data having more extreme and unstable estimates of movement and travel variables.
     \ctkc{Inverse observed and predicted on the axes.}
     \ctkc{B is nice to actually show that the models in C are relevant but this probably rather has a place in the supplement.
     If the aim if to show that jointly modelling distance + RR of movement gives a better description of the data, I'd recommend a figure directly depicting it with different combinations of predictors as categorical values on the x axis and bars or diamonds on the y-axis depicting the percentage of deviance explained by each model.
     I think this is also lacking distance only as a predictor.}
+    \abc{Replaced B with a summary of deviance and moved the O/P plots to the supplement, I didn't flip the observed and predicted since the typical convention is to keep predicted on the X when assessing regression performance (mirroring residuals vs fitted plots)}
     C: Predicted identical sequence RR from GAM models with interaction terms between distance and movement predictors. 
-    Colored curves represent the predicted identical sequence RR when fixing the CBSA distance between states. 
-    We only depict predicted identical sequence RR for values of the RR of movement observed at the distance of interest.
+    Colored curves represent the predicted $RR_{seq}$ when fixing the CBSA distance between states. 
+    We only depict predicted $RR_{seq}$ for values of the RR of movement observed around the distance band of interest.
+    Data points are binned around each distance curve (100 km: 0-250 km, 500 km: 250-1000 km, 2000 km: 1000-3000 km, 4000 km: 3000-5000 km) and then we select the 2nd and 98th percentiles of the travel variable for each bin to be the plotted extent for that distance.
     \ctkc{Mention how this was done.}
-    For all plots, relative risks are plotted on logarithmic scale; for rows B and C dataset excluded any state pairs with zero ground or air travel reported or if a travel variable was an outlier ($\geq3$ SD).
-    \ctkc{Was this latter to avoid outliers from low counts and sparse data? If yes, justify.}}
-    %\caption{Relationship between Continental US seqRR scores with distance/travel patterns. A: Scatter plots of distance/travel covariates with seqRR with points colored by geographic relationship. Solid line indicates LOESS best-fit and Pearson correlation coefficient placed in each plot title. B: Observed vs Expected seqRR values for generalizied additive models (GAMs) with root mean squared error (RMSE) and percent deviance explained in each title. Model predictors from left to right: ground travel only, interaction of ground travel and CBSA distance,  air travel only, and interaction of air travel and CBSA distance  C: Predicted values from combined movement/distance GAM models. Colored curves each represent a fixed CBSA distance value. Movement RR extent was limited to observed extent in data for the distance. Note for all plots, relative risks are plotted on logarithmic scale; for rows B and C dataset excluded any state pairs with zero ground or air travel reported or if a travel variable was an outlier ($\geq3$ SD).}
+    \abc{Check that this explanation makes sense}
+    }
     \label{fig:geo_dist}
 \end{figure}
 
-Given the geographic relations we identified, we wished to identify what movement and distance variables could be used to predict transmission patterns.
-The variables we investigated included the minimum core-based statistical area (CBSA) distance between states, the number of ground travel trips between states measured in the National Household Travel Survey (NHTS), the proportion of timeshare spent by cellphone users in one state in another state based on SafeGraph mobility data, and the number of air travel passengers traveling between states using the US Department of Transportation's Airline Origin and Destination Survey (DB1B).
-This analysis was limited to the continental United States as most of our data sources were US specific, and Hawaii and Alaska were outliers for all distance and movement metrics.
-To facilitate better comparisons, we calculated relative risk scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transformed all RR scores (including for identical sequences), while geographic distance remained on a linear scale.
+In order to better understand the drivers of these geographic relationships, we wished to identify what movement and distance variables could be used to predict $RR_{seq}$.
+The variables we investigated include the minimum core-based statistical area (CBSA) distance between states, the number of ground travel trips between states measured in the National Household Travel Survey (NHTS), the timeshare proportion of cellphone users traveling across state lines measured by SafeGraph's mobility data, and the number of air travel passengers traveling between states using the US Department of Transportation's Airline Origin and Destination Survey (DB1B).
+This analysis was limited to the continental United States as most of our data sources were US specific, and Hawaii and Alaska were outliers for all distance and movement metrics due to their geographic isolation.
+To facilitate better comparisons, we calculate relative risk scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transform all RR scores (including $RR_seq$), while keep geographic distance on a linear scale.
 For the air travel, state pairs with no trips were removed from the analysis as they significantly biased the relationship to no correlation when included and bounded to the air travel RR floor.
 The results of our analysis are shown in figure \ref{fig:geo_dist}A.
-Distance between states was negatively correlated with seqRR and showed a biphasic pattern, with a rapid descent in seqRR from 0 to 500 km and then a slower descent phase beyond 500 km.
-This distance coincides with where states transition from being primarily in the same region versus where they are in different regions.
-Ground travel and mobility RR were both positively correlated with seqRR, and both showed a transition into a higher slope moving from inter-regional (i.e. higher distance) pairs to intra-regional (i.e. shorter distance).
-Air travel was showed the weakest relationship across these variables.
-The air travel RR had a weak positive correlation with seqRR (r = 0.13), with the best-fit curve initially showing a negative relationship and then a slight positive relationship.
+Distance between states is negatively correlated with $RR_{seq}$ and shows a biphasic pattern, with a rapid descent in $RR_{seq}$ from 0 to 500 km and then a slower descent phase beyond 500 km.
+This distance coincides with where state pairs transition from being primarily within the same region to where they are in different regions.
+Ground travel and mobility RR are both positively correlated with $RR_{seq}$, and both show a transition into a higher slope moving from inter-regional (i.e. higher distance) pairs to intra-regional (i.e. shorter distance).
+Air travel has the weakest relationship with $RR_{seq}$ across these variables.
+It has a weak positive correlation (r = 0.13), with the best-fit curve initially showing a negative relationship and then a slight positive relationship.
 Notably, unlike with ground travel and cellphone mobility, air travel RR was spread evenly across both intra-regional and inter-regional pairs.
-These findings suggest that the movement/travel variables may have different relationship behaviors with transmission based on the distance between the two states.
+These findings suggest that the relationship between movement/travel variables and transmission may behave differently based on the distance between the two states.
 
 \begin{table}[]
     \centering
     \caption{Pearson correlation coefficients (on a $\log_{10}$ scale) between identical sequence RR and different movement and distance metric, stratified by CBSA distance band. 
     SafeGraph mobility is positively associated with transmission at short range and only negatively associated in the sparse $>3000$~km tail; air travel (T-100, DB1B) shows the opposite pattern, with its association concentrated at longer distances.
-    \ctkc{Nice table. Could you maybe also add a p-value for the significance of each association?}}
+    \ctkc{Nice table. Could you maybe also add a p-value for the significance of each association?}
+    \abc{I added the p-values, but they are all essentially significant since the n is large for all of them.I don't know how much it adds and worry it may be interpreted that the travel performance is good across all bands.}}
     \label{tab:band_corr}
-    \begin{tabular}{llrr}
+    \begin{tabular}{llrrr}
         \toprule
-        Travel source & CBSA distance band (km) & $n$ & Pearson $r$ \\
+        Travel source & CBSA distance band (km) & $n$ & Pearson $r$ & $p$ \\
         \midrule
-        RR Ground Travel      & 0--250      & 302  & $0.620$ \\
-                           & 250--1000   & 752  & $0.172$ \\
-                           & 1000--3000  & 1140 & $0.325$ \\
-                           & 3000--5000  & 230  & $0.476$ \\
+        RR Ground Travel      & 0--250      & 302  & $0.620$ &  $< 0.001$\\
+                           & 250--1000   & 752  & $0.172$  & $< 0.001$ \\
+                           & 1000--3000  & 1140 & $0.325$ & $< 0.001$ \\
+                           & 3000--5000  & 230  & $0.476$ & $< 0.001$ \\
         \addlinespace
-        RR Air Travel         & 0--250      & 254  & $-0.236$ \\
-                           & 250--1000   & 700  & $0.314$ \\
-                           & 1000--3000  & 1058 & $0.358$ \\
-                           & 3000--5000  & 206  & $0.544$ \\
-        \addlinespace
-        RR Cellphone Mobility & 0--250      & 310  & $0.676$ \\
-                           & 250--1000   & 750  & $0.195$ \\
-                           & 1000--3000  & 1106 & $-0.060$ \\
-                           & 3000--5000  & 150  & $-0.319$ \\
+        RR Air Travel         & 0--250      & 254  & $-0.236$ & $< 0.001$\\
+                           & 250--1000   & 700  & $0.314$ & $< 0.001$ \\
+                           & 1000--3000  & 1058 & $0.358$ & $< 0.001$ \\
+                              RR Cellphone Mobility & 0--250      & 310  & $0.676$ & $< 0.001$ \\
+                           & 250--1000   & 750  & $0.195$ & $< 0.001$ \\
+                           & 1000--3000  & 1106 & $-0.060$ & $0.046$ \\
+                           & 3000--5000  & 150  & $-0.319$ & $< 0.001$ \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-To test a possible interaction between movement/travel with distance, we first calculated the correlation of each travel variable with seqRR before and after controlling for CBSA distance (table: \ref{tab:partial_corr}).
-For the interaction analyses, pairs with significant travel/movement outliers (i.e. $\geq 3$ SD) were removed. 
-The correlation of ground travel decreased from 0.681 to 0.252 after controlling for distance while for cellphone mobility it decreased from 0.540 to 0.018, indicating much of the relationship of these movement variables overlaps with the relationship explained by distance.
-In contrast, air travel saw only a modest decrease in correlation from 0.290 to 0.232.
-We then calculated stratified correlations based on the state pair's CBSA distance shown in table \ref{tab:band_corr}. 
-Ground travel and mobility data RR scores were most strongly correlated with seqRR for short distance pairs (0-250 km).
-For long distance pairs (3000-5000 km) ground travel still remained significantly correlated (r = 0.476), but mobility data became uncorrelated (r = -0.060) at moderate distances (1000-3000 km) and anti-correlated (r = -0.319) at long distances (3000-5000 km).
-Therefore, cellphone mobility could only predict transmission relationships in very short distance state pairings, while ground travel was useful at predicting a wider geographic range of transmission relationships.
-Air travel had an inverse relationship where short distances were anticorrelated (r = -0.236) and most strongly related at long distances (r = 0.544).
-Notably it had the strongest correlation of the three variables for all distance categories greater than 250 km, suggesting air travel data is important in predicting long distance identical sequence transmission.
+To test a possible interaction between movement/travel with distance, we first calculate the correlation of each travel variable with $RR_{seq}$ before and after controlling for CBSA distance (supplemental table: \ref{tab:partial_corr}).
+For the interaction analyses, pairs with significant travel/movement outliers (i.e. $\geq 3$ SD) were removed due to these resulting from pairs with sparse data and often being unstable estimates. 
+The correlation of ground travel decreases from 0.681 to 0.252 after controlling for distance while the correlation for cellphone mobility decreases from 0.540 to 0.018, indicating much of the relationship of these movement variables overlaps with the relationship explained by distance.
+In contrast, air travel has a more modest decrease in correlation from 0.290 to 0.232.
+We then calculate stratified correlations based on the state pair's CBSA distance shown in table \ref{tab:band_corr}. 
+Ground travel and mobility data RR scores are most strongly correlated with $RR_{seq}$ for short distance pairs (0-250 km) with both $r > 0.6$.
+For long distance pairs (3000-5000 km) ground travel still remains significantly correlated (r = 0.476), but mobility data became uncorrelated (r = -0.060) at moderate distances (1000-3000 km) and anti-correlated (r = -0.319) at long distances (3000-5000 km).
+Therefore, our ability to predict transmission relationships based on cellphone mobility data appears limited to very short distance state pairings, while ground travel had a more consistent signal across a wider geographic range.
+Air travel is anti-correlated to $RR_{seq}$ at short distances (r = -0.236) and most strongly related to it at long distances (r = 0.544).
+Notably it has the strongest correlation of the three variables for all distance categories greater than 250 km, supporting that air travel data can be helpful in predicting long distance transmission patterns.
 Based on these findings we developed generalized additive models (GAMs) with tensor products to look at the interaction of ground travel and air travel with CBSA distance.
-Observed/expected plots comparing the performance of interaction GAMs versus no-interaction GAMs are shown in figure \ref{fig:geo_dist}B.
-We find that adding an interaction term decreases RMSE and increases the percentage of deviance explained for both ground travel and air travel models, and log likelihood ratio testing also confirmed these interaction terms are significant.
-Predictions from the interaction models are shown in figure \ref{fig:geo_dist}C, with the predicted extent limited to the travel variable range at the specific distance.
-We find that there is generally a monotonic predicted relationship between ground travel and seqRR, regardless of distance.
-Air travel is predicted to essentially have no relationship with seqRR at a short distance (100 km), and then positive relationships at medium distance (500 km) and very long distances (4000 km).
-There does appear to be a ceiling effect for the 500 km and 4000 km curves, with a steady rise and then plateau, and similarly for the 2000 km curve there is initially rise and then drop off.
-This highlights the non-linear nature of the relationship between air travel and transmission, with a saturation effect that is determined by the distance between states.
- 
+The relative performance comparing GAM models with and without distance is shown in \ref{fig:geo_dist}B and observed vs fitted plots for all the GAM models are shown in supplemental figure \ref{fig:obs_exp}.
+The distance only model performs the best of all the single predictor models with 50\% of deviance explained followed by ground travel at 40\%.
+We find that adding an interaction term decreases RMSE and increases the percentage of deviance explained for ground travel, air travel and cellphone mobility models, and log likelihood ratio testing also confirmed these interaction terms are significant.
 
-\subsection{Age Relationships with Identical Sequence RR}
+Even though the deviance and RMSE terms are similar across the combined models, these predictors behave differently over when fixing the distance between states.
+Predictions from the interaction models for ground travel and air travel stratified by distance are shown in figure \ref{fig:geo_dist}C.
+For both variables, shorter distance pairs at 100 km have the highest predicted $RR_{seq}$ while longer distance pairs at 2000 km and 4000 km curves predict lower $RR_{seq}$, regardless of the travel RR.
+This matches our expectation from plotting $RR_{seq}$ versus distance.
+For ground travel, we find a generally monotonic relationship with predicted $RR_{seq}$ across most distances.
+The one exception is the 500 km curve, which remains generally flat and centered around $RR_{seq} = 1$.
+Air travel is predicted to essentially have no relationship with $RR_{seq}$ when holding the state distance at 100 km, and then positive relationships at medium distances (500 km) and very long distances (4000 km).
+Notably, the 500 km curve rises initially and then saturates at $RR_{seq}=1$ once the air travel $RR > 1$. 
+The 2000 km and 4000 km curves both start closely together with an initial rise, but the 2000 km curve diverges after the air travel $RR > 0.5$ and actually predicts a decrease in $RR_{seq}$ as air travel $RR > 1.0$.
+Importantly, these models are only plotted over the range of the travel RRs that existed for each distance band, and these curves should not be extrapolated beyond the plotted extent. 
+Nonetheless, these plots highlight the complex interplay between distance and travel measures regarding their relationship to viral transmission.
+
+\subsection{Age Relationships with Identical Sequence Transmission}
 
 \begin{figure}[tp]
     \centering
     \includegraphics[width=0.9\textwidth]{age.pdf}
-    \caption{Detailed patterns of SARS-CoV-2 transmission between age groups in North America. 
-    A: Identical sequence RR between age groups (defined in 1-year bins) for individuals aged between 0 and 80 years old.
-    \ctkc{In A and B "Age group" instead of "Age groups"}
-    B: Zoomed heatmap of identical sequence RR between children and young adults, plotted on an expanded color scale (RR 0.5--2).
-    \ctkc{Maybe highlight the 18y on the x and y axis by adding it as a tick.}
-    C: Pairwise identical sequence RR between age groups stratified by within North American subdivision, across North American subdivision but intraregional and across regions.
-    \ctkc{For C, change labels to "Same subdivision" (except of this is only a US analysis in which case specify), "Same region, different subdivisions, "Different regions"}
-    D: Identical sequence RR deviance by age across different geographic scales. Higher deviance indicates greater evidence of non-random mixing.
-    \ctkc{Same modification for legend labels in D.  
-    You could consider coloring the labels of C with the same as the colors in D to make it obvious you're looking at the same scale.
-    }
-    \ctkc{Not compulsory, but you already use this red / blue / green color scale 1B and 3A and they don't mean exactly the same thing (3A could especially be a bit confusing). 
-    In general, I like using distinct color scales in a manuscript when referring to different stratifications}
+    \caption{Age-specific patterns of SARS-CoV-2 transmission in North America.
+    A: $RR_{seq}$ between age groups in 1-year bins, ages 0--80.
+    B: Ages 0--24 on an expanded color scale (RR 0.5--2); the 18-year-old row and column are outlined in black and the asterisk marks the 18y/18y cell.
+    C: $RR_{seq}$ for pairs within the same subdivision, across subdivisions within a region, and across regions; color scale as in A.
+    D: $RR_{seq}$ deviance by stratified by geography, colored as in C, with GAM best-fit lines.
+    Higher deviance indicates greater departure from random mixing; zero indicates fully random mixing.
     }
     %\caption{Investigation of identical sequences with age. A: Heatmap of all identical sequence RR from age 0 to 80 years old. B: Focused heatmap of identical sequence RR of children and young adults, plotted on an expanded color scale (RR 0.5--2). C: Identical sequence RR heatmaps stratified by same state/province pairs, intraregional but different state/province pairs, and different region pairs. D: RR deviance by age at different geographies where higher deviance indicates greater evidence of non-random mixing.}
     \label{fig:age}
 \end{figure}
 
-We were able to show that by using a very large number of sequences, the identical sequence relative risk can describe high resolution transmission patterns between age groups, down to single-year categories.
-We created a full heatmap across all ages from 0 to 80, shown in figure \ref{fig:age}A, and find several notable age patterns.
-Across all ages we find the highest seqRR scores to be among same age pairings (i.e. the heatmap's diagonal) and adjacent pairs, suggesting the bulk of transmission occurs in same age or near same age pairings.
-For children (ages < 18 years) we find a very strong transmission cluster with seqRR > 1 for nearly all age pairs, except for infants (i.e. 0-year-olds), who have a much smaller transmission cluster limited to ages 1-2.
-The younger age findings can be seen in-depth in figure \ref{fig:age}B.
-We do not see evidence of subclusters for specific school age groups (e.g. pre-school, primary school, secondary school).
-Enrichment again is highest for same-age pairings and then tends to decay across 3-5 years from the diagonal. 
-Additionally, there is a weaker cluster of transmission between children and adults from 30 to 50 years of age, creating a secondary diagonal. 
-For 18-year-olds there is a clear transition in transmission patterns away from children to joining college students/young adults (18 to 22-year-olds), with seqRR greater than 1.1 for all pairs in this discrete block.
-From age 23 onwards, the pattern becomes similar to the general adult population with a narrow band of 1-3 years around the diagonal where seqRR remains greater than 1.1.
-Finally, for age 60 years and onwards we see another transmission cluster emerge, with the seqRR increasing with age.
-The identified transmission clusters seem to correspond to age contact behaviors, which lead us to compare our seqRR scores to existing synthetic contact data (supplementary fig\ref{fig:age_contact}).
-Both for Canada ($r=0.60$) and the USA ($r=0.72$), seqRR was log-log correlated to the contact data, supporting this hypothesis.
+Using a very large number of sequences enables us to describe high resolution transmission patterns between age groups, down to single-year identical sequence relative risks.
+We created a full $RR_{seq}$ heatmap across all ages from 0 to 80, shown in figure \ref{fig:age}A, and find several notable age patterns.
+Across all ages we find the highest $RR_{seq}$ scores to be among same age pairings (i.e. the heatmap's diagonal) and adjacent age groups, suggesting the bulk of transmission occurs in same age or near same age pairings.
+For children (ages < 18 years) we find a very strong transmission cluster with $RR_{seq} > 1$ for nearly all age pairs, except for infants (i.e. 0-year-olds), who have a much smaller transmission cluster limited to ages 0-2.
+The younger age findings are shown in-depth in figure \ref{fig:age}B.
+Notably there is broad enrichment across all pediatric age groups rather than limited enrichment to an age's specific school group (e.g. primary school or secondary school).
+Within this range, $RR_{seq}$ is highest for same-age pairings and then tends to decay across 3-5 years from the diagonal, with a clear boundary at ages $> 17$.
+Additionally, there is a weaker cluster of sequence enrichment between children and adults from 30 to 50 years of age, creating a secondary diagonal. 
+This is evidence of detecting transmission between parental and child age groups.
+For 18-year-olds there is a clear transition in transmission patterns away from children and towards young adults.
+We find a discrete block of enrichment for 18 to 22-year-olds, with $RR_{seq}$ greater than 1.1 for all pairs in this discrete block.
+This block corresponds to the typical age of university students across North America and when adults generally enter the workforce if they do not pursue tertiary education.
+From age 23 onwards, the enrichment pattern becomes similar to the general adult population with a narrow band of 1-3 years around the diagonal where $RR_{seq}$ remains greater than 1.1 and then a wider band of $RR_{seq} \approx 1$,
+Finally, for age 60 years and onwards we see another transmission cluster emerge, with $RR_{seq}$ increasing with age.
+The identified transmission clusters seem to correspond to age contact behaviors, and we compared our $RR_{seq}$ scores to existing synthetic contact data (supplementary fig\ref{fig:age_contact}).\autocite{mistryInferringHighresolutionHuman2021}
+Both for Canada ($r=0.60$) and the USA ($r=0.72$), $RR_{seq}$ was log-log correlated to the contact data, supporting this hypothesis.
 
 Additionally, we wanted to test if these age relationships were only relevant at local geographies or extended to pairs from different states/provinces.
 We stratified the age seqRR heatmaps by geography in figure \ref{fig:age}C by same state pairs, different state but same region pairs, and different region pairs.
@@ -438,7 +447,7 @@ The within-group curves then rose as in-person schooling became the dominant mod
 After summer 2023, the normalized seqRR became increasingly noisy again as pair counts decreased (down to the tens to low hundreds of pairs).
 We are able to find some evidence of decreased school age transmission for the 2020-2021 compared to the 2021-2022 and 2022-2023 school years, suggesting that school closures may have reduced the force of transmission among children.
 However, in-person schooling policies were highly variable across the geographies which limits our ability to draw any causal relationship between these policies and the change in transmission patterns.
-
+\abc{Question mark regarding immune profiles vs }
 \section{Discussion}
 
 \subsection{Computational Performance of Identical Sequences Method}
@@ -493,12 +502,12 @@ The most significant examples of this in our study were of children and young ad
 The seqRR heatmap demonstrated a clear transition point in the transmission matrix with 18-year-olds clustering more tightly to college-age young adults instead of with high-school teenagers.
 Similarly, there is a more gradual transition in transmission patterns from age 22 to 23 which corresponds to when many young adults enter the general workforce.
 The distinct cluster from 18 to 22 years likely is due to the unique transmission environment of college life, although we cannot directly determine the housing status and education/work background from the metadata provided.
-Additionally we were able to capture the parent-child "secondary diagonal" which has been predicted by prior contact survey and synthetic population studies.\autocite{mossongSocialContactsMixing2008,premProjectingContactMatrices2021,mistryInferringHighresolutionHuman2021} 
+Additionally, we were able to capture the parent-child "secondary diagonal" which has been predicted by prior contact survey and synthetic population studies.\autocite{mossongSocialContactsMixing2008,premProjectingContactMatrices2021,mistryInferringHighresolutionHuman2021} 
 We also saw some evidence for a grandparent-infant relationship with 0-year-olds having multiple seqRR > 1 with ages 70-80 years old.
 However, age 0 was undersampled (n = 5,129 sequences) compared to neighboring age groups (ages 1-3 ranged from n= 12,388 to 15,026) and other toddler ages do not show a similar intergenerational pattern with elderly adults.
 Furthermore, its unclear what role misclassification played for age 0 as it could act as a placeholder value for unknown age sequence.
 Therefore, some caution is necessary in interpreting the relationships with age 0.
-Overall, the age identical sequence matrix was correlated with the synthetic age contact matrices, validating their utility in predicting transmission pattern.
+Overall, the age identical sequence matrix was correlated with the synthetic age contact matrices, validating their utility in predicting transmission patterns.\autocite{mistryInferringHighresolutionHuman2021}
 
 \subsection{Capturing Temporal Signals Using Normalized Relative Risks}
 
@@ -721,7 +730,10 @@ The significance of the distance$\times$movement interaction was assessed by lik
 
 \begin{table}[H]
     \centering
-    \caption{Pearson's correlations (on $\log_{10}$ scale) between identical-sequence RR and each movement/distance RR metric, marginally and after partialling out minimum CBSA distance. The partial correlation controls for distance via a thin-plate spline smooth $s(\text{CBSA dist.})$, which accounts for the strongly nonlinear effect of distance and isolates the unique movement signal. Correlations are computed on the modeling subset for each metric (CBSA distance $\leq 5000$~km, nonzero travel counts, outliers beyond 3 SD removed), so $n$ differs by source. NHTS: National Household Travel Survey trip rates; T-100: FAA T-100 airline passenger (segment) counts; DB1B: FAA DB1B airline ticket (origin--destination) data; SafeGraph: smartphone mobility timeshare.}
+    \caption{Pearson's correlations (on $\log_{10}$ scale) between identical-sequence RR and each movement/distance RR metric, marginally and after partialling out minimum CBSA distance. 
+    The partial correlation controls for distance via a thin-plate spline smooth $s(\text{CBSA dist.})$, which accounts for the strongly nonlinear effect of distance and isolates the unique movement signal. 
+    Correlations are computed on the modeling subset for each metric (CBSA distance $\leq 5000$~km, nonzero travel counts, outliers beyond 3 SD removed), so $n$ differs by source. 
+    NHTS: National Household Travel Survey trip rates; T-100: FAA T-100 airline passenger (segment) counts; DB1B: FAA DB1B airline ticket (origin--destination) data; SafeGraph: smartphone mobility timeshare.}
     \label{tab:partial_corr}
     \begin{tabular}{lrrr}
         \toprule
@@ -734,6 +746,14 @@ The significance of the distance$\times$movement interaction was assessed by lik
         \bottomrule
     \end{tabular}
 \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{supp/lm_gam_obs_exp.pdf}
+    \caption{Observed vs Predicted plots for GAM models shown in figure \ref{fig:geo_dist}.
+    Root-mean-square error and deviance predicted reported in title of each panel.}
+    \label{fig:obs_exp}
+\end{figure}
 
 
 \begin{table}[H]
@@ -774,7 +794,10 @@ The significance of the distance$\times$movement interaction was assessed by lik
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{supp/age_contact_correlation.pdf}
-    \caption{Correlation between identical-sequence age RR and synthetic contact-matrix age RR, faceted by country (USA and Canada). Each point is an age-pair; points are colored by whether the pair is the same age (red) or different ages (black). Both axes are on a $\log_{10}$ scale and the dashed line marks the 1:1 reference. The Pearson correlation between $\log_{10}(\text{RR}_{\text{Sequence}})$ and $\log_{10}(\text{RR}_{\text{Contact Matrix}})$ is reported per country. The correlation is significant in both countries, with a log-log slope less than 1.}
+    \caption{Correlation between identical-sequence RR ($RR_{seq}$) and synthetic contact-matrix RR ($RR_{CM}$), where each point represents a single age pairing.
+    Plots are faceted by country (USA and Canada).\autocite{mistryInferringHighresolutionHuman2021} 
+    Points are colored by whether the pair is the same age (red) or different ages (black). 
+    Both axes are on a $\log_{10}$ scale and the dashed line marks the 1:1 reference. The Pearson correlation is reported per country.\autocite{mistryInferringHighresolutionHuman2021}}
     \label{fig:age_contact}
 \end{figure}
 

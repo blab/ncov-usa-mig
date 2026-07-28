@@ -9,7 +9,7 @@ collect_args <- function(){
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--percentile_threshold', type = 'double', default = 0.98, help = 'Percentile threshold for significance (default is 0.98)')
   parser$add_argument('--min_occurrences', type = 'integer', default = 5, help = 'Minimum number of time points a connection must appear in')
-  parser$add_argument('--gen_viz', action = 'store_true', default = FALSE, help = 'Generate network visualizations (off by default)')
+  parser$add_argument('--gen_viz', action = 'store_true', default = TRUE, help = 'Generate network visualizations (off by default)')
   return(parser$parse_args())
 }
 
@@ -357,11 +357,7 @@ if (gen_viz) {
   # ============================================================================
   # COMBINED FIGURE
   # ============================================================================
-  combined <- p_map + p_quarters + plot_layout(ncol = 2) +
-    plot_annotation(
-      title = "Conserved Inter-Region Connections",
-      theme = theme(plot.title = element_text(size = 13, face = "bold", hjust = 0.5))
-    )
+  combined <- p_map + p_quarters + plot_layout(ncol = 2)
   fn_out_combined     <- paste0(fn_viz_path, "network_conserved_combined.jpg")
   fn_out_combined_svg <- paste0(fn_viz_path, "network_conserved_combined.svg")
   ggsave(fn_out_combined,     plot = combined, width = 7, height = 4, dpi = 300)

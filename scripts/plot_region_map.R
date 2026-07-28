@@ -28,7 +28,9 @@ regions_data <- read_csv("data/us_states_regions.csv", show_col_types = FALSE) %
     state = case_when(
       state == "District of Columbia" ~ "Washington DC",
       TRUE ~ state
-    )
+    ),
+    # Order the legend to match REGION_SCALE's color order instead of alphabetical
+    region = factor(region, levels = names(REGION_SCALE))
   )
 
 # Prepare the map
@@ -43,7 +45,9 @@ p <- plot_cam_choropleth(
   fill_mapper = identity,
   scale_fun = region_fill_scale,  # Use the predefined scale
   title = NULL,
-  bottom_legend = FALSE,
+  bottom_legend = TRUE,
+  legend_angle = 0,  # region names read better horizontal than the default 45deg
+  guide_override = guides(fill = guide_legend(nrow = 3, byrow = TRUE)),
   theme_override = theme(
     legend.title = element_blank(),
     legend.text = element_text(size = 16)
@@ -53,12 +57,14 @@ p <- plot_cam_choropleth(
 # Create output directory if it doesn't exist
 dir.create(paste0("figs/", scenario), recursive = TRUE, showWarnings = FALSE)
 
-# Save the plot
+# Save the plot (wide canvas so the 11-item legend has room to lay out
+# without clipping; the stitch script rescales based on aspect ratio, so
+# this native size doesn't constrain the final printed size)
 ggsave(
   paste0("figs/", scenario, "/bea_region_map.png"),
   p,
-  width = 8,
-  height = 7,
+  width = 12.5,
+  height = 8.5,
   units = "in",
   dpi = 300
 )

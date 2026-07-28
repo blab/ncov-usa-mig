@@ -47,6 +47,8 @@ plot_cam_choropleth <- function(
     line_size = 1, #For state borderlines
     box_size = 1.5, #For box/frame around HI
     bottom_legend = FALSE,
+    legend_angle = 45,   # only used when bottom_legend = TRUE
+    guide_override = NULL,
     theme_override = NULL
 ) {
   state_sym <- rlang::ensym(state_col)
@@ -106,14 +108,19 @@ plot_cam_choropleth <- function(
   }
   
   if(bottom_legend) {
+    legend_hjust <- if (legend_angle == 0) 0 else 1
     p_main <- p_main +
       theme(legend.position = "bottom") +
-      theme(legend.text = element_text(angle = 45, hjust = 1))
+      theme(legend.text = element_text(angle = legend_angle, hjust = legend_hjust))
   } else{
     p_main <- p_main +
       theme(legend.position = "right")
   }
-  
+
+  if (!is.null(guide_override)) {
+    p_main <- p_main + guide_override
+  }
+
   # place asterisk either on main or on HI depending on ori
   add_star_to_main <- !is.null(ori) && ori != "Hawaii"
   

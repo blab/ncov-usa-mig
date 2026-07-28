@@ -78,8 +78,8 @@ df_age_state_RR <- read_tsv(fn_age_state_RR, show_col_types = FALSE) %>%
 df_age_state_RR <- df_age_state_RR %>%
   mutate(
     geo_class = case_when(
-      sameState == TRUE  ~ "Same State",
-      sameRegion == TRUE ~ "Same Region",
+      sameState == TRUE  ~ "Same Division",
+      sameRegion == TRUE ~ "Diff Div/Same Reg",
       TRUE               ~ "Different Region"
     )
   )
@@ -92,15 +92,17 @@ df_geo_dev <- df_age_state_RR %>%
             .groups = "drop") %>%
   mutate(
     age = substr(x, 1, 2) %>% as.numeric(),
-    geo_class = factor(geo_class, levels = c("Same State", "Same Region", "Different Region"))
+    geo_class = factor(geo_class, levels = c("Same Division", "Diff Div/Same Reg", "Different Region"))
   )
 
 # Combined deviance curve by geographic class
+# GEO_CLASS_COLORS / geo_class_color_scale() live in scripts/color_schemes.R and
+# are shared with the subset-heatmap strip labels in age_heatmap.R.
 plot_geo_dev <- ggplot(df_geo_dev, aes(x = age, y = deviance, color = geo_class)) +
   geom_point(alpha = 0.6, size = 1.5) +
   geom_smooth(method = "gam") +
   theme_bw() +
-  scale_color_brewer(palette = "Set1", name = "Geography") +
+  geo_class_color_scale() +
   labs(x = "Age", y = "RR Deviance") +
   theme(legend.position = "bottom")
 
@@ -108,11 +110,11 @@ fn_geo_dev_plot <- paste0("figs/", scenario, "/age_RR_deviance_geographic.jpg")
 ggsave(plot_geo_dev, filename = fn_geo_dev_plot, dpi = 300, units = "in", width = 7, height = 2.5)
 ggsave(plot_geo_dev, filename = sub("\\.jpg$", ".svg", fn_geo_dev_plot), units = "in", width = 7, height = 2.5)
 
-# Compact version sized to slot beneath the subset-heatmap row in the stitched figure
+# Compact version sized to slot beneath the subset-heatmap row in the stitched figure.
+# The legend is dropped here (kept in the standalone 7"-wide version): in the
+# stitched figure the panel C strip labels above it already define the colors.
 plot_geo_dev_compact <- plot_geo_dev +
-  theme(legend.key.size = unit(0.45, "cm"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 10),
+  theme(legend.position = "none",
         axis.title = element_text(size = 12),
         axis.text = element_text(size = 10))
 ggsave(plot_geo_dev_compact,

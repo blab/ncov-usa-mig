@@ -454,22 +454,50 @@ get_aspect <- function(comp_x, comp_y) {
   pct_var_explained[comp_x] / pct_var_explained[comp_y]
 }
 
+# PCoA coordinates are scaled by sqrt(eigenvalue), so data ranges are
+# proportional to sqrt(pct_var), not pct_var. Use this for any plot that
+# applies coord_fixed(ratio = 1), so the panel fills without whitespace.
+get_aspect_fixed <- function(comp_x, comp_y) {
+  sqrt(pct_var_explained[comp_x]) / sqrt(pct_var_explained[comp_y])
+}
+
+# coord_fixed(ratio = 1) only constrains the PANEL (the data rectangle),
+# not the full device canvas. If we just ggsave() at width/height set to
+# the target data aspect ratio, the panel doesn't have room to also fit
+# the axis titles/text within that canvas at the right ratio, so ggplot
+# letterboxes it -- inserting blank padding around the panel (this is what
+# produced the large blank margins in the earlier pcoa_V1V2.svg exports).
+# Fix: fix the PANEL's cell size directly in the gtable (in inches), then
+# use the resulting gtable's own total size (panel + chrome, no padding)
+# for ggsave. This is the same technique as egg::set_panel_size().
+library(grid)
+save_fixed_panel <- function(plot, filename, panel_w_in, panel_h_in, dpi = 300) {
+  g <- ggplotGrob(plot)
+  row_idx <- unique(g$layout$t[g$layout$name == "panel"])
+  col_idx <- unique(g$layout$l[g$layout$name == "panel"])
+  g$widths[col_idx]  <- unit(panel_w_in, "in")
+  g$heights[row_idx] <- unit(panel_h_in, "in")
+
+  total_w_in <- sum(convertWidth(g$widths, "in", valueOnly = TRUE))
+  total_h_in <- sum(convertHeight(g$heights, "in", valueOnly = TRUE))
+
+  ggsave(filename, plot = g, width = total_w_in, height = total_h_in,
+         units = "in", dpi = dpi)
+  invisible(list(width_in = total_w_in, height_in = total_h_in))
+}
+
 # Base dimension for scaling
 base_dim <- 900
 
-# V1 vs V2
-ggsave(gg_pcoa_V2V1 + coord_fixed(ratio = 1,reverse="y"),
-       filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.jpg"),
-       width = base_dim,
-       height = base_dim * get_aspect(1, 2),
-       units = "px",
-       dpi = 300)
-ggsave(gg_pcoa_V2V1 + coord_fixed(ratio = 1,reverse="y"),
-       filename = paste0("figs/", scenario, "/clust/pcoa_V1V2.svg"),
-       width = base_dim / 300,
-       height = base_dim * get_aspect(1, 2) / 300,
-       units = "in",
-       device = "svg")
+# V1 vs V2 -- panel fixed at 3in x (3in * sqrt(var1/var2)), no letterbox padding
+panel_w_v1v2_in <- base_dim / 300
+panel_h_v1v2_in <- panel_w_v1v2_in * get_aspect_fixed(1, 2)
+save_fixed_panel(gg_pcoa_V2V1 + coord_fixed(ratio = 1, reverse = "y"),
+                  paste0("figs/", scenario, "/clust/pcoa_V1V2.jpg"),
+                  panel_w_v1v2_in, panel_h_v1v2_in)
+save_fixed_panel(gg_pcoa_V2V1 + coord_fixed(ratio = 1, reverse = "y"),
+                  paste0("figs/", scenario, "/clust/pcoa_V1V2.svg"),
+                  panel_w_v1v2_in, panel_h_v1v2_in)
 
 # V1 vs V3
 ggsave(gg_pcoa_V1V3 + coord_flip() + scale_x_reverse(),
@@ -488,26 +516,19 @@ ggsave(gg_pcoa_V1V4,
        dpi = 300)
 
 # V2 vs V3
-ggsave(gg_pcoa_V2V3 + coord_fixed(ratio = 1,reverse="y"),
-       filename = paste0("figs/", scenario, "/clust/pcoa_V2V3.jpg"),
-       width = base_dim,
-       height = base_dim * get_aspect(3, 2),
-       units = "px",
-       dpi = 300)
-ggsave(gg_pcoa_V2V3 + coord_fixed(ratio = 1,reverse="y"),
-       filename = paste0("figs/", scenario, "/clust/pcoa_V2V3.svg"),
-       width = base_dim / 300,
-       height = base_dim * get_aspect(3, 2) / 300,
-       units = "in",
-       device = "svg")
+panel_w_v2v3_in <- base_dim / 300
+panel_h_v2v3_in <- panel_w_v2v3_in * get_aspect_fixed(3, 2)
+save_fixed_panel(gg_pcoa_V2V3 + coord_fixed(ratio = 1, reverse = "y"),
+                  paste0("figs/", scenario, "/clust/pcoa_V2V3.jpg"),
+                  panel_w_v2v3_in, panel_h_v2v3_in)
+save_fixed_panel(gg_pcoa_V2V3 + coord_fixed(ratio = 1, reverse = "y"),
+                  paste0("figs/", scenario, "/clust/pcoa_V2V3.svg"),
+                  panel_w_v2v3_in, panel_h_v2v3_in)
 
 # V2 vs V3 (USA only)
-ggsave(gg_pcoa_V2V3_US + coord_fixed(ratio = 1,reverse="y"),
-       filename = paste0("figs/", scenario, "/clust/pcoa_V2V3_US.jpg"),
-       width = base_dim,
-       height = base_dim * get_aspect(3, 2),
-       units = "px",
-       dpi = 300)
+save_fixed_panel(gg_pcoa_V2V3_US + coord_fixed(ratio = 1, reverse = "y"),
+                  paste0("figs/", scenario, "/clust/pcoa_V2V3_US.jpg"),
+                  panel_w_v2v3_in, panel_h_v2v3_in)
 
 # Combined PCoA column: V1V2 stacked over V2V3, dimensions derived from variance explained
 # Width fixed at 3in; each panel height = width * (PCy_var / PCx_var)
