@@ -64,7 +64,9 @@ seq_map <- plot_cam_choropleth(cam_map,
                     line_size = STATE_LINE,
                     box_size = BOX_LINE) +
   guides(fill = guide_colorbar(barheight = unit(0.5, "cm"),
-                                barwidth = unit(8, "cm")))   
+                                barwidth = unit(8, "cm"))) +
+  theme(legend.text = element_text(size = 11),
+        legend.title = element_text(size = 12))
 
 FN_PATH <- paste0("figs/",scenario,"/desc/")
 
@@ -132,14 +134,17 @@ division_quarter_effort <- meta_tbl |>
   mutate(seq_effort = num_seq/population * 1E5) |>
   ungroup()
 
-plot_natl_effort <- ggplot(natl_week_effort, 
+plot_natl_effort <- ggplot(natl_week_effort,
        aes(x = week_start, y = seq_effort, color = country)) +
   geom_line(linewidth = 1.0) +
-  scale_x_date(date_breaks = "4 months",name = "Date") +
-  scale_y_continuous(name = "Weekly Sequences per 100,000") +
+  scale_x_date(date_breaks = "4 months", name = "Date", date_labels = "%Y-%m") +
+  scale_y_continuous(name = "Sequences per 100,000") +
   theme_bw()  +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
-        axis.title.y = element_text(size = 9)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11),
+        axis.text.y = element_text(size = 11),
+        axis.title = element_text(size = 13),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(size = 12)) +
   country_color_scale()
 
 ggsave(paste0(FN_PATH,"natl_effort.png"),
@@ -192,7 +197,9 @@ plot_age_hist <- ggplot(
     name = "Number of Sequences"
   ) +
   coord_flip() +
-  theme_bw()
+  theme_bw() +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14))
 
 ggsave(paste0(FN_PATH,"age_hist.png"),
   plot_age_hist, height = 4, width = 3, units = "in", dpi = 300, create.dir = TRUE
@@ -212,10 +219,12 @@ plot_age_region <- ggplot(
     mutate(bea_reg = fct_reorder(bea_reg, age_adj, .fun = median)),
   aes(x = age_adj, y = bea_reg, fill = bea_reg)) +
   geom_violin(alpha = 0.5, show.legend = FALSE) +
-  geom_boxplot(width = 0.3, show.legend = FALSE, outlier.shape = NA) + 
+  geom_boxplot(width = 0.3, show.legend = FALSE, outlier.shape = NA) +
   theme_bw() +
   labs(x="Age",y="Region") +
   scale_x_continuous(limits=c(0,100)) +
+  theme(axis.text = element_text(size = 12),
+        axis.title = element_text(size = 14)) +
   region_fill_scale()
 
 ggsave(paste0(FN_PATH,"age_region.png"),

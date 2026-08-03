@@ -153,3 +153,19 @@ sex_color_scale <- function(){
   scale_color_manual(values=SEX_COLORS,na.translate=FALSE, name = "Sex")
 }
 
+
+## Geographic-relatedness categorical scale
+# Used by the age RR deviance curves (age_RR_deviance.R) and the matching
+# subset-heatmap strip labels (age_heatmap.R) so the two panels share colors.
+GEO_CLASS_COLORS <- c(
+  "Same Division"     = "#7B3294",
+  "Diff Div/Same Reg" = "#E41A1C",
+  "Different Region"  = "#1B7A72",
+  # Only the temporal geographic analysis (state_time_scatter.R) reaches past the
+  # national border; the age analyses never use this level. Extra names in a
+  # scale_*_manual values vector are ignored, so it is safe to keep it here.
+  "International"     = "#1F3B73"
+)
+geo_class_color_scale <- function(name = "Geography"){
+  scale_color_manual(values = GEO_CLASS_COLORS, name = name)
+}

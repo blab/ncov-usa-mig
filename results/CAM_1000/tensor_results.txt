@@ -383,3 +383,16 @@ Within distance-band Pearson(log travel-RR, log seq-RR):
  SafeGraph   (250,1e+03]  750   0.197
  SafeGraph (1e+03,3e+03] 1106  -0.053
  SafeGraph (3e+03,5e+03]  150  -0.309
+
+================================================================================
+MODEL COMPARISON (common dataset): deviance explained by predictor set
+================================================================================
+
+                        label              family  dev_pct      rmse
+               CBSA\nDistance       Distance only 49.84183 0.1943348
+     Ground Travel\nRR (NHTS)       Movement only 39.57118 0.2133053
+        Air Travel\nRR (DB1B)       Movement only 11.17453 0.2586119
+     Mobility\nRR (SafeGraph)       Movement only 21.61586 0.2429371
+ Ground Travel\nRR × Distance Movement × distance 52.90597 0.1883053
+    Air Travel\nRR × Distance Movement × distance 55.69264 0.1826491
+      Mobility\nRR × Distance Movement × distance 58.33689 0.1771151

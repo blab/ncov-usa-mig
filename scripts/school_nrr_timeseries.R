@@ -21,6 +21,7 @@ library(patchwork)
 source("scripts/color_schemes.R")
 source("scripts/calculate_rr_matrix.R")
 source("scripts/bind_pairs_exp.R")
+source("scripts/subsample_ci.R")
 
 # Fixed-baseline normalization: nRR_fixed(x,y) = RR(x,y) / RR(ref,ref).
 # Applied per stratum so the baseline is taken within the same time point.
@@ -166,8 +167,8 @@ boot_ci <- map_dfr(seq_len(K_BOOT), function(k){
 ci_simple <- boot_ci %>%
   group_by(x, y, season_date) %>%
   summarise(
-    nRR_lower = quantile(nRR_fixed, (1 - CI_WIDTH) / 2, na.rm = TRUE),
-    nRR_upper = quantile(nRR_fixed, (1 + CI_WIDTH) / 2, na.rm = TRUE),
+    nRR_lower = subsample_ci_lb(nRR_fixed, SAMP_COV, CI_WIDTH),
+    nRR_upper = subsample_ci_ub(nRR_fixed, SAMP_COV, CI_WIDTH),
     .groups = "drop"
   )
 
@@ -265,6 +266,11 @@ df_simple <- df_nrr %>%
          y = factor(y, levels = SCHOOL_LEVELS))
 
 if(nrow(df_simple) > 0){
+  # Keep every tick mark but label only every other one: at 9" wide the full set
+  # of season labels is too dense to read at a legible font size.
+  x_labels_alt <- x_breaks %>%
+    mutate(alt_label = if_else(row_number() %% 2 == 1, season_label, ""))
+
   p_simple <- ggplot(df_simple, aes(x = season_date, y = nRR_fixed, color = y, group = y)) +
     geom_hline(yintercept = 1, linetype = "dashed", color = "grey50") +
     geom_ribbon(aes(ymin = nRR_lower, ymax = nRR_upper, fill = y), alpha = 0.15, color = NA) +
@@ -273,14 +279,15 @@ if(nrow(df_simple) > 0){
     facet_wrap(~ x, nrow = 1) +
     age_group_color_scale(name = "Paired age") +
     age_group_fill_scale(name = "Paired age") +
-    scale_x_date(limits = date_lims, breaks = x_breaks$season_date, labels = x_breaks$season_label) +
+    scale_x_date(limits = date_lims, breaks = x_breaks$season_date,
+                 labels = x_labels_alt$alt_label) +
     scale_y_log10() +
     labs(title = "Change in School Age RR", y = "nRR", x = NULL) +
     theme_bw() +
     theme(
       plot.title = element_text(face = "bold", hjust = 0.5),
       strip.text = element_text(face = "bold", size = 10),
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
       legend.title = element_text(size = 9),
       legend.text = element_text(size = 8),
       legend.key.size = unit(0.4, "cm")

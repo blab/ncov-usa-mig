@@ -148,7 +148,7 @@ gg_dendro <- ggplot() +
   scale_y_continuous(limits = c(0.4, n_states + 0.6), expand = c(0, 0)) +
   theme_void() +
   theme(
-    plot.margin = unit(c(0.5, 0, 1, 0.2), "cm")
+    plot.margin = unit(c(0.5, 0, 0.2, 0.2), "cm")
   )
 
 # Load heatmap data
@@ -172,6 +172,17 @@ state_rr_labeled <- state_rr %>%
 # Create heatmap
 AXIS_SIZE <- 9
 
+# Two-letter code lookup for y-axis labels (US states + DC, Canadian provinces, Mexico)
+canada_abbrev <- c(
+  "Alberta" = "AB", "British Columbia" = "BC", "Manitoba" = "MB",
+  "New Brunswick" = "NB", "Newfoundland and Labrador" = "NL",
+  "Nova Scotia" = "NS", "Ontario" = "ON", "Prince Edward Island" = "PE",
+  "Quebec" = "QC", "Saskatchewan" = "SK", "Yukon" = "YT",
+  "Northwest Territories" = "NT", "Nunavut" = "NU"
+)
+us_abbrev <- setNames(c(state.abb, "DC"), c(state.name, "District of Columbia"))
+state_abbrev_lookup <- c(us_abbrev, canada_abbrev, "Mexico" = "MX")
+
 # Reorder factors based on dendrogram (both axes use same order for symmetry)
 state_rr_labeled$x <- factor(state_rr_labeled$x, levels = state_order)
 state_rr_labeled$y <- factor(state_rr_labeled$y, levels = state_order)
@@ -183,17 +194,17 @@ state_heatmap <- state_rr_labeled %>%
   ggplot(aes(x = y, y = x, fill = fill_RR)) +
   geom_tile() +
   RR_log_grad(LB, UB) +
+  scale_y_discrete(labels = state_abbrev_lookup) +
   theme_minimal() +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
     legend.text = element_text(size = 14),
     legend.title = element_text(size = 14),
     axis.text.x = element_blank(),
     axis.ticks.x = element_blank(),
-    axis.text.y = element_blank(),
+    axis.text.y = element_text(size = AXIS_SIZE),
     axis.title.y = element_blank(),
     axis.ticks.y = element_blank(),
-    plot.margin = unit(c(0.5, 0.2, 1, 0.1), "cm")
+    plot.margin = unit(c(0.5, 0.2, 0.2, 0.1), "cm")
   ) +
   labs(x = NULL, y = NULL) +
   coord_cartesian(clip = "off")
