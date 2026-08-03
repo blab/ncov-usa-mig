@@ -11,6 +11,7 @@ library(dbplyr)
 source("scripts/color_schemes.R")
 source("scripts/calculate_rr_matrix.R")
 source("scripts/bind_pairs_exp.R")
+source("scripts/subsample_ci.R")
 
 normalized_age_rr_fixed <- function(df_rr, baseline_grp, group_vars = NULL){
   if(is.null(group_vars)){
@@ -121,10 +122,10 @@ run_bootstrap <- function(label) {
     ci_vals <- boot_combined %>%
       group_by(x, y) %>%
       summarize(
-        RR_lower = quantile(RR, (1 - CI_WIDTH) / 2, na.rm = TRUE),
-        RR_upper = quantile(RR, (1 + CI_WIDTH) / 2, na.rm = TRUE),
-        nRR_fixed_lower = quantile(nRR_fixed, (1 - CI_WIDTH) / 2, na.rm = TRUE),
-        nRR_fixed_upper = quantile(nRR_fixed, (1 + CI_WIDTH) / 2, na.rm = TRUE),
+        RR_lower = subsample_ci_lb(RR, SAMP_COV, CI_WIDTH),
+        RR_upper = subsample_ci_ub(RR, SAMP_COV, CI_WIDTH),
+        nRR_fixed_lower = subsample_ci_lb(nRR_fixed, SAMP_COV, CI_WIDTH),
+        nRR_fixed_upper = subsample_ci_ub(nRR_fixed, SAMP_COV, CI_WIDTH),
         .groups = "drop"
       ) %>%
       mutate(date = vaccine_mid_dates[i])
@@ -164,6 +165,14 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
     ) %>%
     filter(x %in% elderly_groups)
 
+  # Keep a tick every month but label only every other one: at 9pt the full set
+  # collides across the facet boundary (last label of one facet running into the
+  # first label of the next). Matches the every-other-label scheme in
+  # school_nrr_timeseries.R.
+  x_ticks <- seq(min(plot_data$date), max(plot_data$date), by = "1 month")
+  x_tick_labels <- if_else(seq_along(x_ticks) %% 2 == 1,
+                           format(x_ticks, "%b %Y"), "")
+
   # nRR_fixed with CIs
   p_nrr <- ggplot(plot_data, aes(x = date, y = nRR_fixed, color = y, fill = y)) +
     geom_ribbon(aes(ymin = nRR_fixed_lower, ymax = nRR_fixed_upper), alpha = 0.15, color = NA) +
@@ -171,7 +180,7 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
     geom_point(size = 1.5, alpha = 0.7) +
     geom_hline(yintercept = 1, linetype = "dotted", color = "black", alpha = 0.5) +
     facet_wrap(~ x, nrow = 1) +
-    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+    scale_x_date(breaks = x_ticks, labels = x_tick_labels) +
     scale_y_log10() +
     age_group_color_scale(name = "Paired age") +
     age_group_fill_scale(name = "Paired age") +
@@ -183,7 +192,7 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
     theme_bw() +
     theme(
       plot.title = element_text(face = "bold", hjust = 0.5),
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 6),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
       strip.text = element_text(size = 11, face = "bold"),
       legend.position = "right",
       legend.title = element_text(size = 9),
@@ -205,7 +214,7 @@ generate_vaccine_ci_plots <- function(df_data, fig_path, title_suffix) {
     geom_point(size = 1.5, alpha = 0.7) +
     geom_hline(yintercept = 1, linetype = "dotted", color = "black", alpha = 0.5) +
     facet_wrap(~ x, nrow = 1) +
-    scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") +
+    scale_x_date(breaks = x_ticks, labels = x_tick_labels) +
     scale_y_log10() +
     age_group_color_scale(name = "Paired age") +
     age_group_fill_scale(name = "Paired age") +

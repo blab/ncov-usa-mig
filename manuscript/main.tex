@@ -232,7 +232,7 @@ This indicates that, while geographic proximity between subdivisions is an impor
     \centering
     \includegraphics[width=0.72\textwidth]{geo_time.pdf}
     \caption{Temporal changes in spatial patterns of SARS-CoV-2 transmission in the United States inferred from identical sequence pairs.
-    A: Distribution of normalized identical sequence RR scores ($nRR_{seq}$) for each calendar quarter stratified by within region (red), domestic between region (green), and international pairings (blue). 
+    A: Distribution of normalized identical sequence RR scores ($nRR_{seq}$) for each calendar quarter stratified by within region (red), domestic between region (green), and international pairings (navy).
     B: Heatmap of fold change in $nRR_{seq}$ relative to the first quarter of 2023 (2023 Q1) by quarter (y-axis) with each column representing a state/province pairing. 
     C: Between region pairs of states with consistently high $nRR_{seq}$ scores. 
     Left: State pairs across all quarters with $nRR_{seq}$ within the top 2\%ile for at least 5 quarters.
@@ -390,147 +390,117 @@ Finally, for age 60 years and onwards we see another transmission cluster emerge
 The identified transmission clusters seem to correspond to age contact behaviors, and we compared our $RR_{seq}$ scores to existing synthetic contact data (supplementary fig\ref{fig:age_contact}).\autocite{mistryInferringHighresolutionHuman2021}
 Both for Canada ($r=0.60$) and the USA ($r=0.72$), $RR_{seq}$ was log-log correlated to the contact data, supporting this hypothesis.
 
-Additionally, we wanted to test if these age relationships were only relevant at local geographies or extended to pairs from different states/provinces.
-We stratified the age seqRR heatmaps by geography in figure \ref{fig:age}C by same state pairs, different state but same region pairs, and different region pairs.
-For the same state age heatmap, the structure largely matches our main age heatmap with a prominent diagonal of seqRR > 1.5, and distinct clusters for children, college-aged/young adults, and elderly adults.
-As the geography expands, we find that the age structure becomes less prominent with the central diagonal reverting to seqRR = 1 for adults and greater mixing for the pediatric and elderly clusters with the general population.
-Additionally, we can use our RR deviance measure to describe the degree of age structuring for each age category and summarize this geographic trend in figure $\ref{fig:age}D$.
-We expect that if a given age's identical sequences are fully randomly mixed (i.e. seqRR = 1 across all paired ages) that deviance would equal 0 and as age structured transmission increases the deviance will increase.
-The same state/province deviance curve shows age structured transmission is highest for the young and the elderly, with a nadir in middle adulthood.
-For the other geographies we see deviance remains relatively increased among the young and elderly age groups, but the magnitude of deviance scores are decreased across all ages.
-These deviance curves reinforce that age structure plays a stronger role in transmission at local geography and the age contact matrix loosens for transmission across individuals from different geographies.
+Additionally, we wanted to test how these age relationships behaved at geographic levels.
+We stratify the age $RR_{seq}$ heatmaps in figure \ref{fig:age}C by same division pairs, different division but same region pairs and different region pairs.
+For the same state age heatmap, the structure largely matches our main age heatmap with a prominent diagonal of $RR_{seq} > 1.5$, and distinct clusters for children, university aged young adults and elderly adults.
+As we look at more distant geographic connections, we find that the age structure becomes less prominent with the central diagonal reverting to $RR_{seq} = 1$ for adults and greater mixing of the pediatric and elderly clusters with the general population.
+In order to systematically summarize how much a given age group's $RR_{seq}$ profile deviates from random mixing, we created a deviance score.
+This is calculated by finding the root-mean-square of the age group's log-transformed RR scores:
 
-\subsection{Changes in Age Based RR Over Time}
+\[D_A = \sqrt{\frac{1}{n}\sum_{B} \left( \log_{10} RR_{seq}^{A,B} \right)^2}\]
 
-\begin{figure}[tp]
-    \centering
-    \includegraphics[width=\textwidth]{age_time.pdf}
-    \caption{Temporal changes in SARS-CoV-2 transmission patterns between ages, using identical sequence RR normalized against the working-age adults (25-64y) within-group RR ($nRR$) (see Methods). 
-    A: Identical sequence $nRR$ between elderly groups and other age groups during the vaccine rollout period (November 2020--May 2021). 
-    Each trace shows the $nRR$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% bootstrap confidence intervals. 
-    \ctkc{Are these bootstrap or subsampling CI? If this is bootstrap, what's the unit of resampling?}
-    B: Within-state identical sequence $nRR$ between school-age children and other age groups 3 month seasons pooled across all states. 
-    Each trace shows the $nRR$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% bootstrap confidence intervals. 
-    \ctkc{Are these bootstrap or subsampling CI?}
-    The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 bootstraps per time point.
-    \ctkc{Need to increase x-axis labels font size}
-    }
-    %\caption{Changes in age-based identical sequence RR over time, normalized against the working-age adults (25-64y) within-group RR ($nRR$). A: Elderly transmission during the vaccine rollout period (November 2020--May 2021). Each trace shows the $nRR$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% bootstrap confidence intervals. B: Within-state, school-age $nRR$ traces by 3 month seasons, pooled across all states. Each trace shows the $nRR$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% bootstrap confidence intervals. The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 bootstraps per time point.}
-    \label{fig:age_time}
-\end{figure}
+Where $A$ and $B$ represent age groups in the population or any other deme definition.
+By squaring the log-transformed $RR_{seq}$, enrichment ($RR_{seq} > 1$) and depletion ($RR_{seq} < 1$) contribute equally to the deviance.
+We expect that if for age $A$'s identical sequences are fully randomly mixed (i.e. $RR_{seq}^{A,B} = 1$ across all paired ages $B$) that the deviance, $D_A$, would equal 0. 
+As age structured transmission increases the deviance will increase with there being no fixed upper bound for $D_A$.
+The deviance for each age category across different geographies is shown in figure $\ref{fig:age}D$.
+The same division deviance curve shows age structured transmission is highest for the young and the elderly, with the minimum in middle adulthood.
+For the other geographies we see deviance remains relatively increased among the young and elderly age groups, but the magnitude of deviance scores are decreased compared to the same division curve across all ages.
+These deviance curves are evidence that age structure plays a stronger role in transmission patterns at local geographies, with the age contact matrix loosening for transmission across individuals from different geographies.
 
-We also investigated whether temporal changes in age-based seqRR could be used to detect contact structure changes in response to public health interventions.
-First we sought to see if the transmission patterns for elderly adults changed during the initial COVID-19 vaccine rollout period (Winter 2020 through Spring 2021), shown in figure \ref{fig:age_time}A.
-For all three countries, vaccine rollout was initially prioritized to individuals with medical comorbidities, older age, and residence in a long-term care (LTC) facility.
-Therefore, we focused on the normalized seqRR for the 65-80 and 80+ age groups across rolling two-month windows from November 2020 to May 2021, using the within-group seqRR of 25-64 year-olds as the reference category.
-We find that for the 65-80 group (left panel) transmission was highest with the 65-80 and 80+ groups, as would be expected from our age heatmap.
-Notably there are minimal differences between these two curves across all time points, and both show a transient increase from 1.3-1.4 in November 2020 to a peak of 1.7-1.8 in late February.
-For the 80+ group (right panel), within-group transmission is significantly higher than transmission between the 65-80 and 80+ groups, with the within-group normalized seqRR being 2-4 fold higher.
-The 80+ within-group normalized seqRR dropped significantly from 6.4 in November 2020 to 3.5 in January 2021 and then fluctuated between roughly 3.5 and 5 for the remainder of the period.
-All three countries introduced the COVID-19 vaccine in December 2020, consistent with the timing of the decrease in 80+ transmission.
-However, we do not see corresponding transmission structure changes in the 65-80 group, and the decrease in the 80+ group is transient.
-The lack of a drop in the 65-80 curves may be because this group was vaccinated on a similar schedule to the broader adult population, whereas the 80+ group was vaccinated earlier.
-Furthermore, the 80+ age category has the highest proportion of LTC residents of any age group, which would have increased its vaccination priority and helped with rapid vaccine deployment in this population.
-These normalized seqRR curves may also be affected by non-vaccination changes in transmission, such as increased isolation of the older population.
-Notably, the normalized seqRR only measures relative changes in transmission and cannot be used to describe absolute changes in incidence.
-Ultimately, we did find an age-specific change in transmission within the 80+ group that may have been tied to the vaccine rollout, but the signal is not definitive as it was isolated to a single age group pairing. 
 
-We also were interested in how the age transmission patterns of school age children (ages 5-11 and 12-17) changed over the pandemic.
-Schooling transitioned to virtual and hybrid models for many states and provinces across all three countries starting from spring 2020 and throughout the 2020-2021 school year.\autocite{COVID19ProvincialPolicies, DataResourcesCOVID19, boruchowiczTimeUseYouth2022}
-Therefore, we were curious to see if within group transmission for school age children would decrease during these time periods.
-Normalized seqRR were calculated in fixed three-month windows corresponding to seasons: Winter (December to February), Spring (March to May), Summer (June to August), and Autumn (September to November), with the results shown in figure \ref{fig:age_time}B.
-We limit our analysis specifically to same state/province pairs to focus on the role of local transmission (e.g. within school and household). 
-For both school age groups we find transmission to be generally higher with other pediatric age groups (0-4, 5-11, 12-17) than with the adult age groups throughout the time course of the pandemic, and the within-group nRR curves are the highest.
-The earliest pandemic seasons (spring and summer 2020) were calculated based on very few within-state pediatric pairs (fewer than 100 per season) and produce extremely noisy nRR estimates that are difficult to interpret.
-From fall 2020 onward, the pediatric nRR curves were suppressed throughout the 2020-2021 school year, with the within-group normalized seqRR for both school-age groups around 1.5 by spring 2021 and the between-pediatric-group nRR (e.g. 12-17 with 0-4) regressing to the working-age baseline (normalized seqRR $\approx$ 1).
-The within-group curves then rose as in-person schooling became the dominant modality in the 2021-2022 school year and continued to rise through the 2022-2023 school year.
-After summer 2023, the normalized seqRR became increasingly noisy again as pair counts decreased (down to the tens to low hundreds of pairs).
-We are able to find some evidence of decreased school age transmission for the 2020-2021 compared to the 2021-2022 and 2022-2023 school years, suggesting that school closures may have reduced the force of transmission among children.
-However, in-person schooling policies were highly variable across the geographies which limits our ability to draw any causal relationship between these policies and the change in transmission patterns.
-\abc{Question mark regarding immune profiles vs }
+\abc{I moved the temporal age analysis over to the supplement based on our conversation.
+I realized I was actually doing subsampling instead of bootstrapping, so thanks for that catch.
+The confidence intervals were therefore being underestimated since I hadn't included a scaling factor and after recalculating it the significance of the vaccine rollout analysis seems less clear.
+The school age analysis results did not change as much, just wider intervals for later time points
+Should I do a brief summary blurb here in the results or just reference it in the discussion when talking about the challenges regarding temporal analyses?}
+
 \section{Discussion}
 
-\subsection{Computational Performance of Identical Sequences Method}
-
-As we discussed earlier, traditional phylogeographic methods are generally not feasible for conducting an analysis with tens of thousands of sequences, much less hundreds of thousands or millions of sequences.
-Previously, our lab has shown that the identical sequence method was able to identify relationships across a large dataset of 114,298 sequences from Washington state,\autocite{tran-kiemFinescalePatternsSARSCoV22025a} and a major motivation for this paper was to test its computational scalability at a multinational scale.
-There were two main computational challenges we had to overcome when using 5.7 million sequences: identifying all identical pairs within the dataset of comparisons and parsing large data structures to calculate the relative risks.
-Our computational approach to overcome these challenges involves preprocessing the sequence data into a portable database, which then allows rapid calculation of RR across different demes and strata with low memory cost.
-Details of this technique and the hardware requirements can be found in the supplementary information. 
-This approach allows for post hoc analyses to be done on local machines rather than relying on a computational cluster, with a small enough database to allow collaboration between researchers without relying on large cloud storage. 
-
-
-\subsection{Geography and Scale of Transmission}
+As we discussed earlier, traditional phylogeographic methods are generally not feasible for conducting an analysis including hundreds of thousands or millions of sequences.
+Previously, we have shown that the relative risk of identical sequences was able to describe relationships across a large dataset of 114,298 sequences from Washington state.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+A major motivation for this paper was to test this method's computational scalability at a multinational scale.
+There were two main computational challenges we were faced with when scaling up to 5.7 million sequences: identifying all identical pairs within the dataset of comparisons and parsing large data structures to calculate the relative risks.
+Our computational approach to overcome these challenges involves preprocessing the sequence data for storage in a portable relational database.
+Since the relative risk calculation is basic arithmetic after the distance matrix is calculated, relational databases are ideal as they can be used to annotate and query identical sequence pairs for the demes of interest.
+This allows rapid calculation of $RR_{seq}$ across different demes and strata with low memory cost.
+While the preprocessing step does require significant computing power (i.e. workstation with large amount of memory and multiprocessing or a computational cluster), the actual relative risk calculations and all downstream analyses can be done on local machines.
+Details of this technique and the hardware that we used to run this analysis can be found in the supplementary information.
 
 One major benefit of being able to conduct these analyses so efficiently is that we are able to do high resolution geographic analyses even across a large area.
 Traditional phylogeographic approaches would not be able to process a sufficient number of sequences to describe the relationships between all 62 geographic units in our analyses.
-Instead, approaches have typically needed to either focus on a smaller area study area and capture higher resolution data within that area or subsample data from a larger area and then aggregate the locations for there to be sufficient signal.
-Aggregation implicitly assumes a degree of homogeneity within that population and can miss relationships.
+Instead, approaches have typically needed to either focus on a smaller area study area for a high resolution analysis or subsample data from a larger area and then aggregate locations.
+One major drawback of this approach is that aggregation implicitly assumes a degree of homogeneity within that population and can miss relationships.
 For example, it may seem reasonable to assume that the states within pre-defined US regions would have similar transmission patterns based on geographic/economic proximity.
 However, in our analysis, we found heterogeneity in the transmission Southeast and Far West states, with states being more similar to states from other regions.
-When we repeated the RR analysis at the regional level instead of state/province (supplemental fig \ref{fig:reg_hmap}) the Far West had no seqRR scores > 1 with any other regions, despite individual states having seqRR > 1 with geographies outside the same region (e.g. Washington and Idaho, California and Mexico). 
-This highlights how geographic aggregation can miss important transmission relationships.
+When we repeated the RR analysis at the regional level instead of state/province (supplemental fig \ref{fig:reg_hmap}) the Far West had no $RR_{seq}$ scores > 1 with any other regions, despite individual states having $RR_{seq} > 1$ with geographies outside the same region (e.g. Washington and Idaho, California and Mexico). 
+This highlights how geographic aggregation can miss the actual scale and structure where transmission occurs.
 
-Another important example of the significance of scale can be seen with the ``Acela Corridor'' in the United States, where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD; and Washington DC.
-Since US metropolitan areas often cross state boundaries, this can lead them to span across regions as well.
-We expect Connecticut (within the New England region) to have high levels of transmission with New York (Mideast) due to having a large commuting population to New York City.
-Similarly, we expect Maryland (within the Mideast) to have high levels of transmission with Virginia (Southeast) as they both are part of the Washington DC metropolitan area.
+An important example of the significance of scale can be seen with the ``Acela Corridor'' in the United States, where five major metropolitan areas span the northeastern coast: Boston, MA; New York, NY; Philadelphia, PA; Baltimore, MD and Washington DC.
+Since US metropolitan areas often cross state boundaries, this can lead them to spill across regions as well.
+Based on this we expected Connecticut (within the New England region) to have high levels of transmission with New York (Mideast) due to having a large commuting population to New York City.
+Similarly, we expected Maryland (within the Mideast) to have high levels of transmission with Virginia (Southeast) as they both are part of the Washington DC metropolitan area.
 Both of these relationships are confirmed in our state level heatmap.
 If we zoom our hierarchical clustering tree to focus on the New England, Mideast, and Southeast region (supplemental fig \ref{fig:hclust_subset}), we find that the states from Connecticut through South Carolina sit on closely linked branches of the hierarchical tree.
 Despite Connecticut's geographical proximity to the New England states, its RR pattern more closely aligns with the New York and Philadelphia metro areas.
 Similarly, Virginia, North Carolina and South Carolina are linked more closely to the Washington DC metro states rather than the other Southeastern states.
-Identification of these metropolitan transmission clusters match with prior epidemiology and modeling work that highlight using city and metropolitan areas as a spatial unit for analysis.\autocite{starkLocalVariationsSpatial2012,dalzielUrbanizationHumidityShape2018}
+Identification of these metropolitan transmission clusters match with prior epidemiology and modeling work that discuss the importance of city and metropolitan areas as spatial units for analysis.\autocite{starkLocalVariationsSpatial2012,dalzielUrbanizationHumidityShape2018}
 Ideally we would have explored metropolitan or county level transmission patterns, but sub-state and provincial location data was sparse and inconsistently annotated.
-Future genomic surveillance would benefit from including additional geographic resolution such as US counties or Canadian census divisions.
+Future genomic surveillance data would benefit from consistently including additional geographic resolution such as US counties or Canadian census divisions.
 
 We additionally found that the relationship between movement/travel variables and SARS-CoV-2 was dependent on geographic scale and distance.
 Cell phone mobility data, air travel flows, and commuting flows have been used to model the spread of SARS-CoV-2 cases and the timing of importation events.\autocite{kuoAirlineTransportationArrival2021,jiaPopulationFlowDrives2020,zhanModelingPrediction20192020,badrAssociationMobilityPatterns2020a,changMobilityNetworkModels2021}
-These models do well at empirically describing the epidemic curves for SARS-CoV-2, but it has been historically difficult to validate that the movement flows correspond to genetic linkage of the virus.
-Using the seqRR between US states, we successfully show that these travel variables predict transmission and are able to discriminate different distance regimes where each was pertinent.
+These models do well at empirically describing the epidemic curves for SARS-CoV-2, but it has been difficult to validate that the measured movement flows correspond to genetic linkage of the virus.
+Using the $RR_{seq}$ between US states, we successfully show that these travel variables predict transmission and are able to discriminate different distance regimes where each was pertinent.
 We found that cellphone mobility data performed well at short distances, but rapidly lost predictive power for longer distance state pairs.
-In contrast, the ground trip data from the NHTS was remarkably robust across both short and long distance pairs.
+In contrast, the ground trip data from the NHTS was robust across both short and long distance pairs.
 States may be too large of a geographical unit for the cellphone mobility data to perform well, and ideally we would wish to repeat this analysis at the county or even smaller level to see if it outperforms the NHTS trip dataset.
 Air travel was associated with transmission for long distance pairs only, outperforming NHTS ground travel flows in our stratified long range analysis.
 This is notable as there has been debate regarding the importance of air travel networks versus commuting networks in modeling domestic respiratory virus spread within the United States.\autocite{brownsteinEmpiricalEvidenceEffect2006, viboudSynchronyWavesSpatial2006,charuHumanMobilitySpatial2017}
 Our findings agree with a recent phylogeographic analysis of influenza seasons, which found that commuting was the strongest predictor of state-to-state transmission while air travel still contributed additional viral migration.\autocite{dejongCompetitionTransmissionLineages2025}
-Future epidemiological models likely would benefit from combining multiple of these movement/travel variables and weighting them by distance to better estimate transmission between cities or states/provinces.
-
-\subsection{Comparing Age Contact Matrices and Identical Sequence Matrices}
+Future epidemiological models likely would benefit from combining multiple of these movement/travel variables and weighting them by distance to better estimate transmission between cities versus between states/provinces.
 
 The large number of sequences we used in this analysis allowed us to describe age transmission down to single-year age groups, which allows closer investigation of how age related social structures affect transmission.
 The most significant examples of this in our study were of children and young adults.
-The seqRR heatmap demonstrated a clear transition point in the transmission matrix with 18-year-olds clustering more tightly to college-age young adults instead of with high-school teenagers.
+The $RR_{seq}$ heatmap demonstrated a clear transition point in the transmission matrix with 18-year-olds clustering more tightly to university-age young adults instead of with secondary school teenagers.
 Similarly, there is a more gradual transition in transmission patterns from age 22 to 23 which corresponds to when many young adults enter the general workforce.
-The distinct cluster from 18 to 22 years likely is due to the unique transmission environment of college life, although we cannot directly determine the housing status and education/work background from the metadata provided.
-Additionally, we were able to capture the parent-child "secondary diagonal" which has been predicted by prior contact survey and synthetic population studies.\autocite{mossongSocialContactsMixing2008,premProjectingContactMatrices2021,mistryInferringHighresolutionHuman2021} 
-We also saw some evidence for a grandparent-infant relationship with 0-year-olds having multiple seqRR > 1 with ages 70-80 years old.
+The distinct cluster from 18 to 22 years likely is due in part to the unique transmission environment of university life with its relative social isolation from other age groups, although we cannot directly determine the housing status and education/work background from the metadata provided.
+Additionally, we were able to capture signal of a parent-child "secondary diagonal" which has been predicted by prior contact survey and synthetic population studies.\autocite{mossongSocialContactsMixing2008,premProjectingContactMatrices2021,mistryInferringHighresolutionHuman2021} 
+This highlights the important contribution of household transmission.
+Further work is necessary to determine if the directionality of transmission (adult to child versus child to adult) can be determined based on the sequence metadata, but this will be challenging without paired household data.  
+We also saw some evidence for a potential grandparent-infant relationship with 0-year-olds having multiple $RR_{seq}$ > 1 with ages 70-80 years old.
 However, age 0 was undersampled (n = 5,129 sequences) compared to neighboring age groups (ages 1-3 ranged from n= 12,388 to 15,026) and other toddler ages do not show a similar intergenerational pattern with elderly adults.
 Furthermore, its unclear what role misclassification played for age 0 as it could act as a placeholder value for unknown age sequence.
-Therefore, some caution is necessary in interpreting the relationships with age 0.
+Therefore, some caution is necessary in interpreting its relationship to other ages.
+
 Overall, the age identical sequence matrix was correlated with the synthetic age contact matrices, validating their utility in predicting transmission patterns.\autocite{mistryInferringHighresolutionHuman2021}
+Notably the slope of the $RR_{seq}$ versus contact matrix RR was less than zero for both the US and Canada.
+This could suggest that transmission occurs more randomly than expected based on contact data.
+However, this may also be an artifact of the sampling dynamics of the pandemic, with disproportionate sampling during late 2021 and early 2022 as the Omicron sweep occurred. 
+Our age analysis also highlighted that age structure was more important for within division transmission and that age transmission matrix regressed towards $RR = 1$ as the geographic scale expanded.
+This suggests that when modeling outbreaks, age structure can be simplified/omitted for transmission across large scales but high resolution matrices are important for the local dynamics.
 
-\subsection{Capturing Temporal Signals Using Normalized Relative Risks}
-
-Normalized relative risk was used to identify changes in transmission patterns over time such as seeing if transmission changed across geographic scales over the course of the pandemic.
-We were able to find a sequential increase in transmission across intra-regional, inter-regional, and finally international state/province pairs (fig \ref{fig:geo_time}A-B) from 2020 to 2022, suggesting that movement and travel restored in a graduated fashion.
+Normalized $RR_{seq} $was used to identify changes in transmission patterns over time such as seeing if transmission changed across geographic scales over the course of the pandemic.
+We find a sequential increase in transmission across from intra-regional to international state/province pairs (fig \ref{fig:geo_time}A-B) from 2020 to 2022, suggesting that transmission patterns followed a graduated restoring of movement and travel patterns.
 This likely was a response to multiple factors including loosening of travel restrictions, perceived immunity after vaccination/natural infection, and decreased perception of COVID-19's severity.
-Similarly we were able to describe changes in the transmission patterns of school age children, which could be explained by how their mixing and contact patterns changed over the course of the pandemic.
-For both of these examples, we are limited by the use of observational data in terms of identifying causality. 
-Existing genomic surveillance data that may not have sufficient sampling to detect transmission changes and we did find that periods of low sampling resulted in noisy and unstable normalized seqRR scores.
-Furthermore, by creating a baseline category for normalization, we assume there are not significant changes in the mixing patterns of that relationship and lose the ability to detect any changes for its transmission.
-Even with these limitations, the normalized seqRR allows for description of transmission trends and has the benefit of being computationally easy to calculate.
-With sufficient sequencing effort, it could be used to test the response to policy changes or other interventions in an outbreak.
+Additionally, we tested this normalized $RR_{seq}$ to look at changes in the transmission of the elderly after the vaccine rollout in January 2021 and transmission patterns of school age children throughout the pandemic (see supplemental figure \ref{fig:age_time}).
+Both of these analyses looking at changes in transmission across ages were able to detect changes, but their interpretation is somewhat more challenging as host immune profiles including vaccination, social patterns of interaction and schooling/work behaviors were dynamically changing through much of the time periods of interest.  
+Ultimately, we are limited by the use of observational data in terms of identifying causality. 
+Even with these limitations, the normalized $RR_{seq}$ allows for description of transmission trends and has the benefit of being computationally easy to calculate.
+With sufficient pathogen surveillance, it could be used to test the response to policy changes or other interventions in an outbreak.
 
-Additionally, we used the normalized seqRR scores to identify persistent and seasonal significant inter-regional relationships in figure \ref{fig:geo_time}C.
+\abc{I am on the fence about how relevant this paragraph is, I feel like I may have gone a little too in depth re Florida here, let me know if you had any feedback on it}
+Additionally, we used the normalized $RR_{seq}$ scores to identify persistent and seasonal significant between region relationships in figure \ref{fig:geo_time}C.
 Being able to identify and describe seasonal geographic patterns of COVID-19 identical sequences is important for disease modeling, as holiday/vacation patterns were related to SARS-CoV-2 introductions of the original virus and new variants.\autocite{muenchhoffGenomicEpidemiologyReveals2021,mangrumJUEInsightCollege2022,lemeyUntanglingIntroductionsPersistence2021}
-These analyses found that inter-regional transmission was centered around major tourist areas and larger states such as California, Texas, Florida, New York, and New Jersey.
+These analyses found that inter-regional transmission was strongest around major tourist areas and larger states such as California, Texas, Florida, New York, and New Jersey.
 We hypothesize this may be related to increased travel due to summer vacation and school breaks, but there were also persistent year-round relationships, such as those between the Mideast states and Florida.
 Florida stood out as the most common inter-regional node for both the year-round and seasonal analyses.
 This fits with its role as both a major tourism hub for the United States, drawing 87.7 to 145.3 million person-trips per year from 2020 to 2024 and also a major destination for ``snowbirds'': seasonal, often elderly migrants traveling to a warmer climate during winter months.\autocite{EconomicImpactTravel,smithSnowbirdsSunbirdsStayers2006}
 Snowbird migration has previously been linked to increased pneumonia and influenza hospitalizations by non-residents in destination states(including Florida, Arizona, and California).\autocite{chuiSnowbirdsInfectionnewPhenomena2011} 
-To determine if Florida's interregional connection with the Mideast region were linked to seasonal travel from a particular age group, we calculated age seqRR matrices, stratified by season and geography (Florida-Florida, Mideast-Mideast, and Florida-Mideast pairings), shown in figure \ref{fig:fl_me_season}.
-The within Florida and within Mideast heatmaps have similar RR patterns as the full age analysis heatmap in figure \ref{fig:age}A, and the between region heatmap shows weaker evidence of age structure, with RR regressing towards RR = 1.
-There are no major differences across time periods, suggesting seasonal differences in tourism and migration age patterns are less likely to impact identical sequence RR scores, but further work is necessary to corroborate this finding
+To determine if Florida's interregional connection with the Mideast region were linked to seasonal travel from a particular age group, we calculated age $RR_{seq}$ matrices, stratified by season and geography (Florida-Florida, Mideast-Mideast, and Florida-Mideast pairings), shown in figure \ref{fig:fl_me_season}.
+The within Florida and within Mideast heatmaps have similar $RR_{seq}$ patterns as the full age analysis heatmap in figure \ref{fig:age}A, and the between region heatmap shows weaker evidence of age structure, with $RR_{seq}$ regressing towards $RR_{seq}$ = 1.
+There are no major differences across time periods, suggesting seasonal differences in tourism and migration age patterns are less likely to impact identical sequence $RR_{seq}$ scores, but further work is necessary to corroborate this finding
+
 
 %TC:ignore
 
@@ -543,7 +513,7 @@ Additionally, for sequences from the United States and Canada, the division fiel
 Genomes coming from US territories other than the District of Columbia were excluded due to small sample size.
 Age metadata was checked to be numeric and any age value greater than 125 years treated as invalid, with ages greater than 99 were aggregated into a single age category.
 
-We also aggregated several distance, movement, and contact variables to look for associations with identical sequence RR (seqRR).
+We also collected several distance, movement, and contact variables to look for associations with identical sequence RR ($RR_{seq}$).
 State geographic distance was defined to be the minimum geographic distance between core-based statistical areas (CBSAs) as defined by the US Census Bureau.\autocite{bureauMetropolitanMicropolitanStatistical} 
 Ground travel RR scores between states were calculated from the 2017 National Household Travel Survey's day trip file.\autocite{NationalHouseholdTravel}
 We calculated air travel RR using the 2019 Airline Origin and Destination Survey (DB1B).\autocite{DB1B_Dataset} 
@@ -552,57 +522,48 @@ Finally we used synthetic contact matrices based on survey data to compare with 
 
 \subsection{SARS-CoV-2 Genome Processing}
 Identical sequences were identified using a similar pipeline to our previous work.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
-First a pairwise distance matrix of sequences was created.
+First a distance matrix of sequences was created.
 In order to minimize unnecessary comparisons, we only calculated distances for sequences within the same Nextstrain clade.\autocite{aksamentovNextcladeCladeAssignment2021}
 Within each clade, \texttt{pairsnp} was used to find all pairs of sequences with a Hamming distance equal to 0.\autocite{tonkin-hillGtonkinhillPairsnp2025}
 Sequences that were found to have over 1,000 identical pairs were removed from the analysis due to being extreme outliers.
-These sequences likely had missing bases at high entropy sites and therefore had an inflated number of matching identical sequences.
-Additionally, pairs where the sequences were collected within 3 days of each other and had the same host metadata (age, gender, division/location) were flagged as likely being sequences from the same host and were excluded from the relative risk calculation.
+These sequences typically have missing bases at sites with key mutations and therefore an inflated number of matching identical sequences.
+Additionally, sequence pairs with sequences that were collected within 3 days of each other and had the same host metadata (age, gender, division/location) were flagged as likely being sequences from the same host and excluded from the relative risk calculation.
 The final sequence metadata and list of identical pairs are then stored in a DuckDB relational database, which allowed for fast database operations without loading the full list into system memory.
 This database was accessed within the R programming environment using the \texttt{dbplyr} library.\autocite{rcoreteamLanguageEnvironmentStatistical2025,wickhamDbplyrDplyrBack2025}
 
 \subsection{Identical Sequence Relative Risk Calculation}
-We used our previously described relative risk calculation to measure the genetic connectivity of SARS-CoV-2 between different geographic units and age groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
-We defined $n_{A,B}$ to be the number of pairs of genomes with a Hamming distance of 0 where one sequence belongs to group $A$ and the other sequence belongs to group $B$.
-We then defined $n_{A,\bullet}= \sum_{\forall B}n_{A,B}$ (i.e. all pairs of identical sequences where at least one sequence is in group $A$) and $n_{\bullet,\bullet} = \sum_{\forall A}n_{A,\bullet}$ (i.e. the total number of pairs of identical sequences).
-We calculated the $RR_{A,B}$ as follows:
+We use our previously described relative risk calculation to measure the genetic connectivity of SARS-CoV-2 between different geographic units and age groups.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+We define $n_{A,B}$ to be the number of pairs of genomes with a Hamming distance of 0 where one sequence belongs to group $A$ and the other sequence belongs to group $B$.
+We then define $n_{A,\bullet}= \sum_{\forall B}n_{A,B}$ (i.e. all pairs of identical sequences where at least one sequence is in group $A$) and $n_{\bullet,\bullet} = \sum_{\forall A}n_{A,\bullet}$ (i.e. the total number of pairs of identical sequences).
+We calculate the $RR_{seq}^{A,B}$ as follows:
 
-\[RR_{A,B} = \frac{n_{A,B}/n_{A,\bullet}}{n_{B,\bullet}/n_{\bullet,\bullet}}\]
+\[RR_{seq}^{A,B} = \frac{n_{A,B}/n_{A,\bullet}}{n_{B,\bullet}/n_{\bullet,\bullet}}\]
 
-seqRR scores were calculated for geography and age.
-Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the seqRR of individuals with the same age within the same state/province compared to the seqRR of individuals with the same age not in the same state/province). 
-We calculated uncertainty through sampling sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
+$RR_{seq}$ scores were calculated for geography and age.
+Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the $RR_{seq}$ of individuals with the same age within the same state/province compared to the $RR_{seq}$ of individuals with the same age not in the same state/province). 
+We calculated uncertainty through subsampling 80\% of the total sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
 
-In order to summarize how much a given deme's seqRR profile deviates from random mixing, we generated a deviance score.
-This is calculated by finding the root-mean-square of the deme's log-transformed RR scores:
+We extended this approach to describe changes in $RR_{seq}$ over time. 
+Let $RR_{seq}^{a,b}(t)$ be the $RR_{seq}^{a,b}$ for pairs whose collection date fall between $t$ and $t + \Delta t$, with $\Delta t$ being some pre-decided interval width. 
+Changes in $RR_{seq}$ can be due to true changes in the transmission pattern between demes $A$ and $B$, but it can also be due to changes in the baseline force of infection of either the pathogen (i.e. variants having differences in pathogenicity) or the host populations (i.e. behavioral/movement changes, immunizations).
+We therefore normalize $RR_{seq}$ against a baseline population to account for these changes in the force of infection.
 
-\[D_A = \sqrt{\frac{1}{n}\sum_{B} \left( \log_{10} RR_{A,B} \right)^2}\]
-
-By squaring the log-transformed seqRR, enrichment ($RR > 1$) and depletion ($RR < 1$) contribute equally to the deviance.
-$D_A = 0$ if and only if $RR_{A,B} = 1$ for all $B$, and $D_A$ will increase as there is greater departure from random mixing. 
-Of note, there is no fixed upper bound for $D_A$.
-This score can be compared across time or other scales, provided the structure of the demes are consistent across the scales and there is sufficient sampling for all demes across the scales.
-In this paper, we used this method to characterize the strength of non-random mixing across age groups, but the approach can extend to any deme definition.  
-
-\subsection{Extending Relative Risk over Time}
-We extended this approach to calculate the seqRR for a time period starting at date $t$ with length $\Delta t$ by only using pairs where both sequences' collection date fall between $t$ and $t + \Delta t$. 
-We denote this relative risk as $seqRR_{A,B}(t)$ and can calculate this time-dependent seqRR for any time interval desired.
-Changes in seqRR can be due to true changes in the transmission pattern between groups $A$ and $B$, but it can also be due to changes in the force of infection either in the pathogen (i.e. variants having differences in pathogenicity) or the host populations (i.e. behavioral/movement changes, immunizations).
-We therefore normalized seqRR against a baseline population to account for these changes in the force of infection.
-For time analyses of the age seqRR, our objective was to detect changes in transmission across age groups due to changes in mobility and interaction from public health interventions and voluntary behavioral changes.
-Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18-40 year olds) tended to have lower levels of social isolation and mitigation behaviors compared to other age groups.\autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns}
+For time analyses of the age $RR_{seq}$, our objective was to detect changes in transmission across age groups due to changes in interactions between the groups (e.g. school closures, movement restrictions) or if one age group acquired immunity (e.g. vaccination).
+Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18-40 year olds) tended to have lower levels of social isolation and risk mitigation behaviors compared to other age groups.\autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns}
 Therefore we used adults as a reference group (designated here as $Y$) for normalization. 
-We then normalized other seqRR scores over time using the following equation: $nRR_{A,B}(t) = RR_{A,B}(t)/RR_{Y,Y}(t)$.  
+We then normalized other $RR_{seq}$ scores over time using the following equation: $nRR_{seq}^{A,B}(t) = RR_{seq}^{A,B}(t)/RR_{seq}^{Y,Y}(t)$.  
+As a result, $nRR_{seq}^{Y,Y}(t) = 1$ for all $t$.
 
-For time analyses of geographic seqRR, changes in circulating SARS-CoV-2 variants, public health interventions, and sequence sampling effort over time could affect the number of genomes collected from a specific area.
-There is no single geographic area that we can use as a reference population in this case.
-Since our goal was to determine if we could find how much mixing changed between populations over time we used the average of the within area seqRR for the two areas as the normalizing factor. 
+For time analyses of geographic $RR_{seq}$, changes in the circulating SARS-CoV-2 variants, public health interventions, and sequence sampling effort over time could affect the number of genomes collected from a specific area.
+Additionally, there is a challenge that there is no single geographic area that we can use as a reference population in this case.
+Since our goal was to determine if we could find how much mixing changed between populations over time we used the average of the within division $RR_{seq}$ for the two divisions as the normalizing factor. 
 This can be written as follows:
 \begin{align*}
-nRR_{A,B}(t) &= \frac{RR_{A,B}(t)}{\frac{1}{2}(RR_{A,A}(t)+RR_{B,B}(t))} \\
-             &= \frac{2\, RR_{A,B}(t)}{RR_{A,A}(t)+RR_{B,B}(t)}
+nRR_{seq}^{A,B}(t) &= \frac{RR_{seq}^{A,B}(t)}{\frac{1}{2}(RR_{seq}^{A,A}(t)+RR_{seq}^{B,B}(t))} \\
+             &= \frac{2 RR_{seq}^{A,B}(t)}{RR_{seq}^{A,A}(t)+RR_{seq}^{B,B}(t)}
 \end{align*}
-
+It is important to note that with this normalization, there is not a clear scale that indicates whether a division pairing has enrichment of identical sequences. 
+Since $RR_{seq}^{A,A}$ and $RR_{seq}^{B,B}$ tend to typically be greater than $RR_{seq}^{A,B}$ we expect $nRR_{seq}^{A,B} < 1$ and really focus on its utility to look at changes over time and in comparison to other across division pairings.  
 We used agent-based modeling where we simulate nucleotide mutation simulations to explore and validate this approach.
 This included creating scenarios where movement changed between simulated demes and introducing changes to the force of infection.
 Further discussion of these validation simulations can be found in the supplementary information.  
@@ -610,22 +571,22 @@ Further discussion of these validation simulations can be found in the supplemen
 \subsection{Geographic Clustering and Regional Analysis}
 
 States/provinces were sorted using hierarchical clustering to assess if states/provinces tended to be most related to other states within the same region. 
-For clustering and dimensionality reduction, seqRR was converted to a dissimilarity measure: $D_{A,B} = \exp{(-RR_{A,B})}$.
-Hierarchical clustering of states and provinces was calculated using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} package.\autocite{maechlerClusterClusterAnalysis2026}
-Principal coordinate analysis (PCoA) was conducted on the dissimilarity matrix with the \texttt{cmdscale} function from the base \texttt{stats} package.\autocite{rcoreteamLanguageEnvironmentStatistical2025}
+For clustering and dimensionality reduction, we convert $RR_{seq}^{A,B}$ to a dissimilarity score between $A$ and $B$: $\exp{(-RR_{seq}^{A,B})}$ which is then used as a distance matrix for clustering analyses.
+Hierarchical clustering of states and provinces is calculated using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} package.\autocite{maechlerClusterClusterAnalysis2026}
+Principal coordinate analysis (i.e. classical multidimensional scaling) is conducted with the \texttt{cmdscale} function from the base \texttt{stats} package.\autocite{rcoreteamLanguageEnvironmentStatistical2025}
 The absolute eigenvalue proportion was used for estimating the percent variance of each principal coordinate.
-We also sought to identify inter-regional state/province pairs that were persistently high scoring over time.
-Since the geographic normalized seqRR does not have a clear threshold for enrichment, inter-regional state/province pairs were ranked into percentiles.
-Pairs with five or more quarters of being ranked in the 98th percentile or higher were defined to be conserved high-ranking inter-regional pairs.
+We also sought to identify between regional state/province pairs that were persistently high scoring over time.
+Since the geographic $nRR_{seq}$ does not have a clear threshold for enrichment, across region division pairs were ranked into percentiles.
+Pairs with five or more quarters of being ranked in the 98th percentile or higher were defined to be high-ranking across region pairs.
 Additionally, if pairs had two or more years of being ranked in the 98th percentile for a specific quarter they were flagged as a significant seasonal relationship.  
 
 \subsection{Distance/Mobility Regression Analysis}
 
 For the continental United States, identical sequence relative risk scores were compared to multiple measures of distance and movement.
-Pearson's correlation coefficients between identical sequence RR and these distance/movement variables were calculated, where all RR variables (both seqRR and travel/movement) were first transformed to a base-10 logarithmic scale.
-Same-state seqRR scores were excluded as were any pairs of states with a reported travel or movement score of zero. 
+Pearson's correlation coefficients between identical sequence RR and these distance/movement variables were calculated, where all RR variables (both $RR_{seq}$ and travel/movement) were first transformed to a base-10 logarithmic scale.
+Same-state $RR_{seq}$ scores were excluded as were any pairs of states with a reported travel or movement score of zero. 
 To test for interactions between state distance and travel/movement variables we calculated partial correlation coefficients after controlling for distance and distance stratified correlation coefficients. 
-Finally, we constructed generalized additive models to predict the sequence $\log(RR)$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
+Finally, we constructed generalized additive models to predict the sequence $\log(RR_{seq})$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
 
 \clearpage
 
@@ -671,7 +632,6 @@ The portable database also allows for easy sharing of data between multiple team
 The main drawback of the SQL database arises when creating bootstrap samples for RR confidence intervals, as there is some performance overheard for DuckDB + \texttt{dbplyr} queries compared to running the command directly in R.
 For analyses where only a subset of the total sequences are necessary for RR calculation (such as the time-based analyses), we can use a hybrid approach of pulling the subset from DuckDB into R's memory and then doing the sampling and analysis within R.
 This combined approach lets us run the entire vaccine period analysis in Figure \ref{fig:age_time}A in approximately 4 minutes, even with 200 bootstrap samples per time point.
-
 
 \subsection{Additional Geographic Analyses}
 
@@ -800,6 +760,52 @@ The significance of the distance$\times$movement interaction was assessed by lik
     Both axes are on a $\log_{10}$ scale and the dashed line marks the 1:1 reference. The Pearson correlation is reported per country.\autocite{mistryInferringHighresolutionHuman2021}}
     \label{fig:age_contact}
 \end{figure}
+
+\subsection{Changes in Age Based Identical Sequence RR Over Time}
+
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\textwidth]{age_time.pdf}
+    \caption{Temporal changes in SARS-CoV-2 transmission patterns between ages, using identical sequence RR normalized against the working-age adults (25-64y) within-group RR ($nRR$) (see Methods). 
+    A: Normalized $RR_{seq}$ between elderly groups and other age groups during the vaccine rollout period (November 2020--May 2021). 
+    Each trace shows the normalized $RR_{seq}$ between an elderly index group (65--80y, 80+y) and all partner age groups across rolling two-month windows, with shaded 95\% subsampled confidence intervals. 
+    B: Within-state Normalized $RR_{seq}$ between school-age children and other age groups 3-month seasons pooled across all states. 
+    Each trace shows the normalized $RR_{seq}$ between a school-age index group (5--11y, 12--17y) and all partner age groups, with shaded 95\% subsampled confidence intervals. 
+    The dashed line at $nRR = 1$ indicates when the RR is equal to the working-age baseline. For both plots, the confidence intervals used 200 subsamples per time point with 80\% coverage.
+    }
+    \label{fig:age_time}
+\end{figure}
+
+We investigated whether temporal changes in age-based $RR_{seq}$ could be used to detect contact structure changes in response to public health interventions.
+First we sought to see if the transmission patterns for elderly adults changed during the initial COVID-19 vaccine rollout period (Winter 2020 through Spring 2021), shown in figure \ref{fig:age_time}A.
+For all three countries, vaccine rollout was initially prioritized to individuals with medical comorbidities, older age, and residence in a long-term care (LTC) facility.
+Therefore, we focused on the normalized $RR_{seq}$ for the 65-80 and 80+ age groups across rolling two-month windows from November 2020 to May 2021, using the within-group $RR_{seq}$ of 25-64 year-olds as the reference category.
+We find that for the 65-80 group (left panel) transmission was highest with the 65-80 and 80+ groups, as would be expected from our age heatmap.
+Notably there are minimal differences between these two curves across all months, and both show a transient increase from 1.3-1.4 in November 2020 to a peak of 1.7-1.8 in late February.
+For the 80+ group (right panel), within-group transmission is significantly higher than transmission between the 65-80 and 80+ groups, with the within-group normalized $RR_{seq}$ being 2-4 fold higher.
+The 80+ within-group normalized $RR_{seq}$ dropped from 6.4 in November 2020 to 3.5 in January 2021 and then fluctuated between roughly 3.5 and 5 for the remainder of the period.
+All three countries introduced the COVID-19 vaccine in December 2020, consistent with the timing of the decrease in 80+ transmission.
+However, we do not see corresponding transmission structure changes in the 65-80 group, and the decrease in the 80+ group is transient.
+The significance of this is drop is difficult to ascertain due to the wider confidence intervals for the 80+/80+ $RR_{seq}$ during this time period.
+The lack of a drop in the 65-80 curves may be because much of this group was vaccinated on a similar schedule to the broader adult population, whereas the 80+ group was vaccinated earlier.
+Furthermore, the 80+ age category has the highest proportion of LTC residents of any age group, which would have increased its vaccination priority and helped with rapid vaccine deployment in this population.
+These normalized $RR_{seq}$ curves may also be affected by non-vaccination changes in transmission, such as increased isolation of the older population and differential rates of natural infection and immunity across populations.
+Notably, the normalized $RR_{seq}$ only measures relative changes in transmission and cannot be used to describe absolute changes in incidence.
+Ultimately, we did find an age-specific change in transmission within the 80+ group that may have been tied to the vaccine rollout, but the signal is not definitive as it was isolated to a single age group pairing. 
+
+We also were interested in how the age transmission patterns of school age children (ages 5-11 and 12-17) changed over the pandemic.
+Schooling transitioned to virtual and hybrid models for many states and provinces across all three countries starting from spring 2020 and throughout the 2020-2021 school year.\autocite{COVID19ProvincialPolicies, DataResourcesCOVID19, boruchowiczTimeUseYouth2022}
+Therefore, we were curious to see if within group transmission for school age children would decrease during these time periods.
+Normalized $RR_{seq}$ were calculated in fixed three-month windows corresponding to seasons: Winter (December to February), Spring (March to May), Summer (June to August), and Autumn (September to November), with the results shown in figure \ref{fig:age_time}B.
+We limit our analysis specifically to same state/province pairs to focus on the role of local transmission (e.g. within school and household). 
+For both school age groups we find transmission to be generally higher with other pediatric age groups (0-4, 5-11, 12-17) than with the adult age groups throughout the time course of the pandemic, and the within-group nRR curves are the highest.
+The earliest pandemic seasons (spring and summer 2020) were calculated based on very few within-state pediatric pairs (fewer than 100 per season) and produce extremely noisy nRR estimates that are difficult to interpret.
+From fall 2020 onward, the pediatric nRR curves were suppressed throughout the 2020-2021 school year, with the within-group normalized $RR_{seq}$ for both school-age groups around 1.5 by spring 2021 and the between-pediatric-group nRR (e.g. 12-17 with 0-4) regressing to the working-age baseline (normalized $RR_{seq}$ $\approx$ 1).
+The within-group curves then rose as in-person schooling became the dominant modality in the 2021-2022 school year and continued to rise through the 2022-2023 school year.
+After summer 2023, the normalized seqRR became increasingly noisy again as pair counts decreased (down to the tens to low hundreds of pairs), demonstrated by the increasing width of the subsampled confidence intervals around this time.
+We are able to find some evidence of decreased school age transmission for the 2020-2021 compared to the 2021-2022 and 2022-2023 school years, suggesting that school closures may have reduced the force of transmission between children.
+However, in-person schooling policies were highly variable across the geographies which limits our ability to draw any causal relationship between these policies and the change in transmission patterns.
+Additionally, if immunity was higher in the older populations due to vaccination and earlier natural infection, this would have increased the relative susceptibility of younger age groups and caused an apparent increased force of infection.
 
 %TC:endignore
 \end{document}

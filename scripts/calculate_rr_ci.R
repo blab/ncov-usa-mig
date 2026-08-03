@@ -14,7 +14,9 @@
 #time_bounds: Date range (as vector of two Date values) for time analyses (NEEDS TO BE ADDED)
 #exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
 
-calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 25,
+source("scripts/subsample_ci.R")
+
+calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 200,
                             interval_width = 0.95, exclude_duplicates = TRUE) {
 
   rr_list <- vector("list", k)
@@ -41,13 +43,16 @@ calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 25,
   # Join all iterations by (x, y) key
   rr_combined <- reduce(rr_list, full_join, by = c("x", "y"))
 
-  # Calculate quantiles across columns
+  # Rescaled quantiles across columns (see scripts/subsample_ci.R for why the
+  # raw replicate spread would be too narrow by sqrt((1 - samp_cov)/samp_cov)).
   rr_matrix <- rr_combined %>% select(starts_with("RR_")) %>% as.matrix()
+  ci_bounds <- t(apply(rr_matrix, 1, subsample_ci_bounds,
+                       samp_cov = samp_cov, interval_width = interval_width))
 
   rr_combined %>%
     mutate(
-      ci_lb = apply(rr_matrix, 1, quantile, probs = (1 - interval_width) / 2, na.rm = TRUE),
-      ci_ub = apply(rr_matrix, 1, quantile, probs = (1 + interval_width) / 2, na.rm = TRUE)
+      ci_lb = ci_bounds[, 1],
+      ci_ub = ci_bounds[, 2]
     ) %>%
     select(x, y, ci_lb, ci_ub)
 }

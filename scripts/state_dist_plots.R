@@ -17,6 +17,8 @@ library(scales)
 library(readr)
 library(cowplot)
 
+source("scripts/color_schemes.R")
+
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
@@ -286,9 +288,12 @@ state_rr <- state_rr %>%
     levels = c("Same state", "Intra-regional", "Inter-regional")
   ))
 
-PAIR_COLORS <- c("Same state" = "cornflowerblue",
-                 "Intra-regional" = "lightcoral",
-                 "Inter-regional" = "lightgoldenrod")
+# Same three geographic-relatedness categories as the age deviance curves in
+# age_RR_deviance.R, under this figure's naming. Colors are taken from the shared
+# GEO_CLASS_COLORS so the two figures read as one scheme.
+PAIR_COLORS <- c("Same state"     = GEO_CLASS_COLORS[["Same Division"]],
+                 "Intra-regional" = GEO_CLASS_COLORS[["Diff Div/Same Reg"]],
+                 "Inter-regional" = GEO_CLASS_COLORS[["Different Region"]])
 
 # Calculate correlations. Exclude pairs with zero underlying movement so the
 # floored/+correction points (esp. DB1B, where most pairs have no sampled

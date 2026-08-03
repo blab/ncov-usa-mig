@@ -404,26 +404,20 @@ unique_snap_filtered <- state_rr_snap %>%
                                       "Different Regions, Same Country",
                                       "International")))
 
+POSTER_PAIR_COLORS <- c(
+  "Different States, Same Region"   = GEO_CLASS_COLORS[["Diff Div/Same Reg"]],
+  "Different Regions, Same Country" = GEO_CLASS_COLORS[["Different Region"]],
+  "International"                   = GEO_CLASS_COLORS[["International"]]
+)
+
 rr_series_poster <- ggplot(unique_snap_filtered,
        aes(x = date, y = nRR, group = interaction(date, pair_type), color = pair_type, fill = pair_type)) +
   geom_boxplot(alpha = 0.3, outlier.shape = NA, linewidth = 0.4, position = position_dodge(width = 80)) +
   coord_cartesian(ylim = c(0, 0.4)) +
-  scale_color_manual(
-    values = c(
-      "Different States, Same Region" = "lightcoral",
-      "Different Regions, Same Country" = "#66C2A5",
-      "International" = "cornflowerblue"
-    ),
-    name = "Pair Type"
-  ) +
-  scale_fill_manual(
-    values = c(
-      "Different States, Same Region" = "lightcoral",
-      "Different Regions, Same Country" = "#66C2A5",
-      "International" = "cornflowerblue"
-    ),
-    name = "Pair Type"
-  ) +
+  # Same geographic-relatedness scheme as the age deviance curves (age_RR_deviance.R)
+  # and the distance scatters (state_dist_plots.R), under this figure's naming.
+  scale_color_manual(values = POSTER_PAIR_COLORS, name = "Pair Type") +
+  scale_fill_manual(values = POSTER_PAIR_COLORS, name = "Pair Type") +
   scale_x_date(date_breaks = "3 months",
                labels = function(x) format_quarters(x),
                expand = expansion(mult = 0.02)) +

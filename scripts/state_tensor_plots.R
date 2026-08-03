@@ -593,7 +593,9 @@ p_dev_models <- ggplot(df_dev_models, aes(x = label, y = dev_pct, fill = family)
   geom_col(width = 0.65) +
   geom_text(aes(label = sprintf("%.0f%%", dev_pct)), vjust = -0.5, size = 3.9) +
   scale_fill_manual(values = c("Distance only"          = "grey55",
-                               "Movement only"          = "firebrick",
+                               # Orange rather than red: red now denotes the
+                               # Intra-regional pair type in row A.
+                               "Movement only"          = "#E08214",
                                "Movement × distance" = "steelblue"),
                     name = NULL) +
   scale_y_continuous(name = "Deviance explained (%)",
