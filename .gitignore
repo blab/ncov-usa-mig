@@ -67,7 +67,6 @@ Rplots.pdf
 *.snm
 *.vrb
 *.dvi
-*.latexmkrc
 
 # Quarto
 .quarto/

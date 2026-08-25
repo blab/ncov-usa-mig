@@ -1,0 +1,9 @@
+# Build main.pdf with pdflatex + biber (biblatex backend).
+$pdf_mode = 1;                 # produce PDF via pdflatex
+$pdflatex = 'pdflatex -interaction=nonstopmode -file-line-error -synctex=1 %O %S';
+$bibtex_use = 2;               # run the bibliography tool as needed, even without a local .bib
+$emulate_aux = 1;
+@default_files = ('main.tex'); # `latexmk` with no args builds the manuscript
+
+# Extra generated files latexmk should remove on `-c`/`-C`.
+$clean_ext = 'bbl bcf run.xml synctex.gz';
