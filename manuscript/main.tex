@@ -655,44 +655,63 @@ We gratefully acknowledge all data contributors, i.e., the Authors and their Ori
 
 \section{Supplemental Information}
 
-\subsection{Computational Approach}
-First we needed to calculate a full list of pairs of identical sequences using \texttt{pairSNP}.
-Calculating the distance matrix between all sequences would have resulted in ~16.6 trillion comparisons, but we are able to dramatically reduce this by: 1) limiting \texttt{pairSNP} to only calculate zero distance pairs and 2) only calculating the distance matrix for sequences within the same pango lineage.
-Using a 32 core Xeon server with 160 GB RAM allocated, we are able to run the pre-processing steps and matrix calculation in roughly 36-48 hours.
-After pre-processing, we need to calculate the releative risks for each set of demes of interest and would ideally like to be able to do this on local machines.
+\subsection{Description of the computational workflow implemented to calculate identical sequence relative risk metrics}
+In this paragraph, we describe the workflow we implemented to compute identical sequence relative risk scores from 5.7 million North American SARS-CoV-2 sequences.
+This involved the following steps:
+\begin{enumarate}
+    \item Generating a full list of pairs of identical sequences
+    \item Computing RR scores between pairs of demes from this identical sequence pair list
+\end{enumarate}
+
+To generate a full list of pairs of identical sequences, we used \texttt{pairSNP}. \ctkc{Add ref}
+Calculating the distance matrix between all sequences would have resulted in ~16.6 trillion comparisons.
+To reduce the necessary number of comparisons, we limited \texttt{pairSNP} outputs to only return zero distance pairs \ctkc{Mention the CLI option -d 0} and we only calculated the distance matrix for sequences within the same pango lineage.
+Using a 32 core Xeon server with 160 GB RAM allocated, the pre-processing steps and matrix calculation took 36-48 hours to run.
+\ctkc{Mention what these pre-processing steps were}
+
+We wanted to be able to compute releative risks for each set of demes of interest rapidly on a local machine.
 While the calculation of a relative risk is a series of simple arithematic operations, counting the number of pairs within demes and annotating the pairs with pertinent metadata is challenging due to the size of the datasets (4.0 GB for the list of sequence pairs and 7.7 GB for the metadata dataframe).
 Loading both of these files into an R session's memory can strain a typical desktop or laptop machine to the limits of its memory and reduce performance.
-Therefore, we combine these files into a portable SQL database and use DuckDB via the \texttt{dbplyr} package to complete all the queries needed for the RR calculation.
-The resulting database is smaller than either file (1.5 GB) and RR calculation performance is excellent.
+Therefore, we combined these files into a portable SQL database and use DuckDB via the \texttt{dbplyr} R package to complete all the queries needed for the RR calculation.
+The resulting database was smaller than either file (1.5 GB) and RR calculation performance was excellent.
 On an M1 Macbook Pro with 16 GB of RAM, calculating the full age RR matrix takes 7-8 seconds for the single year age bins and the geographic RR matrix takes 11-12 seconds for the state/province bins.
 Therefore, post hoc analyses can be run on personal machines with relative ease.
-The portable database also allows for easy sharing of data between multiple team members and DuckDB will automatically use parallel processing to accelerate analyses.
+The portable database also allows for easy sharing of data between multiple team members and DuckDB automatically uses parallel processing to accelerate analyses.
 The main drawback of the SQL database arises when creating bootstrap samples for RR confidence intervals, as there is some performance overheard for DuckDB + \texttt{dbplyr} queries compared to running the command directly in R.
 For analyses where only a subset of the total sequences are necessary for RR calculation (such as the time-based analyses), we can use a hybrid approach of pulling the subset from DuckDB into R's memory and then doing the sampling and analysis within R.
 
-\subsection{Simulating Temporal Changes in Relative Risk}
+\subsection{Simulation study to evaluate the performance of the normalized $RR_{seq}$ approach}
+
+In this paragraph, we describe the simulation study we implemented to evaluate the ability of the normalized $RR_{seq}$ metric we introduce to describe changes in transmission patterns.
+We simulated outbreaks in a synthetic system of 6 geographic units as shown in figure \ref{fig:sim_network}.
+The movement structure between these 6 units is split between two clusters each with 3 units: $\{A, B, C\}$ and $\{X, Y, Z\}$ with the only bridge across the regions being $A-X$.  
+We performed agent based simulation using \texttt{nosoi}\autocite{lequimeNosoiStochasticAgentbased2020} which allowed us to vary the contact/movement rates and create a transmission tree.
+Agents across all units had a baseline movement probability of $0.10$ for each time step and then randomly moved within the network according to the edge probabilities.
+We drew the number of contacts exposed to an infected agent per day using a negative binomial distribution and the probability of infection was selected from a Beta distribution. 
+\ctkc{Vague - mention how the NB was parametrized. Same for the proba of infection (I don't understand how it's done and how it's used)}
+We assumed a Gamma distributed incubation period, during which newly infected individuals were not infectious yet. \ctkc{Add parameter values}
+The duration that an agent remained infected was based on a binomial draw at each time step with a mean duration of 7 days.
+\ctkc{Hpow were these binomial draw parametrized?}
+For all scenarios, the outbreak was seeded with a single infected case in deme ${A}$ and only simulations with successful sustained transmission (defined as a minimum of 200 cases and 100 cases before time 100) were included in our analysis.
+We chose parameters to be roughly SARS-CoV-2 like. 
+Full list of simulation parameters shown in \ref{tab:sim_params}.
+
+\ctkc{Make sure this enables the reader to fully reproduce your analysis. This includes mentioning the parameters used for every distribution you mention and use}
+\ctkc{Still a few typos in the simulation description section (it doesn't feel as polished as the rest of the manuscript). Careful with tenses too.}
+
 \begin{figure}[H]
     \centering
     \includegraphics{supp/movement_network.pdf}
     \caption{Movement network used in the agent based outbreak simulation. 
     Each circle (A, B, C, X, Y and Z) represents a single geographic area such as a state or province.
-    Units are placed into two clusters (i.e. regions) with inter-cluster travel only possible between A and X.
-    If the agent moves during a time step, the destination unit is randomly drawn based on the transition probabilities on the edges.
+    Units are structured into two clusters (i.e. regions) with inter-cluster travel only possible between A and X.
+    If an agent moves during a time step, the destination unit is randomly drawn based on the transition probabilities on the edges.
     For the ``no shutdown'' and ``uniform recovery'' scenarios, we used constant edge probabilities are constant for the entire simulation (with only the movement probability changing).
     For the ``staggered recovery'' scenario, we modified these edge probabilities modified during the different phases.
     \ctkc{Could you add a note then on the scenario to which this movement network applies?}}
     \label{fig:sim_network}
 \end{figure}
 
-To test the normalized $RR_{seq}$ approach, we developed a simulation of a SARS-CoV-2 outbreak in a synthetic system of 6 geographic units as shown in figure \ref{fig:sim_network}.
-These 6 units are arranged into two clusters each with 3 units: $\{A, B, C\}$ and $\{X, Y, Z\}$ with the only bridge across the regions being $A-X$.  
-Agent based simulation was done using \texttt{nosoi}\autocite{lequimeNosoiStochasticAgentbased2020} which allowed us to vary the contact/movement rates and create a transmission tree.
-Agents across all units had a baseline movement probability of $0.10$ for each time step and then randomly walk the network according to the edge probabilities.
-The number of contacts exposed to an infected agent per day were picked according to a negative binomial distribution and the probability of infection was selected from a Beta distribution.
-If infected, the new agent had an incubation period was drawn from a Gamma distirbution.
-The duration that an agent remained infected was based on a binomial draw at each time step with a mean duration of 7 days.
-For all scenarios, the outbreak was started with a single case introduction in ${A}$ and only simulations with successful sustained transmission (defined as a minimum of 200 cases and 100 cases before time 100) were counted.
-Full list of simulation parameters shown in \ref{tab:sim_params}.
 
 \begin{table}[h]
     \centering
@@ -715,25 +734,36 @@ Full list of simulation parameters shown in \ref{tab:sim_params}.
     \label{tab:sim_params}
 \end{table}
 
-In order to simulate a movment shutdown scenario, the movement probability was scaled down by 0.10 at time 100.
-There was then a uniform recovery of movement at every 50 time units at 150 (to 0.33), 200 (to 0.66), and 250 (to 1.0).  
-In order to test if the normalized relative risk measure could detect changes in the movement network, an alternative scenario (``staggered recovery'') was tested where the bridge between units A and X had a further delayed recovery (0.1 at 150, 0.33 at 200, and 0.5 at 250) while all the intra-cluster connections had the same recovery as the ``uniform'' scenario.  
-All scenarios ended at time 350.
-For each of these scenarios (including a scenario with no shutdown), 25 simulation seeds were completed.
-Each simulation results in a a Newick transmission tree which was passed to phastSim to simulate nucleotide sequence evolution.
+We explored different parametrizations describing different movement reduction scenarios. 
+To simulate a movement shutdown scenario, we scaled the daily movement probability down by 0.10 at time 100. \ctkc{Do this mean this is at 0? Or does this mean a 90\% reduction?}
+We then assumed a progressive movement recovery, with movement icnreasing every 50 time units at 150 (to 0.33), 200 (to 0.66), and 250 (to 1.0).  
+In order to evaluate whether the normalized relative risk measure could detect changes in the movement network, we considered an alternative scenario (``staggered recovery'') where the bridge between units A and X had a further delayed recovery (0.1 at 150, 0.33 at 200, and 0.5 at 250) while all the intra-cluster connections had the same recovery as the ``uniform'' scenario.  
+All scenarios ended at time 350. \ctkc{Are time units days? If yes, use it consistently as the unit and also mention you simulate based on a daily time step.}
+We also considered a scenario with no movement reduction. 
+For each of these scenario, we simulated 25 synthetic outbreaks.
+From each simulation, we obtained a Newick transmission tree, which we inputted into phastSim to simulate nucleotide sequence evolution.
+\ctkc{Add ref + mention what the software is used for}
 We used the Wuhan-Hu-1 reference genome as the baseline sequence and a substitution rate of $2 \times 10^{-6}$ substitutions per site per day.
-We subsampled the simulated sequences by time for a total of 8000 sequences per simulation and then the $RR_{seq}$ and $nRR_{seq}$ were calculated for each geographic unit pair.
+\ctkc{By baseline sequence, do you mean used to seed the outbreak?}
+
+We subsampled the simulated sequences by time for a total of 8000 sequences per simulation.
+\ctkc{A bit unclear - do you mean that you used a fixed sequencing probability? How did you ensure you achieved 8000 for each simulation?}
+We then calculated $RR_{seq}$ and $nRR_{seq}$ between each geographic unit pair.
 Results of this analysis are shown in figure \ref{fig:sim_results}.
-As expected, for the scenario with no movement shutdown did not have significant changes in $nRR_{seq}$ over time.
-For both shutdown scenarios, we found the $nRR_{seq}$ decreased in both intra-cluster and inter-cluster pairings with inter-cluster pairings having a greater drop.
-In the staggered recovery example we are able to see that the inter-cluster $nRR_{seq}$ has a slower recovery than intra-cluster $nRR_{seq}$ and does not fully reach pre-shutdown levesls.
+We find that the $nRR_{seq}$ is able to describe temporal changes in transmission structure over time. 
+For example, in the scenario with no movement shutdown, we did not find meaningful changes in $nRR_{seq}$ over time.
+Hower, in both shutdown scenarios, we found the $nRR_{seq}$ decreased in both intra-cluster and inter-cluster pairings with inter-cluster pairings having a greater drop.
+In the staggered recovery scenario, we recovered that the inter-cluster $nRR_{seq}$ had a slower recovery than intra-cluster $nRR_{seq}$ and does not fully reach pre-shutdown levesls.
+
+\ctkc{Mention how you defined the phases and which sequences were used for each phase. It would also be nice to have a figure showing the changes in transmission intensity in the different scenarios. }
+\ctkc{Also mention which nRR was calculated (what is the reference) etc. }
 
 \begin{figure}[H]
     \centering
     \includegraphics{supp/recovery_by_phase_combined.pdf}
-    \caption{Results of outbreak simulation.
-    Fold change in normalized identical sequence $RR$ with $nRR_{seq}$ centered around t = 90 as the baseline value.
-    Boxplot represents distribution of fold change across simulations for each scenario.
+    \caption{Simulation study results.
+    Fold change in $nRR_{seq}$ centered around t = 90 as the baseline value across different movement reduction scenarios.
+    Boxplot represents distribution of fold change across simulations for each scenario. \ctkc{Indicate what whiskers and box represent}
     Intra-cluster versus inter-cluster pairings as defined by figure \ref{fig:sim_network}.}
     \label{fig:sim_results}
 \end{figure}
@@ -743,7 +773,13 @@ In the staggered recovery example we are able to see that the inter-cluster $nRR
 \begin{figure}[H]
     \centering
     \includegraphics[height=0.7\textheight]{supp/ba1_epiweek_seqdist.pdf}
-    \caption{Temporal distribution of sequencing effort by epidemiological week for Oklahoma, Texas, California, and Mexico. Weeks falling within the BA.1 (Omicron 21K) wave (December 2021--March 2022) are highlighted in red; facet titles report each geography's total number of dated sequences. Oklahoma concentrated 45.0\% of its total sequencing within this window, roughly double that of Texas (20.2\%), California (22.0\%), and Mexico (17.9\%). Due to the limited diversity during the BA.1 wave, over-sampling during this time period inflates the identical sequence enrichment between Oklahoma and Mexico.}
+    \caption{Temporal distribution of sequence counts by epidemiological week for Oklahoma, Texas, California, and Mexico. 
+    Weeks falling within the BA.1 (Omicron 21K) wave (December 2021--March 2022) are highlighted in red; facet titles report each geography's total number of dated sequences. 
+    Oklahoma concentrated 45.0\% of its total sequencing within this window, roughly double that of Texas (20.2\%), California (22.0\%), and Mexico (17.9\%). 
+    Due to the limited diversity during the BA.1 wave, over-sampling during this time period inflates the identical sequence enrichment between Oklahoma and Mexico.
+    \ctkc{Did you end up mentioning the Oklahoma link in the main?}
+    \ctkc{Make sure all supp figures and analysies are actually referenced in the main}
+    }
     \label{fig:ba1_epiweek}
 \end{figure}
 
@@ -760,18 +796,22 @@ In the staggered recovery example we are able to see that the inter-cluster $nRR
 \begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{supp/hclust_subset.pdf}
-    \caption{Subset of hierarchical clustering tree for the Southeast, Mideast, and New England regions. Original clustering used full Canada + US + Mexico dataset and branches with states outside the three regions were excluded from this figure. Colors represent different regions.}
+    \caption{SARS-CoV-2 transmission structure between the Southeast, Mideast, and New England regions.
+    This tree represents the trimmed version of the hierarchical clustering tree obtained based on the $RR_{seq}$ matrix between all North American subdivisions.
+    For the trimmed tree, we only depict branches leading to states within these three regions.
+    Colors represent different regions.}
     \label{fig:hclust_subset}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[height=0.7\textheight]{supp/fl_me_RR_season.pdf}
-    \caption{Age-stratified identical sequence RR by season and geographic pairing for Florida and the Mideast region.
-    Columns show the three geographic pairings: within Florida (FL/FL), within the Mideast (Mideast/Mideast), and across the two (FL/Mideast).
+    \caption{Identical sequence RR between age groups by season and geographic pairing for Florida and the Mideast region.
+    Columns show age $RR_{seq}$ heatmaps between the three geographic pairings: within Florida (FL/FL), within the Mideast (Mideast/Mideast), and across the two (FL/Mideast).
     Rows show the four seasons (March-May, June-August, September-November, December-February) pooled across all years.
     Within-region pairings (FL/FL, Mideast/Mideast) retain strong age structure across all seasons, with the diagonal showing within-age enrichment, whereas the between-region FL/Mideast pairing reverts toward RR = 1 across all age pairings.
     For the between-region heatmap, we find the RR of the youngest age group (00-04 yo) has decreased with other pediatric age groups.
+    \ctkc{Are you sure this is a relevant information? Don't we expect very limited age structure by looking at non local sequences?}
     Otherwise there are no obvious seasonal trends observed for the between region heatmaps.}
     \label{fig:fl_me_season}
 \end{figure}
