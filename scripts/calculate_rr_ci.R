@@ -14,9 +14,12 @@
 #time_bounds: Date range (as vector of two Date values) for time analyses (NEEDS TO BE ADDED)
 #exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
 
+#This line exists solely due to issues with Windows not pulling the right path for miniconda3
+#options(python_cmd = "C:\\Users\\magus\\miniconda3\\python.exe") ##DELETE BEFORE FINAL COMMIT
+
 source("scripts/subsample_ci.R")
 
-calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 200,
+calculate_rr_ci <- function(db_con, exp_var, samp_cov = 0.8, k = 50,
                             interval_width = 0.95, exclude_duplicates = TRUE) {
 
   rr_list <- vector("list", k)

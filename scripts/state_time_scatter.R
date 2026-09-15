@@ -246,7 +246,7 @@ p_all_fold <- ggplot(full_pair_snap,
                )
              })) +
   common_fill_scale +
-  guides(fill = guide_colorbar(title = "nRR Fold Change")) +
+  guides(fill = guide_colorbar(title = "nRR Fold Change Relative To 2023 Q1")) +
   labs(x = NULL, y = "Date") +
   theme_minimal() +
   theme(
