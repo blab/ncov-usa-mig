@@ -157,17 +157,12 @@ Figure \ref{fig:desc}A displays the geographic distribution of sequences by Nort
 We find considerable heterogeneity in sequence volume by subdivision.
 California has the highest number of sequences available with 935,874 sequences and Prince Edward Island (the smallest Canadian province), has the lowest with 1,148 sequences.
 When adjusting for population size, sequencing effort still varies across subdivision with a median of 1469 sequences per 100,000 persons (IQR: 935 - 2289)
-\ctkc{5 significant digits is a lot. Maybe it would be worth rounding to just the unit (so 1469 sequences per 100,000 persons). Same for Wyoming. Fine to keep 76.5 for Mexico.}
-\abc{Agreed, adjusted here}
 Wyoming has the highest per capita sequence count of any subdivision (5,936 sequences per 100,000 persons) while Mexico has the lowest number of sequences per capita of any subdivision (76.5 sequences per 100,000 persons).
 Looking across countries, all of them had similar sequence count trajectories, with the number of sequences per capita increasing in early 2021 and peaking in late 2021/early 2022 following the Delta and Omicron waves (Fig.\ \ref{fig:desc}B) and sequencing intensity decreasing in all three countries by 2024.
 Mexico consistently had the fewest number of sequences per capita of the three countries (Fig.\ \ref{fig:desc}B).
 Among the 5.7 million of sequences available in North America, 52.0\% have valid age metadata.
 The full age distribution is shown in Figure \ref{fig:desc}C).
 Age groups were well represented across regions (Figure \ref{fig:desc}D), with Canadian regions tending to skew older compared to the US regions.
-\ctkc{It's nice to have a comment on every figure, so I suggested something for Figure 1D.}
-\abc{I just briefly commented on the difference in median and the upper IQR b/w Canada and the US, it seems fairly apparent from the graphs and is descriptive so I don't think we need to do formal statistical testing to break down the differneces by region.}
-\ctkc{There are still a few inconsistencies in tenses in this paragraph.}
 
 
 \subsection{Relationship between Geography and Identical Sequences}
@@ -238,13 +233,11 @@ This indicates that, while geographic proximity between subdivisions is an impor
     Left: State pairs across all quarters with $nRR_{seq}$ within the top 2\%ile for at least 5 quarters.
     Right: State pairs with $nRR_{seq}$ within the top 2\%ile for at least 2 years for a specific quarter.
     \ctkc{COuld you clarify the legends in B (nRR fold change "compared with 2023 Q1" for the colorramp) and in C (# of time points should be number of quarters with high connection or something similar and # of years should also make it clear what you're plotting.)}
-    }
     \label{fig:geo_time}
 \end{figure}
 
 In order to investigate temporal spread patterns across states and provinces, we calculate quarterly $RR_{seq}$ scores normalized by the average of within subdivision $RR_{seq}$ scores.
 This normalization step enables to compare across time periods and account for changes in transmission intensity across time periods (see Methods).
-\ctkc{Maybe you would have a better phrasing, but helpful to give a little rationale for readers}
 Normalized $RR_{seq}$ ($nRR_{seq}$) were highly variable in Q1 2020 and rapidly decreased to a minimum in 2020 Q4 (Fig.\ \ref{fig:geo_time}A), indicating a global reduction of across subdivision transmission.
 Across subdivisions transmission slowly increase during 2021 and reached a peak during 2022.
 Throughout all time periods, subdivisions within the same region have higher normalized relative risk scores compared to subdivisions in different regions and countries.
@@ -258,15 +251,11 @@ Given that we mainly identified within region pairs as enriched for identical se
 We define conserved connections as between region subdivision pairs whose $nRR_{seq}$ scores were above the 98th percentile (i.e.\ top second percentile) for at least five of the twenty quarters encompassing our study time period (shown in Fig.\ \ref{fig:geo_time}C).
 We find 21 between subdivisions pairings meeting these criteria, and all of these were between US states.
 Florida had the most high scoring connections (9) followed by New York and New Jersey (both with 6 connections).
-Of identified pairings, Florida - New Jersey and Florida - Pennsylvania are the most common conserved connections, with each having 10 quarters of nRR within the top 98th percentile.
 This suggests that Florida acted as a major hub for inter-regional transmission, especially between the Southeast and the Mideast regions.
 We then stratify this analysis by quarters to look for between state pairs which had at least 2 years of high scoring $nRR_{seq}$ for each quarter.
 We find that the number of conserved connections vary by season with Q1 (January - March) and Q3 (July - September) having the most conserved connections and Q2 (April - June) having the least.
-Florida had the most conserved connections across all four quarters, with the majority of these connections tended to be with Mideast states (New Jersey, Pennsylvania, and New York), but also with Texas and California across multiple quarters.
+Florida again had the most conserved connections across all four quarters, with the majority of these connections tended to be with Mideast states (New Jersey, Pennsylvania, and New York), but also with Texas and California across multiple quarters.
 The persistence of Florida's conserved connections year-round highlights the importance it plays in between region transmission patterns across the United States.
-
-\ctkc{In these last two paragraphs, there are still a mix of present / past. Check it's consistent.}
-\abc{I have tried to rectify the tense issues here}
 
 \subsection{Geographical Predictors of Transmission}
 
@@ -278,9 +267,6 @@ The persistence of Florida's conserved connections year-round highlights the imp
     Solid line indicates LOESS fit and we report Pearson correlation coefficient $r$ at the top of each plot.
     B: Deviance explained in the $RR_{seq}$ obtained from generalized additive model (GAM) including different combinations of travel/movement and geographic distance predictors. 
     Blue bars correspond to model including an interaction term between distance and the travel/movement predictor.
-    For all models, the dataset excludes any state pairs where any of the travel or movement variables was missing or was a significant outlier ($\geq$ 3 SD).
-    \ctkc{Clarify the outlier definition (see comment in main text), or remove and keep for methods}
-    This was done to account for states with sparse data having more extreme and unstable estimates of movement and travel variables.
     C: Predicted identical sequence RR from GAM models with interaction terms between distance and movement predictors.
     Colored curves represent the predicted $RR_{seq}$ when fixing the CBSA distance between states.
     We only depict predicted $RR_{seq}$ for values of the RR of movement observed around the distance band of interest.
@@ -290,19 +276,16 @@ The persistence of Florida's conserved connections year-round highlights the imp
 \end{figure}
 
 In order to better understand the drivers of these geographic relationships, we wished to identify what movement and distance variables could be used to predict $RR_{seq}$.
-The variables we investigate include the minimum core-based statistical area (CBSA) distance between states, the number of ground travel trips between states measured in the National Household Travel Survey (NHTS), the timeshare proportion of cellphone users traveling across state lines measured by SafeGraph's mobility data, and the number of air travel passengers traveling between states using the US Department of Transportation's Airline Origin and Destination Survey (DB1B).
-\ctkc{NationalHouseholdTravel,DB1B_Dataset,pullanoCharacterizingUSSpatial2025}
+The variables we investigate include the minimum core-based statistical area (CBSA) distance between states, the number of ground travel trips between states measured in the National Household Travel Survey (NHTS), the timeshare proportion of cellphone users traveling across state lines measured by SafeGraph's mobility data, and the number of air travel passengers traveling between states using the US Department of Transportation's Airline Origin and Destination Survey (DB1B).\autocite{NationalHouseholdTravel,DB1B_Dataset,pullanoCharacterizingUSSpatial2025}
 This analysis was limited to the continental United States as most of the mobility data sources we used were US specific, and Hawaii and Alaska were outliers for all distance and movement metrics due to their geographic isolation.
 To facilitate comparisons, we calculate relative risk scores for air travel trips, ground travel trips, and smartphone mobility data and then log-transform all RR scores (including $RR_{seq}$), while keeping geographic distance on a linear scale.
-For air travel, we removed state pairs with no trips in the DB1B dataset from the analysis, as they significantly impacted our assessment of the relationship between air travel and $RR_{seq}$ when included and fixed their value to the lowest value of air travel RR (resulting in no correlation).
+For air travel, we excluded state pairs with no recorded airline trips in the DB1B dataset from the analysis.
 We show the results of our analysis in Figure \ref{fig:geo_dist}A.
 Distance between states is negatively correlated with $RR_{seq}$ and shows a biphasic pattern, with a rapid descent in $RR_{seq}$ from 0 to 500 km and then a slower descent phase beyond 500 km.
 This distance coincides with that at which state pairs transition from being primarily within the same region to where they are in different regions.
 Ground travel and mobility RR are both positively correlated with $RR_{seq}$.
 Across the variables we considered, air travel displays the weakest relationship with $RR_{seq}$.
 It has a weak positive correlation (Pearson $r$ = 0.13), with the best-fit curve initially showing a negative relationship and then a slight positive relationship.
-Notably, unlike with ground travel and cellphone mobility, air travel RR are spread evenly across both intra-regional and inter-regional pairs.
-These findings suggest that the relationship between movement/travel variables and transmission may vary depending on the distance between the two states.
 
 \begin{table}[]
     \centering
@@ -318,10 +301,11 @@ These findings suggest that the relationship between movement/travel variables a
                            & 1000--3000  & 1140 & $0.325$ \\
                            & 3000--5000  & 230  & $0.476$ \\
         \addlinespace
-        RR Air Travel         & 0--250      & 254  & $-0.236$ \\
+        RR Air Travel      & 0--250      & 254  & $-0.236$ \\
                            & 250--1000   & 700  & $0.314$ \\
                            & 1000--3000  & 1058 & $0.358$ &  \\
-                              RR Cellphone Mobility & 0--250      & 310  & $0.676$ &  \\
+        \addlinespace
+        RR Cellphone Mobility & 0--250      & 310  & $0.676$ &  \\
                            & 250--1000   & 750  & $0.195$ &  \\
                            & 1000--3000  & 1106 & $-0.060$ &  \\
                            & 3000--5000  & 150  & $-0.319$ &  \\
@@ -329,11 +313,12 @@ These findings suggest that the relationship between movement/travel variables a
     \end{tabular}
 \end{table}
 
-To test for a possible interaction between movement/travel and geographic distance, we first calculate the Pearson correlation coefficient of each travel variable with $RR_{seq}$ before and after controlling for CBSA distance (supplemental table: \ref{tab:partial_corr}).
+Given the potential correlation between movement/travel and geographic distance, we wished to test if they interacted in their relationships with $RR_{seq}$.
+First we calculate the Pearson correlation coefficient of each travel variable with $RR_{seq}$ before and after controlling for CBSA distance (Supplemental Table: \ref{tab:partial_corr}).
 For the interaction analyses, we removed pairs with significant outliers for the travel/movement measures (i.e. values greater than 3 standard deviations away from the mean value) as these mostly corresond to pairs with sparse mobility data, resulting in noisy estimates.
 The correlation of identical sequence RR with ground travel RR decreases from 0.681 to 0.252 after controlling for distance while the correlation for cellphone mobility decreases from 0.540 to 0.018, indicating much of the relationship of these movement variables overlaps with the relationship explained by distance.
 In contrast, air travel has a more modest decrease in correlation from 0.290 to 0.232.
-We then calculate stratified correlations based on the state pair's CBSA distance shown in table \ref{tab:band_corr}.
+We then calculate stratified correlations based on the state pair's CBSA distance shown in Table \ref{tab:band_corr}.
 Ground travel and mobility data RR scores are most strongly correlated with $RR_{seq}$ for short distance pairs (0-250 km) with both $r > 0.6$.
 For long distance pairs (3000-5000 km) ground travel still remains significantly correlated ($r$ = 0.476), but cellphone mobility data became uncorrelated ($r$ = -0.060) at moderate distances (1000-3000 km) and anti-correlated ($r$ = -0.319) at long distances (3000-5000 km).
 Therefore, our ability to predict transmission relationships based on cellphone mobility data appears limited to very short distance state pairings, while ground travel had a more consistent signal across a wider geographic range.
@@ -342,29 +327,23 @@ Notably it has the strongest correlation of the three variables for all distance
 Based on these findings, we developed generalized additive models (GAMs) with tensor products to look at the interaction of ground travel and air travel with CBSA distance.
 The relative performance comparing GAM models with and without distance is shown in Figure \ref{fig:geo_dist}B and observed vs fitted plots for all the GAM models are shown in Supplemental Figure \ref{fig:obs_exp}.
 The distance only model performs the best of all the single predictor models with 50\% of deviance explained followed by ground travel at 40\%.
-We find that adding an interaction term decreases RMSE and increases the percentage of deviance explained for ground travel, air travel and cellphone mobility models. 
-Additinoally, log likelihood ratio testing confirms these interaction terms are significant.
+We find that adding an interaction term decreases RMSE and increases the percentage of deviance explained for ground travel, air travel and cellphone mobility models, with log likelihood ratio testing confirming that these interaction terms are significant.
 
-Even though the deviance and RMSE terms are similar across the combined models, values predicted by the interaction models vary considerably when fixing the distance between states.
+While the deviance and RMSE terms are similar across the combined models, values predicted by the interaction models vary considerably when fixing the distance between states.
 Predictions of $RR_{seq}$ from the interaction models based on ground travel and air travel stratified by distance are shown in Figure \ref{fig:geo_dist}C.
 For both variables, shorter distance pairs at 100 km have the highest predicted $RR_{seq}$ while longer distance pairs at 2000 km and 4000 km curves predict lower $RR_{seq}$, regardless of the travel RR.
 This matches our expectation from plotting $RR_{seq}$ versus distance.
 For ground travel, we find a generally monotonic relationship with predicted $RR_{seq}$ across most distances.
 The one exception is the 500 km curve, which remains generally flat and centered around $RR_{seq} = 1$.
-Air travel is predicted to essentially have no relationship with $RR_{seq}$ when holding the state distance at 100 km, and then positive relationships at medium distances (500 km) and very long distances (4000 km).
-Notably, the 500 km curve rises initially and then saturates at $RR_{seq}=1$ once the air travel $RR > 1$.
-The 2000 km and 4000 km curves both start closely together with an initial rise, but the 2000 km curve diverges after the air travel $RR > 0.5$ and actually predicts a decrease in $RR_{seq}$ as air travel $RR > 1.0$.
+Air travel shows relatively flat curves for 100 km and 2000 km, a modest positively correlated curve for 500 km, and the strongest positive curve for 4000 km.
+This again suggests that air travel is most predictive for transmission at longer distances.
 Importantly, these models are only plotted over the range of the travel RRs that existed for each distance band, and these curves should not be extrapolated beyond the plotted extent.
 Overall, this work highlights the complex interplay between distance and travel measures regarding their relationship to viral transmission.
 
 \ctkc{This is a very long sections, which makes sense because you did a complex and thorough analysis. 
 I found the paragraphs a bit hard to follow and it was difficult for me to understand where you were getting. 
 I think it would benefit from shortening a bit by being a bit more "to the point".}
-\ctkc{For example, you could go faster on Table S2 results (given it's a Supplement), and just say that accounting for distance largely decreases the correlation with ground and mobility data, but less for air travel (I think this is what matters here).
- I think you might be able to go faster to your conclusion also for Table 1, where ground travel and cellphone look correlated at shorter scale and not longer, and you find the inverse for air travel.
- Same, for the GAM interpretation, I don't really know what to do from the curves you comment on. Are there meaningful interpretations from a mechanistic perspective? I think what seems to matter here, is whether curves are flat or not, and you could comment on the fact that it's rather flat for air travel, expect at greater distances (which seems to match expectations)?}
 \ctkc{I really like new Figure B! Given they're all mobility metric, should Safegraph rather be "cellphone mobility"?}
-\ctkc{Should table and supplemental table be capitalized?}
 
 \subsection{Age Relationships with Identical Sequence Transmission}
 
