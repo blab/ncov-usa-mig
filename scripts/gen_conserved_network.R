@@ -207,7 +207,7 @@ if (gen_viz) {
                aes(x = lon, y = lat, fill = bea_reg),
                size = 2, shape = 21, color = "black", stroke = 0.5) +
     scale_linewidth_continuous(range = c(0.5, 3),
-                               name = "# Quarters of High Scoring RR",
+                               name = "Number of Quarters\nwith High Connection",
                                breaks = c(2, 5, 10, 15)) +
     scale_alpha_continuous(range = c(0.4, 0.9), guide = "none") +
     guides(fill = "none") +
@@ -331,7 +331,7 @@ if (gen_viz) {
                aes(x = lon, y = lat, fill = bea_reg),
                size = 1.2, shape = 21, color = "black", stroke = 0.3) +
     scale_linewidth_continuous(range = c(0.3, 3),
-                               name = "# Years of High Scoring RR",
+                               name = "Number of Quarters",
                                breaks = c(2, 3, 4),
                                limits = c(2, 4)) +
     scale_alpha_continuous(range = c(0.5, 0.9), guide = "none") +

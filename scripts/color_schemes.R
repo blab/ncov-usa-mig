@@ -158,8 +158,8 @@ sex_color_scale <- function(){
 # Used by the age RR deviance curves (age_RR_deviance.R) and the matching
 # subset-heatmap strip labels (age_heatmap.R) so the two panels share colors.
 GEO_CLASS_COLORS <- c(
-  "Same Division"     = "#7B3294",
-  "Diff Div/Same Reg" = "#E41A1C",
+  "Same Subdivision"  = "#7B3294",
+  "Same Region"       = "#E41A1C",
   "Different Region"  = "#1B7A72",
   # Only the temporal geographic analysis (state_time_scatter.R) reaches past the
   # national border; the age analyses never use this level. Extra names in a

@@ -213,7 +213,7 @@ ggsave(paste0("figs/", scenario, "/age_heatmaps/young_0_24.svg"),
 age_heatmap_same_state <- make_age_heatmap(
   age_state_rr,
   same_state = TRUE,
-  title = "Same Division",
+  title = "Same Subdivision",
   show_legend = FALSE
 )
 
@@ -221,7 +221,7 @@ age_heatmap_same_region <- make_age_heatmap(
   age_state_rr,
   same_state = FALSE,
   same_region = TRUE,
-  title = "Diff Div/Same Reg",
+  title = "Same Region",
   show_legend = FALSE
 )
 
@@ -280,7 +280,7 @@ labelled_subset <- function(p, label){
     facet_wrap(as.formula(paste0('~ "', label, '"'))) +
     theme(
       strip.background = element_rect(fill = GEO_CLASS_COLORS[[label]], colour = NA),
-      # 11pt: the longest label ("Diff Div/Same Reg") runs to the strip edge at 12.
+      # 11pt: sized so the longest label ("Same Subdivision") fits within the strip.
       strip.text = element_text(colour = "white", face = "bold", size = 11,
                                 margin = margin(2, 2, 2, 2)),
       plot.margin = margin(2, 2, 2, 2)
@@ -290,8 +290,8 @@ labelled_subset <- function(p, label){
 # Add a left spacer so the row of heatmaps aligns with the deviance plot panel
 # (deviance has ~0.5" of y-axis space on its left in the stitched figure).
 subsets_row <- plot_spacer() +
-  labelled_subset(age_heatmap_same_state,       "Same Division") +
-  labelled_subset(age_heatmap_same_region,      "Diff Div/Same Reg") +
+  labelled_subset(age_heatmap_same_state,       "Same Subdivision") +
+  labelled_subset(age_heatmap_same_region,      "Same Region") +
   labelled_subset(age_heatmap_different_region, "Different Region") +
   plot_layout(ncol = 4, widths = c(0.15, 1.5, 1.5, 1.5))
 

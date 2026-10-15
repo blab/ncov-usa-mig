@@ -78,8 +78,8 @@ df_age_state_RR <- read_tsv(fn_age_state_RR, show_col_types = FALSE) %>%
 df_age_state_RR <- df_age_state_RR %>%
   mutate(
     geo_class = case_when(
-      sameState == TRUE  ~ "Same Division",
-      sameRegion == TRUE ~ "Diff Div/Same Reg",
+      sameState == TRUE  ~ "Same Subdivision",
+      sameRegion == TRUE ~ "Same Region",
       TRUE               ~ "Different Region"
     )
   )
@@ -92,7 +92,7 @@ df_geo_dev <- df_age_state_RR %>%
             .groups = "drop") %>%
   mutate(
     age = substr(x, 1, 2) %>% as.numeric(),
-    geo_class = factor(geo_class, levels = c("Same Division", "Diff Div/Same Reg", "Different Region"))
+    geo_class = factor(geo_class, levels = c("Same Subdivision", "Same Region", "Different Region"))
   )
 
 # Combined deviance curve by geographic class

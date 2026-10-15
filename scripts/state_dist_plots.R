@@ -291,8 +291,8 @@ state_rr <- state_rr %>%
 # Same three geographic-relatedness categories as the age deviance curves in
 # age_RR_deviance.R, under this figure's naming. Colors are taken from the shared
 # GEO_CLASS_COLORS so the two figures read as one scheme.
-PAIR_COLORS <- c("Same state"     = GEO_CLASS_COLORS[["Same Division"]],
-                 "Intra-regional" = GEO_CLASS_COLORS[["Diff Div/Same Reg"]],
+PAIR_COLORS <- c("Same state"     = GEO_CLASS_COLORS[["Same Subdivision"]],
+                 "Intra-regional" = GEO_CLASS_COLORS[["Same Region"]],
                  "Inter-regional" = GEO_CLASS_COLORS[["Different Region"]])
 
 # Calculate correlations. Exclude pairs with zero underlying movement so the
@@ -389,7 +389,7 @@ p_move <- state_rr %>%
   geom_point(aes(color = pair_type), alpha = 0.5, size = POSTER_PT_SZ) +
   geom_smooth(method = 'loess', linewidth = POSTER_LW, se = FALSE, color = alpha("black", 0.7)) +
   scale_color_manual(values = PAIR_COLORS, name = "", drop = FALSE) +
-  scale_x_continuous(name = "Mobility RR (SafeGraph)",
+  scale_x_continuous(name = "Smartphone Mobility RR",
                      transform = 'log10',
                      breaks = c(0.01, 0.1, 1, 10, 100),
                      labels = c(expression(10^{-2}), expression(10^{-1}),
@@ -784,7 +784,7 @@ make_conserved_quarterly_boxplot <- function(base_data, y_var, y_label, title) {
 
 # Air travel RR (DB1B)
 p_conserved_air <- make_conserved_boxplot(inter_reg_base, "RR_air", "Air Travel RR",
-  "Conserved Percentile Pairs vs Air Travel RR (DB1B)")
+  "Percentile of Cross-Region Connections vs Air Travel RR (DB1B)")
 ggsave(paste0(air_fig_path, "state_air_conserved_boxplot.jpg"),
        plot = p_conserved_air, device = "jpeg", dpi = 300, width = 5, height = 5)
 ggsave(paste0(fig_path, "state_air_db1b_conserved_boxplot.jpg"),
@@ -793,32 +793,32 @@ ggsave(paste0(fig_path, "state_air_db1b_conserved_boxplot.svg"),
        plot = p_conserved_air, device = "svg", width = 7, height = 4)
 
 p_conserved_air_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_air", "Air Travel RR",
-  "Conserved Percentile Pairs vs Air Travel RR (DB1B) by Quarter")
+  "Percentile of Cross-Region Connections vs Air Travel RR (DB1B) by Quarter")
 ggsave(paste0(air_fig_path, "state_air_conserved_quarterly_boxplot.jpg"),
        plot = p_conserved_air_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)
 
 # NHTS trips RR
 p_conserved_trips <- make_conserved_boxplot(inter_reg_base, "RR_trips", "Travel RR (NHTS)",
-  "Conserved Percentile Pairs vs NHTS Trips RR")
+  "Percentile of Cross-Region Connections vs NHTS Trips RR")
 ggsave(paste0(fig_path, "state_nhts_conserved_boxplot.jpg"),
        plot = p_conserved_trips, device = "jpeg", dpi = 300, width = 5, height = 5)
 ggsave(paste0(fig_path, "state_nhts_conserved_boxplot.svg"),
        plot = p_conserved_trips, device = "svg", width = 7, height = 4)
 
 p_conserved_trips_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_trips", "Travel RR (NHTS)",
-  "Conserved Percentile Pairs vs NHTS Trips RR by Quarter")
+  "Percentile of Cross-Region Connections vs NHTS Trips RR by Quarter")
 ggsave(paste0(fig_path, "state_nhts_conserved_quarterly_boxplot.jpg"),
        plot = p_conserved_trips_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)
 
 # SafeGraph mobility RR
-p_conserved_move <- make_conserved_boxplot(inter_reg_base, "RR_move", "Mobility RR (SafeGraph)",
-  "Conserved Percentile Pairs vs SafeGraph Mobility RR")
+p_conserved_move <- make_conserved_boxplot(inter_reg_base, "RR_move", "Smartphone Mobility RR",
+  "Percentile of Cross-Region Connections vs Smartphone Mobility RR")
 ggsave(paste0(fig_path, "state_safegraph_conserved_boxplot.jpg"),
        plot = p_conserved_move, device = "jpeg", dpi = 300, width = 5, height = 5)
 ggsave(paste0(fig_path, "state_safegraph_conserved_boxplot.svg"),
        plot = p_conserved_move, device = "svg", width = 7, height = 4)
 
-p_conserved_move_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_move", "Mobility RR (SafeGraph)",
-  "Conserved Percentile Pairs vs SafeGraph Mobility RR by Quarter")
+p_conserved_move_quarterly <- make_conserved_quarterly_boxplot(inter_reg_base, "RR_move", "Smartphone Mobility RR",
+  "Percentile of Cross-Region Connections vs Smartphone Mobility RR by Quarter")
 ggsave(paste0(fig_path, "state_safegraph_conserved_quarterly_boxplot.jpg"),
        plot = p_conserved_move_quarterly, device = "jpeg", dpi = 300, width = 7, height = 6)

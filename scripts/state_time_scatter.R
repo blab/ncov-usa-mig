@@ -246,7 +246,7 @@ p_all_fold <- ggplot(full_pair_snap,
                )
              })) +
   common_fill_scale +
-  guides(fill = guide_colorbar(title = "nRR Fold Change Relative To 2023 Q1")) +
+  guides(fill = guide_colorbar(title = "nRR Fold Change Compared with 2023 Q1")) +
   labs(x = NULL, y = "Date") +
   theme_minimal() +
   theme(
@@ -405,9 +405,15 @@ unique_snap_filtered <- state_rr_snap %>%
                                       "International")))
 
 POSTER_PAIR_COLORS <- c(
-  "Different States, Same Region"   = GEO_CLASS_COLORS[["Diff Div/Same Reg"]],
+  "Different States, Same Region"   = GEO_CLASS_COLORS[["Same Region"]],
   "Different Regions, Same Country" = GEO_CLASS_COLORS[["Different Region"]],
   "International"                   = GEO_CLASS_COLORS[["International"]]
+)
+# Display labels: the same-region group includes Canadian provinces, not just states
+POSTER_PAIR_LABELS <- c(
+  "Different States, Same Region"   = "Different Subdivisions, Same Region",
+  "Different Regions, Same Country" = "Different Regions, Same Country",
+  "International"                   = "International"
 )
 
 rr_series_poster <- ggplot(unique_snap_filtered,
@@ -416,8 +422,8 @@ rr_series_poster <- ggplot(unique_snap_filtered,
   coord_cartesian(ylim = c(0, 0.4)) +
   # Same geographic-relatedness scheme as the age deviance curves (age_RR_deviance.R)
   # and the distance scatters (state_dist_plots.R), under this figure's naming.
-  scale_color_manual(values = POSTER_PAIR_COLORS, name = "Pair Type") +
-  scale_fill_manual(values = POSTER_PAIR_COLORS, name = "Pair Type") +
+  scale_color_manual(values = POSTER_PAIR_COLORS, labels = POSTER_PAIR_LABELS, name = "Pair Type") +
+  scale_fill_manual(values = POSTER_PAIR_COLORS, labels = POSTER_PAIR_LABELS, name = "Pair Type") +
   scale_x_date(date_breaks = "3 months",
                labels = function(x) format_quarters(x),
                expand = expansion(mult = 0.02)) +

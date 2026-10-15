@@ -427,7 +427,7 @@ source("scripts/color_schemes.R")
 pred_vars <- c(
   "zlog_RR_trips", "zlog_RR_move", "zlog_RR_air_t100", "zlog_RR_air_db1b", "min_cbsa_dist"
 )
-pred_labels <- c("NHTS", "SafeGraph", "T100", "DB1B", "CBSA dist.")
+pred_labels <- c("NHTS", "Smartphone", "T100", "DB1B", "CBSA dist.")
 
 cor_mat <- cor(df_model_data[, ..pred_vars], use = "complete.obs", method = "pearson")
 rownames(cor_mat) <- pred_labels
@@ -650,7 +650,7 @@ suppressPackageStartupMessages({
 
 GROUP_PATTERNS <- list(
   "Ground travel\n(NHTS)"  = "RR_trips",
-  "Mobility\n(SafeGraph)"  = "RR_move",
+  "Smartphone\nmobility"   = "RR_move",
   "Distance\n(CBSA)"       = "cbsa_dist",
   "Air travel\n(T100)"     = "air_t100"
 )
@@ -677,7 +677,7 @@ run_varpart <- function(lm_fit, label, out_prefix) {
   df_lmg <- data.frame(term = names(lmg_res@lmg), lmg = as.numeric(lmg_res@lmg)) %>%
     mutate(group = case_when(
       grepl("RR_trips",  term) ~ "Ground travel\n(NHTS)",
-      grepl("RR_move",   term) ~ "Mobility\n(SafeGraph)",
+      grepl("RR_move",   term) ~ "Smartphone\nmobility",
       grepl("cbsa_dist", term) ~ "Distance\n(CBSA)",
       grepl("air_t100",  term) ~ "Air travel\n(T100)"
     )) %>%
@@ -709,7 +709,7 @@ run_varpart <- function(lm_fit, label, out_prefix) {
   if (length(X_list) >= 2) {
     short_names <- c(
       "Ground travel\n(NHTS)" = "NHTS",
-      "Mobility\n(SafeGraph)" = "SafeGraph",
+      "Smartphone\nmobility"  = "Smartphone",
       "Distance\n(CBSA)"      = "CBSA dist.",
       "Air travel\n(T100)"    = "T100"
     )

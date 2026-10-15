@@ -7,7 +7,7 @@ Layout (A–C, vertical):
   +------------------+
   |        B         |   Air (DB1B)     7 x 4 in
   +------------------+
-  |        C         |   SafeGraph Mob. 7 x 4 in
+  |        C         |   Smartphone Mob. 7 x 4 in
   +------------------+
   Total: 7 x 12 in
 """
@@ -21,10 +21,10 @@ from svg_helpers import Rect
 
 PT_PER_IN  = 72
 PANEL_W_IN = 7
-PANEL_H_IN = 3
+PANEL_H_IN = 4
 N_PANELS   = 3
 TOTAL_W_IN = PANEL_W_IN              # 7
-TOTAL_H_IN = PANEL_H_IN * N_PANELS  # 9
+TOTAL_H_IN = PANEL_H_IN * N_PANELS  # 12
 
 LABEL_FONT = "Arial"
 LABEL_SIZE = 18

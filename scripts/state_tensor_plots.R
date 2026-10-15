@@ -557,8 +557,8 @@ dev_models <- list(
                     label = "Air Travel\nRR (DB1B)",        family = "Movement only",
                     oe_name = "Air Travel (DB1B)"),
   move       = list(m = fit_dev_gam("s(log_RR_move)"),
-                    label = "Mobility\nRR (SafeGraph)",   family = "Movement only",
-                    oe_name = "Mobility (SafeGraph)"),
+                    label = "Smartphone\nMobility RR",    family = "Movement only",
+                    oe_name = "Smartphone Mobility"),
   trips_dist = list(m = fit_dev_gam("te(log_RR_trips, min_cbsa_dist)"),
                     label = "Ground Travel\nRR × Distance", family = "Movement × distance",
                     oe_name = "Ground Travel × Distance"),
@@ -566,8 +566,8 @@ dev_models <- list(
                     label = "Air Travel\nRR × Distance",  family = "Movement × distance",
                     oe_name = "Air Travel × Distance"),
   move_dist  = list(m = fit_dev_gam("te(log_RR_move, min_cbsa_dist)"),
-                    label = "Mobility\nRR × Distance",    family = "Movement × distance",
-                    oe_name = "Mobility × Distance")
+                    label = "Smartphone\nRR × Distance",  family = "Movement × distance",
+                    oe_name = "Smartphone × Distance")
 )
 
 df_dev_models <- bind_rows(lapply(dev_models, function(s) {
@@ -867,7 +867,7 @@ ggsave(paste0("figs/", scenario, "/dist/pred_rr_curves_combined.svg"),
 message("RR curves combined saved: pred_rr_curves_combined.jpg / .svg")
 
 p_curves_move <- plot_rr_distance_curves(gam_rr_move, df_move_data, "log_RR_move",
-                                          "Mobility RR (SafeGraph)",
+                                          "Smartphone Mobility RR",
                                           custom_breaks = c(0.05, 0.1, 0.2, 0.5))
 ggsave(paste0("figs/", scenario, "/dist/pred_rr_curves_move.jpg"),
        plot = p_curves_move, width = 10, height = 5, units = "in", dpi = 300)
