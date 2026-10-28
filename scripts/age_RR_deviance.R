@@ -100,7 +100,7 @@ df_geo_dev <- df_age_state_RR %>%
 # are shared with the subset-heatmap strip labels in age_heatmap.R.
 plot_geo_dev <- ggplot(df_geo_dev, aes(x = age, y = deviance, color = geo_class)) +
   geom_point(alpha = 0.6, size = 1.5) +
-  geom_smooth(method = "gam") +
+  geom_smooth(method = "gam", se = FALSE) +
   theme_bw() +
   geo_class_color_scale() +
   labs(x = "Age", y = "RR Deviance") +

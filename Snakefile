@@ -37,9 +37,6 @@ all_outputs = expand([
     # Time series analyses
     "results/{scenario}/time_state/df_state_rr_series.tsv",
     "results/{scenario}/time_age/df_RR_by_time_age_series.tsv",
-    # Seasonal FL vs Mideast age analysis
-    "results/{scenario}/season_geo_age/df_RR_season_geo_age.tsv",
-    "figs/{scenario}/season_geo_age/age_RR_season_geo.png",
     # School analyses
     "results/{scenario}/time_age/state_trajectory_classifications.tsv",
     "figs/{scenario}/age_time/school_share_RR_correlation.jpg",
@@ -309,20 +306,6 @@ rule state_time_rr_analysis:
     shell:
         """
         Rscript ./scripts/state_time_rr_analysis.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
-        """
-
-rule age_season_fl_mideast:
-    input:
-        "results/{scenario}/pairs_time_created.txt"
-    output:
-        "results/{scenario}/season_geo_age/df_RR_season_geo_age.tsv",
-        "figs/{scenario}/season_geo_age/age_RR_season_geo.png"
-    group: "duckdb_acc"
-    resources:
-        duckdb_lock=1
-    shell:
-        """
-        Rscript ./scripts/age_season_fl_mideast.R --scenario {wildcards.scenario} --exclude_duplicates {EXCLUDE_DUPLICATES}
         """
 
 rule state_time_significant_connections:
