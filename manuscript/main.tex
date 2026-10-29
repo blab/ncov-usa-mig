@@ -70,7 +70,7 @@
     Trevor Bedford$^{1,4,\dagger}$,
     Cécile Tran-Kiem$^{1,5,\dagger}$\\[1ex]
     \small $^1$Vaccine and Infectious Disease Division, Fred Hutchinson Cancer Center, Seattle, WA, USA\\
-    \small $^2$Division of Infectious Diseases, Seattle Children's Hospital, Seattle, WA, USA\\
+    \small $^2$Seattle Children's Hospital, Seattle, WA, USA\\
     \small $^3$Department of Pediatrics, University of Washington, Seattle, WA, USA\\
     \small $^4$Howard Hughes Medical Institute, Seattle, WA, USA\\
     \small $^5$Centre for Global Infectious Disease Analysis, School of Public Health, Imperial College London, London, UK\\[1ex]
@@ -85,7 +85,14 @@
 
 \maketitle
 \begin{abstract}
-    Reserved space for abstract
+The SARS-CoV-2 pandemic resulted in an enormous quantity of genomic surveillance data, which can enable us to reconstruct detailed transmission patterns.
+However, the complexity of analyzing these data across large geographic and temporal windows has remained a challenge.
+Rather than reconstructing a phylogenetic tree to estimate migration, we can use shared genetic proximity of sequences as a marker of transmission across demes.
+Here, we use 5,765,925 SARS-CoV-2 genomes from Canada, Mexico, and the United States (US) to identify pairs of identical sequences which describe transmission patterns across geography and age.
+We describe networks of transmission down to US states and Canadian provinces and compare how different measures of mobility and travel predict transmission between US states and regions.
+We extend our approach to measure transmission changes over time and demonstrate that international transmission remained suppressed in 2021 even after domestic cross-regional transmission had increased. 
+Finally, we find age-related transmission clusters and capture the transition at age 18 from a school-aged contact network to a young adult network.
+In summary, this study highlights how we can capture fine-scale transmission patterns using large genome datasets and improve our understanding of pathogen spread across geographies and time.
 \end{abstract}
 
 \section{Introduction}
@@ -150,9 +157,9 @@ The scale of this dataset reveals structure that subsampling or aggregation woul
     \label{fig:desc}
 \end{figure}
 
-Between January 2020 and December 2024, 6,187,049 SARS-CoV-2 sequences were deposited in the GISAID EpiCoV database across Canada, the US and Mexico (hereafter referred to as North America).\autocite{khareGISAIDsRolePandemic2021}
+Between January 2020 and December 2024, 6,187,049 SARS-CoV-2 genomes were deposited in the GISAID EpiCoV database across Canada, the US and Mexico (hereafter referred to as North America).\autocite{khareGISAIDsRolePandemic2021}
 We define North American subdivisions as states in the US (including the District of Columbia but excluding all other territories), provinces in Canada and the country of Mexico based on the available geographic resolution in the sequence metadata for these 3 countries.
-Among these sequences, 5,765,925 have valid subdivision metadata and coverage greater than 90\%.
+Among these genomes, 5,765,925 have valid subdivision metadata and sequencing coverage greater than 90\%.
 Figure \ref{fig:desc}A displays the geographic distribution of sequences by North American subdivisions.
 We find considerable heterogeneity in sequence volume by subdivision.
 California has the highest number of sequences available with 935,874 sequences and Prince Edward Island (the smallest Canadian province), has the lowest with 1,148 sequences.
