@@ -401,7 +401,7 @@ We described how transmission networks span across administrative units in North
 Furthermore, we identified how transmission dynamics varied as movement networks changed over the course of the pandemic.
 Finally, fine-scale age analyses highlighted the social units of transmission such as schools, universities, and households, and we reconstructed the age contact network based on shared identical sequences.
 
-\abc{Should this paragraph be removed since it's largely covered by the methods and supplmenetary information anyways}
+\abc{Should the following paragraph be removed since it's largely covered by the methods and supplmenetary information anyways?}
 Conducting a large scale analysis of pathogen transmission between North American subdivisions leveraging millions of sequences is not feasible with traditional phylogeographic methods.
 In prior work, we showed that patterns of occurrence of identical sequences between groups can be used to characterize transmission patterns using a large SARS-CoV-2 sequences dataset of 114,298 sequences from Washington state.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
 To scale this up to a multinational analysis, we faced a major computational challenge.
@@ -435,14 +435,16 @@ Improved availability of more granular geographic resolution such as US counties
 
 Another key geographic finding of our work was that the relationship between movement/travel variables and SARS-CoV-2 was highly dependent on distance.
 Smartphone mobility data, air travel flows, and commuting flows have been used to model the spread of SARS-CoV-2 and the timing of importation events.\autocite{kuoAirlineTransportationArrival2021,jiaPopulationFlowDrives2020,zhanModelingPrediction20192020,badrAssociationMobilityPatterns2020a,changMobilityNetworkModels2021}
-These models do well at empirically describing the epidemic curves for SARS-CoV-2, but it has been difficult to validate that the measured movement flows correspond to actual virus transmission.
-Leveraging genomic data and using the $RR_{seq}$ between US states, we showed that there are different distance regimes where each variable is pertinent.
+These models do well at empirically describing the epidemic curves for SARS-CoV-2, but there remains a gap to describe the exact relationship between distance/mobility with true virus transmission.
+Leveraging genomic data and using the $RR_{seq}$ between US states, we showed what are the different distance regimes where each variable is pertinent.
 We found that smartphone mobility data performed well at short distances, but rapidly lost predictive power for longer distance state pairs.
 In contrast, the ground trip data from the NHTS was robust across both short and long distance pairs.
 We hypothesize that states may be too coarse of a geographical unit for the smartphone mobility data to perform optimally, and ideally we would repeat this analysis at a finer scale such as county to see if it outperforms the ground trip dataset.
 Air travel was associated with transmission for long distance pairs only, with its predictive power surpassing ground travel's in our stratified long range analysis.
 This is notable as there has been long-standing debate regarding the importance of air travel networks versus commuting networks in modeling domestic respiratory virus spread within the United States.\autocite{brownsteinEmpiricalEvidenceEffect2006, viboudSynchronyWavesSpatial2006,charuHumanMobilitySpatial2017}
-Our findings agree with a recent phylogeographic analysis of influenza seasons, which found that ground trips were the strongest predictor of state-to-state transmission, while air travel still contributed additional viral migration.\autocite{dejongCompetitionTransmissionLineages2025}
+Our findings agree with a recent phylogeographic analysis of influenza seasons, which found that ground trips were the strongest predictor of state-to-state transmission, while air travel still contributed additional viral migration.\autocite{dejongCompetitionTransmissionLineages2025} 
+Notably, our models suggest that the single strongest predictor of $RR_{seq}$ is geographic distance, matching recent work that showed distance between CBSAs was one of the major drivers of spread during outbreak waves.\autocite{callierSpatiotemporalSpreadCOVID192026}
+Nevertheless, we found that air and ground travel had persistent significant partial correlation with $RR_{seq}$ after adjusting for distance.(Supplemental Table \ref{tab:partial_corr})
 Future epidemiological models likely would benefit from combining multiple of these movement/travel variables and weighting them by distance to better estimate transmission between cities versus between states/provinces.
 
 The large number of sequences we used in this analysis allowed us to describe age transmission down to single-year age groups, which allows a particularly detailed investigation of how age related social structures affect transmission.
@@ -666,7 +668,7 @@ For all scenarios, the outbreak was seeded with a single infected case in deme $
         $\mu_{c}$    & Mean number of contacts per agent per day & 4 & contacts day$^{-1}$ \\
         $k_{c}$      & Negative binomial dispersion (size) for contacts & 0.2 & --- \\
         $n_{1/2}$    & Local prevalence at which transmission is halved & 150 & infected hosts \\
-        $s$          & Logistic scale of density-dependent suppression & 30 & infected hosts \\
+        $s$          & Scale factor of suppression & 30 & infected hosts \\
         \addlinespace
         \multicolumn{4}{l}{\textit{Infection history}} \\
         $\mu_{I}$    & Mean incubation period & 3 & days \\
@@ -681,13 +683,12 @@ For all scenarios, the outbreak was seeded with a single infected case in deme $
         \multicolumn{4}{l}{\textit{Simulation control}} \\
         $T_{\max}$   & Maximum simulation duration & 350 & days \\
         $I_{0}$      & Infected agents seeded in deme A at $t = 0$ & 1 & infected hosts \\
-        $I_{\min}$   & Minimum total infections for an accepted run & 200 & infected hosts \\
         $I_{\mathrm{burn}}$ & Minimum infections before day 100 to accept a run & 100 & infected hosts \\
-        $I_{\max}$   & Outbreak size at which a run is terminated & 120,000 & infected hosts \\
-        $R$          & Replicate simulations per scenario & 25 & simulations \\
+        $I_{\max}$   & Maximum outbreak size at which a run is terminated & 120,000 & infected hosts \\
+        $R$          & Replicate simulations per scenario & 50 & simulations \\
         \addlinespace
         \multicolumn{4}{l}{\textit{Sequence simulation and subsampling}} \\
-        $\mu$        & Substitution rate (\texttt{phastSim} \texttt{-{}-scale}) & $2 \times 10^{-6}$ & subs. site$^{-1}$ day$^{-1}$ \\
+        $\mu$        & Substitution rate & $2 \times 10^{-6}$ & subs. site$^{-1}$ day$^{-1}$ \\
         $N_{\mathrm{seq}}$ & Target subsampled sequences per simulation & 8,000 & sequences \\
         $b$          & Width of infection-time bins when subsampling & 10 & days \\
         \bottomrule
