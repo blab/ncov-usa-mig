@@ -103,7 +103,7 @@ Data at this scale should theoretically make it possible to study transmission i
 Phylodynamics methods leveraging such sequence data typically rely on ancestral tree reconstruction to recover transmission history and population-level mixing patterns.\autocite{dengGenomicSurveillanceReveals2020,neherNextfluRealtimeTracking2015}
 These tree-based approaches are powerful, but they scale poorly because the number of possible phylogenies increases factorially with the number of genomes, limiting analyses to thousands or tens of thousands of sequences.
 The number of sequences that can be included in an analysis limits the resolution at which transmission can be studied.
-Characterizing spread patterns between $n$ population groups indeed involves inferring transmission between $\sim n^2$ pairs of groups, and sequence data requirements become substantial as the number of groups increase.
+Characterizing spread patterns between $n$ population groups indeed involves inferring transmission between $\sim n^2$ pairs of groups, and sequence data requirements become substantial as the number of groups increases.
 Overcoming these limitations would thus make it possible to study spread across many fine-grained groups and better understand complex transmission structure.
 
 Statistical methods that identify structure across genomes without building phylogenies \autocite{mattesonGenomicSurveillanceReveals2023,sobkowiakCov2clustersGenomicClustering2022,cahuantziUnsupervisedIdentificationSignificant2024,nanduriDimensionalityReductionDistills2024} offer a promising avenue.
@@ -200,12 +200,12 @@ Age groups are well represented across regions (Figure \ref{fig:desc}D), with Ca
     \label{fig:geo_pc}
 \end{figure}
 
-We calculate $RR_{seq}$ scores between all North American subdivisions to identify spatial patterns of transmission.
+We calculate the relative risk $RR_{seq}$ of observing identical sequences between all North American subdivisions to identify spatial patterns of transmission.
 Figure \ref{fig:geo_clust}A shows choropleth maps that illustrate patterns for a few focal subdivisions (Ontario province, New York state, and Mexico).
 In all three examples, $RR_{seq}$ values are highest within the focal subdivision and $RR_{seq}$ tends to decay with distance, highlighting that transmission increases with geographic proximity.
 Despite New York state and Ontario being adjacent, we do not find evidence for enriched transmission between these two subdivisions ($RR_{seq}^{NY,ON} = 0.40 < 1$, with an uncertainty interval of 0.37-0.42).
 By contrast, we find $RR_{seq}$ scores greater than 1 (indicating enrichment) between Mexico and several US states including California, Texas, New Mexico, and Oklahoma.
-To evaluate whether this difference in cross border pattern could be an artifact from not being able to split Mexico into subdivisions, we perform a sensitivity analysis aggregating Canada into a single unit and find $RR_{seq} < 1$ across all states (max $RR_{seq}$ of 0.26).
+To evaluate whether this difference in cross-border patterns could be an artifact from not being able to split Mexico into subdivisions, we perform a sensitivity analysis aggregating Canada into a single unit and find $RR_{seq} < 1$ between Canada and all US states (max $RR_{seq}$ of 0.26).
 This suggests that transmission is not fully described by proximity alone and that administrative (here national) boundaries may further shape transmission risk.
 
 To further characterize geographic structure in SARS-CoV-2 transmission in North America, we perform hierarchical clustering using a distance measure based on $RR_{seq}$ values between subdivisions.
@@ -243,8 +243,8 @@ This indicates that, while geographic proximity between subdivisions is an impor
 \end{figure}
 
 In order to investigate temporal spread patterns across North American subdivisions, we calculate quarterly $RR_{seq}$ scores normalized by the average of within subdivision $RR_{seq}$ scores.
-This normalization step enables comparison across time periods and account for changes in transmission intensity across time periods (see Methods).
-Normalized $RR_{seq}$ ($nRR_{seq}$) were highly variable in Q1 2020 and rapidly decreased to a minimum in 2020 Q4 (Fig.\ \ref{fig:geo_time}A), indicating a global reduction of across subdivision transmission.
+This normalization step enables comparison across time periods and accounts for changes in transmission intensity across time periods (see Methods).
+Normalized $RR_{seq}$ ($nRR_{seq}$) were highly variable in Q1 2020 and rapidly decreased to a minimum in 2020 Q4 (Fig.\ \ref{fig:geo_time}A), indicating a global reduction of transmission across subdivisions.
 Across subdivisions transmission slowly increased during 2021 and reached a peak during 2022.
 Throughout all time periods, subdivisions within the same region have higher normalized relative risk scores compared to subdivisions in different regions and countries.
 For each pair of subdivisions, we also calculate fold-change of $nRR_{seq}$ with respect to 2023 Q1 to further track temporal changes in transmission patterns (Fig.\ \ref{fig:geo_time}B).
@@ -335,7 +335,7 @@ The relative performance comparing GAM models with and without distance is shown
 The distance only model performs the best of all the single predictor models with 50\% of deviance explained followed by ground travel at 40\%.
 We find that adding an interaction term decreases RMSE and increases the percentage of deviance explained for ground travel, air travel and smartphone mobility models, with log likelihood ratio testing confirming that these interaction terms are significant (Supplemental Table \ref{tab:interaction_lrt}).
 Predictions of $RR_{seq}$ from the interaction models are shown in Figure \ref{fig:geo_dist}C.
-Importantly, these models are only plotted over the range of the travel RRs that existed for each distance band, and can not be extrapolated beyond the plotted extent.
+Importantly, these models are only plotted over the range of the travel RRs that existed for each distance band, and cannot be extrapolated beyond the plotted extent.
 For both variables, shorter distance pairs at 100 km have the highest predicted $RR_{seq}$ while longer distance pairs at 2000 km and 4000 km curves predict lower $RR_{seq}$, regardless of the travel RR.
 For ground travel, we find a generally positive and monotonic relationship with predicted $RR_{seq}$ across most distances.
 The one exception is the 500 km curve, which remains generally flat and centered around $RR_{seq} = 1$.
@@ -386,7 +386,7 @@ This is calculated as the root-mean-square of the age group's log-transformed RR
 
 Where $A$ and $B$ represent age groups in the population.
 By squaring the log-transformed $RR_{seq}$, enrichment ($RR_{seq} > 1$) and depletion ($RR_{seq} < 1$) contribute equally to the deviance.
-We expect that if for age $A$'s identical sequences are fully randomly mixed (i.e. $RR_{seq}^{A,B} = 1$ across all paired ages $B$) that the deviance, $D_A$, would equal 0.
+We expect that if for age $A$'s identical sequences are fully randomly mixed (i.e. $RR_{seq}^{A,B} = 1$ across all paired ages $B$) that the deviance, $D_A$, would be equal to 0.
 As transmission becomes more age structured, the deviance will increase.
 We show the deviance for each age category across different spatial scales in Figure \ref{fig:age}D.
 The same subdivision deviance curve shows age structured transmission is highest for the young and the elderly, with the minimum in middle adulthood.
