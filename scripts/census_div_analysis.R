@@ -25,7 +25,7 @@ collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default="CAM_1000", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--ci', type = 'logical', default = TRUE, help = "Whether to calculate CIs, default is TRUE")
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE, help = "Whether to exclude possible duplicate pairs, default is TRUE")
   return(parser$parse_args())
 }
 

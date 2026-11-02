@@ -38,7 +38,7 @@ collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000",
                       help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE,
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE,
                       help = "Whether to exclude possible duplicate pairs")
   parser$add_argument('--plot_only', type = 'logical', default = FALSE,
                       help = "Skip bootstrap and reuse existing df_vaccine_period_nRR_ci.tsv files")

@@ -9,7 +9,7 @@ collect_args <- function(){
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--percentile_threshold', type = 'double', default = 0.98, help = 'Percentile threshold for significance (default is 0.98)')
   parser$add_argument('--min_occurrences', type = 'integer', default = 5, help = 'Minimum number of time points a connection must appear in')
-  parser$add_argument('--gen_viz', action = 'store_true', default = TRUE, help = 'Generate network visualizations (off by default)')
+  parser$add_argument('--gen_viz', type = 'logical', default = TRUE, help = 'Generate network visualizations (default TRUE)')
   return(parser$parse_args())
 }
 

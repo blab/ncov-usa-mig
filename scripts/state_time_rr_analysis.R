@@ -14,7 +14,7 @@ source("scripts/calculate_rr_ci.R")
 collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', help = 'Which scenario to perform the analysis on')
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE, help = "Whether to exclude possible duplicate pairs, default is TRUE")
   return(parser$parse_args())
 }
 

@@ -26,7 +26,7 @@ collect_args <- function(){
   parser <- ArgumentParser()
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--ci', type = 'logical', default = FALSE, help = "Whether to calculate CIs, default is TRUE")
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE, help = "Whether to exclude possible duplicate pairs, default is TRUE")
   return(parser$parse_args())
 }
 
@@ -69,7 +69,7 @@ meta_age <- con %>%
 #meta_tbl - Metadata table to subset sequences from
 #specific_state - name of a specific state to stratify
 #TODO 12/11 - IMPLEMENT STRATIFIED CI FOR REGIONS
-calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,interval_width=0.95,exclude_duplicates=FALSE){
+calculate_rr_ci <- function(con,meta_tbl,specific_state=NULL,samp_cov=0.8,k=200,interval_width=0.95,exclude_duplicates=TRUE){
   RR_dist_same <- matrix()
   RR_dist_diff <- matrix()
   for(x in 1:k){
