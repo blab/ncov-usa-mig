@@ -619,7 +619,7 @@ All authors revised the manuscript and approved the final version.
 \section{Supplemental Information}
 
 \subsection{Description of the computational workflow implemented to calculate identical sequence relative risk metrics}
-In this paragraph, we describe the workflow we implemented to compute identical sequence relative risk scores from 5.7 million North American SARS-CoV-2 sequences.
+In this paragraph, we describe the workflow we implemented to efficiently compute identical sequence relative risk scores from 5.7 million North American SARS-CoV-2 sequences.
 This involved the following steps:
 \begin{enumerate}
     \item Generating a full list of pairs of identical sequences
@@ -628,7 +628,7 @@ This involved the following steps:
 
 To generate a full list of pairs of identical sequences, we used \texttt{pairSNP}.\autocite{tonkin-hillGtonkinhillPairsnp2025}
 Calculating the distance matrix between all sequences would have resulted in $\sim$16.6 trillion comparisons.
-To reduce the necessary number of comparisons, we only calculated the distance matrix for sequences within the same Pango lineage,\autocite{aksamentovNextcladeCladeAssignment2021} and we limited \texttt{pairSNP} outputs to only return zero distance pairs using the \texttt{-d 0} option.
+To reduce the necessary number of comparisons, we only calculated the distance matrix for sequences within the same Pango lineage,\autocite{aksamentovNextcladeCladeAssignment2021} and we limited \texttt{pairSNP} outputs to only return zero distance pairs using the \texttt{-d 0}  \texttt{pairSNP} command-line option.
 Using a 32 core Xeon server with 160 GB RAM allocated, subsetting the metadata and sequence data by Pango lineage, calculating lineage-specific distance matrices, and combining the matrices to form the final identical pair list took 36--48 hours to run.
 We then excluded any sequences that had over 1000 identical pairs as outliers, based on sensitivity analyses of their effect on relative risk calculation and the distribution of identical pairs per sequence.
 Additionally, we cleaned the metadata as described in the Methods section and removed any sequences with invalid geographical metadata or that did not meet our QC thresholds.
@@ -646,22 +646,24 @@ For analyses where only a subset of the total sequences are necessary for RR cal
 
 \subsection{Simulation study to evaluate the performance of the normalized relative risk approach}
 
-In this paragraph, we describe our simulation study to validate that the normalized $RR_{seq}$ metric can capture changes in transmission patterns.
+In this paragraph, we describe our simulation study to validate the ability of the the normalized $RR_{seq}$ metric in capturing changes in between-group transmission patterns.
 The code used to run these simulations is accessible in a separate GitHub repository: \url{https://github.com/abemanian/ncov-sim-mig}
 We used the \texttt{nosoi} package\autocite{lequimeNosoiStochasticAgentbased2020} to conduct an agent-based simulation which accounts for movement across demes and generates a transmission tree.
 The full list of simulation parameters is shown in Supplemental Table \ref{tab:sim_params}, and basic infection characteristics (e.g. incubation, infection period) were selected to mimic a SARS-CoV-2-like outbreak.
-For each day of the outbreak, an agent undergoes three phases: (1) movement, (2) contact and (3) transmission.
-We simulated outbreaks in a synthetic system of 6 geographic units as shown in Figure \ref{fig:sim_network}.
+During each time step (here, days), an agent undergoes three phases: (1) movement, (2) contact and (3) transmission.
+We simulated outbreaks in a synthetic population of 6 geographic units as shown in Figure \ref{fig:sim_network}.
 The movement structure between these 6 units is split between two clusters each with 3 units: $\{A, B, C\}$ and $\{X, Y, Z\}$ with the only bridge across the regions being $A-X$.
 Agents across all units had a baseline movement probability of $0.10$ for each time step and then randomly moved within the network according to the edge probabilities.
-Next the agent has a number of contacts assigned to it drawn from a negative binomial distribution.
-Then, we check if the agent has been infected beyond an incubation period (drawn for each agent from a Gamma distribution) before it can proceed to infect its contact.
+The number of contacts for each agent is drawn from a negative binomial distribution with mean $\mu_{c} = 4$/day and dispersion $k_{c} = 0.2$.
+Only infected agents having ended their incubation period (following a Gamma distribution with mean $\mu_{I} = 3$ days and standard deviation $\sigma_{I} = 0.5$ days) can transmit the infection to their contacts.
 The per-contact transmission probability is drawn independently for each agent at each day from a Beta distribution.
 The transmission probability was then suppressed logistically based on local prevalence by a factor of $1/(1+e^{(n-n_{1/2})/s})$ with $n$ being the number of currently infected hosts in each subdivision.
+\ctkc{I'm confused with this approach (I've never heard of it before). Why can't you just rely on host immune statuts for this? Or are you assuming transmission in an infinite population?}
+\ctkc{If Rt remains close to 1 consistently, you're not really testing whether nRR is effectively adjusted for changes in transmission intensity, right?}
 This scale factor helps limit transmission to a steady state where the effective reproductive number ($R_{t}$, defined as mean number of offspring cases per infection) reaches an equilibrium of $1$ (shown in Supplemental Fig.\ \ref{fig:rt_combined}).
-Agents remained infectious based on a Bernoulli trial at the start of each day, resulting in a geometric distribution of infectious durations.
+Agents remained infectious based on a Bernoulli trial at the start of each day, resulting in a geometric distribution of infectious durations. \ctkc{Give corresponding parameters of this distribution}
 For all scenarios, the outbreak was seeded with a single infected case in deme ${A}$ and only simulations with successful sustained transmission (defined as a minimum of 200 cases and 100 cases before time 100) were included in our analysis.
-
+\ctkc{Could you give a basic reproduction number here? Is it mu_c * alpha / (alpha + beta)?}
 
 \begin{figure}[H]
     \centering
@@ -765,10 +767,10 @@ We used the Wuhan-Hu-1 reference genome as the sequence of the index case (i.e. 
 
 We subsampled the simulated sequences by time for a total of 8000 sequences per simulation.
 Subsampling was stratified by 10-day time windows to ensure there was an even number of sampled sequences for each window, as uniform sampling would not capture a sufficient number of sequences in the early phase of the outbreak.
-Sampling was neutral across all subdivisions so deme composition is unbiased.
+Sampling was homogeneous across all subdivisions so deme composition is unbiased.
 We then calculated $RR_{seq}$ and $nRR_{seq}$ between each geographic unit pair.
 Identical sequence pairs were assigned to a phase if both sequences occurred in that phase's time window (see Supplemental Table \ref{tab:sim_phases} for phase definitions), with pairs spanning across phases excluded.
-$nRR_{seq}$ across subdivisions was normalized against the mean of the within subdivision $nRR_{seq}$ (i.e. same as the definition used for the geographic analyses in the main text).
+We computed$nRR_{seq}$ across subdivisions by normalizing $RR_{seq}$ against the mean of the within subdivision $RR_{seq}$ (i.e. same as the definition used for the geographic analyses in the main text).
 We use the $nRR_{seq}$ of infection pairs immediately around the shutdown phase (i.e. day 70 to day 110) as a baseline $nRR_{seq}$ to assess if transmission returns to its pre-shutdown level.
 Results of this analysis are shown in Figure \ref{fig:sim_results}.
 We found that the $nRR_{seq}$ was able to describe temporal changes in transmission structure over time.
@@ -820,7 +822,7 @@ In the staggered recovery scenario, we recovered that the cross-region $nRR_{seq
 \end{figure}
 
 \subsection{Air Travel Definition: DB1B vs T100}
-We investigated using the US Department of Transportation's T-100 market dataset versus the DB1B dataset to estimate air travel flows.
+We investigated the impact of using the US Department of Transportation's T-100 market dataset versus the DB1B dataset to estimate air travel flows.
 The T-100 set measures each travel leg volumes instead of looking at flows between boarding origin and destinations.
 It is not possible to tell which passengers arrive at their final destination versus a layover between flights, making interpretation of flows difficult.
 While the raw correlation between T-100 and identical sequence RRs across all state pairs was higher than for the DB1B dataset ($r$ = 0.28 vs 0.12), we ultimately felt this approach misclassified flows as many trips between non-hub cities will require a layover at a regional hub first.
@@ -828,15 +830,18 @@ When looking for correlation across our travel/distance variables (Fig.\ \ref{fi
 Furthermore, the partial correlation of the T-100 market data with identical sequence RR after controlling for distance is weaker than the DB1B partial correlation (0.108 vs 0.222).
 These findings suggest that using T-100 segment leg flows captures much of the same identical sequence RR variance as distance and adds less new information compared to the DB1B data.
 
+\ctkc{Is this supplementary section necessary? I know you spent some time thinking about it, but this feels pretty anecdotal.}
+
 \subsection{Additional Distance/Movement Interaction Analyses}
 
 To quantify the unique contribution of each movement metric beyond geographic distance, we computed Pearson's correlations between $\log_{10}(RR_{seq})$ and each $\log_{10}$-transformed travel/mobility RR.
-We found both the marginal correlation the partial correlation adjusting for CBSA distance (Table~\ref{tab:partial_corr}).
+We found both the marginal correlation the partial correlation adjusting for CBSA distance (Table~\ref{tab:partial_corr}). \ctkc{Incomplete sentence}
 Partial correlations were obtained by correlating the residuals of each variable after regression on a thin-plate spline smooth of distance $s(\text{CBSA dist.})$, which accounts for the strongly nonlinear effect of distance.
 Once distance is accounted for, smartphone mobility retains essentially no independent association ($r=0.024$), while ground travel (NHTS) and origin--destination air travel (DB1B) retain the largest unique signal.
 Band-stratified correlations (Table~\ref{tab:band_corr}) show that the movement-transmission association is concentrated at short range for smartphone mobility and at long range for air travel.
 
 The significance of the distance $\times$ movement interaction was assessed by likelihood-ratio-style tests comparing an additive tensor-spline model (i.e. $\text{ti(movement)} + \text{ti(CBSA dist.)}$) against a model with an additional interaction term (i.e. $\text{ti(movement, CBSA dist.)}$), fit by maximum likelihood with the \texttt{mgcv} package (Table~\ref{tab:interaction_lrt}).
+\ctkc{Is is a LR test? If yes, remove "style", if no , clarify how it was done.}
 The interaction term is highly significant for every movement metric in both the negative-binomial count and Gaussian $\log_{10}(\text{RR})$ formulations of the models.
 
 \begin{figure}[H]
@@ -964,6 +969,6 @@ The within-group curves then rose as in-person schooling became the dominant mod
 After summer 2023, the $nRR_{seq}$ estimates became increasingly noisy again as pair counts decreased (down to tens to hundreds of pairs), which corresponds to the increasing width of the confidence intervals around this time.
 In summary, we are able to find some evidence of decreased school-age transmission for the 2020--2021 compared to the 2021--2022 and 2022--2023 school years, suggesting that school closures may have reduced the force of transmission between children.
 However, in-person schooling policies were highly variable across the geographies which limits our ability to draw any causal relationship between these policies and the change in transmission patterns.
-Additionally, if immunity was higher in the older populations due to vaccination and earlier natural infection, this would have increased the relative susceptibility of younger age groups and caused an apparent increased force of infection.
+Additionally, if immunity was higher in the older populations due to vaccination and earlier natural infection, this would have increased the relative susceptibility of younger age groups and caused an increase in the relative force of infection.
 %TC:endignore
 \end{document}
