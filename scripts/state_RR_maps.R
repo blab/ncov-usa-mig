@@ -1,9 +1,19 @@
+library(argparse)
 source("scripts/cam_map.R")
+
+collect_args <- function(){
+  parser <- ArgumentParser()
+  parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
+  return(parser$parse_args())
+}
+scenario <- collect_args()$scenario
+fig_path <- paste0("figs/", scenario, "/RR_maps/")
+dir.create(fig_path, recursive = TRUE, showWarnings = FALSE)
 source("scripts/color_schemes.R")
 
 # Load shapefile and RR file
 cam_map <- prep_cam_map("data/shp-files/cam-shp.gpkg")
-df_RR_state <- read_tsv("results/CAM_1000/df_RR_by_state.tsv")
+df_RR_state <- read_tsv(paste0("results/", scenario, "/df_RR_by_state.tsv"))
 
 # List of states/provinces to use as origin points
 b_list <- list( #Bounds
@@ -44,7 +54,7 @@ for (ORI in names(b_list)) {
     )
   )
   
-  ggsave(paste0("figs/CAM_1000/RR_maps/", ORI, ".jpg"),
+  ggsave(paste0(fig_path, ORI, ".jpg"),
          plot = p, width = 3, height = 3, units = "in", dpi = 300)
   
   map_list[[ORI]] <- p
@@ -52,7 +62,7 @@ for (ORI in names(b_list)) {
 
 # Combine into a single polot
 wrap_plots(map_list, nrow = 1)
-ggsave(filename="figs/CAM_1000/RR_maps/patched_maps.jpg",
+ggsave(filename=paste0(fig_path, "patched_maps.jpg"),
        width = 15,
        height = 4,
        units = "in",

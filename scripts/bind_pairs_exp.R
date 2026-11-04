@@ -8,9 +8,9 @@
 #sub_samp: Sub-sample (for CI calculation)
 #samp_cov: Sample coverage (for CI calculation)
 #time_bounds: Date range (as vector of two Date values) for time analyses
-#exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
+#exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: TRUE)
 
-bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bounds=NULL,exclude_duplicates=FALSE){
+bind_pairs_exp <- function(db_con,exp_var,sub_samp=FALSE,samp_cov=0.8,time_bounds=NULL,exclude_duplicates=TRUE){
   meta_tbl <- tbl(db_con,'metadata')
   
   #For time analysis use the pairs_time table instead

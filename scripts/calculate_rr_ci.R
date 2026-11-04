@@ -12,7 +12,7 @@
 #k: Number of repeated sub-samples
 #interval_width: CI interval width
 #time_bounds: Date range (as vector of two Date values) for time analyses (NEEDS TO BE ADDED)
-#exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: FALSE)
+#exclude_duplicates: If TRUE, exclude pairs marked as possible_duplicates (default: TRUE)
 
 #This line exists solely due to issues with Windows not pulling the right path for miniconda3
 #options(python_cmd = "C:\\Users\\magus\\miniconda3\\python.exe") ##DELETE BEFORE FINAL COMMIT

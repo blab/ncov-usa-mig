@@ -42,7 +42,7 @@ collect_args <- function(){
   parser$add_argument('--age_cap', type = 'integer', default = 85, help = 'Top-coded age; ages >= cap pooled into a single bin (default 85)')
   parser$add_argument('--ref_age', type = 'character', default = "30-34y", help = 'Reference age bin for fixed-baseline normalization (default 30-34y)')
   parser$add_argument('--index_ages', type = 'character', default = "all", help = 'Comma-separated index age bins to make figures for, or "all" (default)')
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE, help = "Whether to exclude possible duplicate pairs, default is TRUE")
   return(parser$parse_args())
 }
 

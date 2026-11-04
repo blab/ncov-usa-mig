@@ -39,7 +39,7 @@ collect_args <- function(){
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--ref_age', type = 'character', default = "25-64", help = 'Reference age bin for fixed-baseline normalization (default 25-64)')
   parser$add_argument('--index_ages', type = 'character', default = "all", help = 'Comma-separated index age bins to make figures for, or "all" (default)')
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE, help = "Whether to exclude possible duplicate pairs, default is TRUE")
   return(parser$parse_args())
 }
 

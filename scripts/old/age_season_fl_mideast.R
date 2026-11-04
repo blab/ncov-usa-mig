@@ -26,7 +26,7 @@ collect_args <- function(){
   parser$add_argument('--scenario', type = 'character', default = "CAM_1000", help = 'Which scenario to perform the analysis on')
   parser$add_argument('--bin_size', type = 'integer', default = 5, help = 'Age bin width in years (default 5)')
   parser$add_argument('--age_cap', type = 'integer', default = 85, help = 'Top-coded age; ages >= cap pooled into a single bin (default 85)')
-  parser$add_argument('--exclude_duplicates', type = 'logical', default = FALSE, help = "Whether to exclude possible duplicate pairs, default is FALSE")
+  parser$add_argument('--exclude_duplicates', type = 'logical', default = TRUE, help = "Whether to exclude possible duplicate pairs, default is TRUE")
   return(parser$parse_args())
 }
 
