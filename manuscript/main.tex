@@ -509,7 +509,7 @@ Finally, we used synthetic contact matrices based on survey data to compare agai
 We identified pairs of identical sequences by extending the pipeline from our previous work in Washington State.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
 First, we computed a genetic pairwise distance matrix between sequences in our dataset.
 To minimize unnecessary comparisons, we only calculated distances for sequences within the same Pango lineage, and used \texttt{pairsnp} to find all pairs of sequences with a Hamming distance equal to 0.\autocite{aksamentovNextcladeCladeAssignment2021,tonkin-hillGtonkinhillPairsnp2025}
-We removed sequences found in over 1,000 distinct identical pairs from the analysis as they biased the RR calculations towards neutrality ($RR_{seq} = 1$).
+We removed sequences found in over 1,000 distinct identical pairs from the analysis as they played a disproportionate role in relative risks calculations and contributed to noisier estimates. 
 These sequences typically had missing bases at sites with key mutations, which therefore inflated the number of matching identical sequences.
 We also removed pairs of identical sequences that had the same host metadata (age, gender, division/location) and that were collected within 3 days of each other, due to concern that they could represent repeat sampling of the same individual.
 We then stored the final sequence metadata and list of identical pairs in a DuckDB relational database, which allowed for fast operations without loading the full list into system memory.
@@ -525,7 +525,7 @@ We calculated the $RR_{seq}^{A,B}$ as follows:
 
 We calculated $RR_{seq}$ scores between North American subdivisions and single-year age groups through the binned 99+ age group.
 Due to noisier estimates in higher age groups with decreased sequence counts, we focused on presenting ages 0--80 in the main text, but the RR matrix stored in our repository contains the full age range.
-Additionally, we were able to use this approach to subset the population and look at the interaction between multiple variables at the same time (e.g. the $RR_{seq}$ of individuals with the same age within the same subdivision compared to the $RR_{seq}$ of individuals with the same age not in the same subdivision).
+Additionally, we were able to use this approach to assess how  the interaction between multiple variables influences transmission patterns (e.g. the $RR_{seq}$ of individuals with the same age within the same subdivision compared to the $RR_{seq}$ of individuals with the same age not in the same subdivision).
 We calculated uncertainty through subsampling 80\% of the total sequences without replacement to create a 95\% confidence interval.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
 
 In prior work, we showed that the magnitude of $RR_{seq}$ is impacted by transmission intensity, because a faster spreading pathogen results in larger clusters of identical sequences which dilutes the epidemiological signal available in identical pairs.\autocite{tran-kiemFinescalePatternsSARSCoV22025a}
@@ -537,52 +537,73 @@ To account for this, we computed a normalized version of the $RR_{seq}$ against 
 
 For time analyses of geographic $RR_{seq}$, changes in the circulating SARS-CoV-2 variants, public health interventions, and sequence sampling effort over time could affect the number of genomes collected from a specific area.
 Additionally, no single geographic area serves as a natural reference population in this case.
-As the focus of this method was to determine if we could measure how much mixing changed between populations over time, we used the average of the within subdivision $RR_{seq}$ for the two subdivisions as the normalizing factor.
+To measure changes in transmission patterns, we computed a normalized $RR_{seq}$ for each pair of subdivisions $A$ and $B$ by using the average of the within subdivision $RR_{seq}$ for the two subdivisions as the normalizing factor.
 This can be written as follows:
 \begin{align*}
 nRR_{seq}^{A,B}(t) &= \frac{RR_{seq}^{A,B}(t)}{\frac{1}{2}(RR_{seq}^{A,A}(t)+RR_{seq}^{B,B}(t))} \\
              &= \frac{2 RR_{seq}^{A,B}(t)}{RR_{seq}^{A,A}(t)+RR_{seq}^{B,B}(t)}
 \end{align*}
-It is important to note that with this normalization, there is not a clear scale that indicates whether a subdivision pairing has enrichment of identical sequences.
-Since $RR_{seq}^{A,A}$ and $RR_{seq}^{B,B}$ tend to be greater than $RR_{seq}^{A,B}$, we expected $nRR_{seq}^{A,B} < 1$.
-Instead, we focused on its utility to look at changes over time and comparisons against other across-subdivision pairings.
-To validate this approach, we used agent-based modeling to simulate the spread of infection with corresponding nucleotide mutations.
-This included creating scenarios where the transmission network was modified between geographic units to emulate the effects of a transportation shutdown.
+Given we except transmission to be highest within subdivision than across different ones, we expect $nRR_{seq}^{A,B} < 1$. 
+This metric quantifies how the enrichment of identical sequences between two subdivisions compares to the enrichment of identical sequences within each subdivision.
+We introduces this metric to evaluate changes in transmission structure across-subdivision pairings through time. 
+To validate this approach, we implemented a simulation study using agent-based modeling to jointly simulate pathogen transmission and evolution within a structured population.
+We considered scenarios where the transmission network was modified between geographic units to emulate the effects of a transportation shutdown.
 Further discussion of these validation simulations can be found in the supplementary information, and results are shown in Supplemental Fig.\ \ref{fig:sim_results}.
 
 For time analyses of the age $RR_{seq}$, our objective was to detect changes in transmission across age groups due to changes in interactions between the groups (e.g. school closures, movement restrictions) or if one age group acquired immunity (e.g. vaccination).
 Prior studies have shown that during the initial phases of the COVID-19 pandemic, young adults (i.e. 18--40-year-olds) tended to have lower levels of social isolation and risk mitigation behaviors compared to other age groups \autocite{kimHowDoesAge2020,helenaj.hutchinsCOVID19MitigationBehaviors2020,engeliSocialContactPatterns} and disproportionately contribute to transmission \autocite{monodAgeGroupsThat2021,trankiemSARSCoV2TransmissionAge2021}.
-Therefore, we used working-age adults as a reference group (designated here as $Y$) for normalization.
+Therefore, we used working-age adults as a reference group (designated here as $Y$) for normalization. 
+\ctkc{Probably change a bit the justification: you say young adults play a big role, but then your normalize with respect to a much large age group (25-64).
+ Also need to mention which groups you considered for this analysis (as this is not longer single year age bins)}
 Age $RR_{seq}$ was normalized over time using the following equation: $nRR_{seq}^{A,B}(t) = RR_{seq}^{A,B}(t)/RR_{seq}^{Y,Y}(t)$, with $nRR_{seq}^{Y,Y}(t) = 1$ for all $t$.
 
 \subsection{Geographic Clustering and Regional Analysis}
 
 We used hierarchical clustering and dimensionality reduction to assess how spatial transmission patterns between North American subdivisions related with administrative boundary definitions.
-$RR_{seq}^{A,B}$ was converted to a dissimilarity score between $A$ and $B$: $\exp{(-RR_{seq}^{A,B})}$, which we used as an input distance matrix for clustering and dimensionality reduction analysis.
-We performed hierarchical clustering of North American subdivisions the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} R package.\autocite{maechlerClusterClusterAnalysis2026}
+We converted $RR_{seq}^{A,B}$ to a dissimilarity score between $A$ and $B$: $\exp{(-RR_{seq}^{A,B})}$, which we used as an input dissimilarity matrix for clustering and dimensionality reduction analysis.
+We performed hierarchical clustering of North American subdivisions using the agglomerative nesting (AGNES) algorithm from the \texttt{cluster} R package.\autocite{maechlerClusterClusterAnalysis2026}
 We conducted principal coordinate analysis (i.e. classical multidimensional scaling) with the \texttt{cmdscale} function from the base \texttt{stats} R package\autocite{rcoreteamLanguageEnvironmentStatistical2025} and used the absolute eigenvalue proportion for estimating the percentage of variance in the genetic data explained by each principal coordinate.
 Given that identical sequence enrichment was often concentrated within regions or with immediate neighboring subdivisions, we sought to identify cross-region pairs of non-neighboring North American subdivisions with persistently high $RR_{seq}$ over time to find corridors of cross-region transmission.
-Since the geographic $nRR_{seq}$ does not have a clear threshold for enrichment, we ranked $nRR_{seq}$ across all non-neighboring subdivision pairs based on percentile values, and then restricted this ranking to pairs belonging to distinct regions.
+Since the geographic $nRR_{seq}$ does not have a clear threshold for enrichment, we ranked $nRR_{seq}$ for each quarter across all non-neighboring subdivision pairs based on percentile values, and then restricted this ranking to pairs belonging to distinct regions.
 All international pairs were eligible regardless of neighbor status.
+\ctkc{Clarify on which distribution the 98th percentile threshold is based on. Is it based on the distribution of all pairs across quarters or only non-neighboring pairs from distinct regions? Same below, did you use the same threshold for the seasonal connection?}
 Pairs ranked in the 98th percentile or higher during at least 5 quarters were defined as persistent cross-region connections.
 Additionally, we defined pairs of subdivisions as having a persistent seasonal connection if their normalized $RR_{seq}$ ranked in the 98th percentile in at least 2 years over our study period.
 For example, Florida and California had normalized $RR_{seq}$ higher than the 98th percentile during the July--September quarters of 2022, 2023, and 2024, leading to them being identified as a persistent seasonal connection for Q3.
 
+
 \subsection{Distance/Mobility Regression Analysis}
 
-For the continental United States, we compared identical sequence relative risk scores to multiple measures of distance and movement.
+For the continental United States, we compared identical sequence relative risk scores between distinct states to multiple measures of distance and movement.
 We calculated Pearson's correlation coefficients between identical sequence RR and these distance/movement, where all RR variables (both $RR_{seq}$ and travel/movement) were first transformed to a base-10 logarithmic scale.
 We restricted this comparison to pairs of different states with reported travel or movement.
-As same-state CBSA distances could not be calculated and same-state air travel RR tended to be unstable for smaller states, we excluded all same-state pairs from this analysis.
-\ctkc{Is it because they had no travel score reported. If so, rephrase as "We restricted this comparison to pairs of states with reported travel or movement. As movement score weren't available within the same state, we hence excluded all same-state pairs from this analysis."}
-\abc{It's not quite that there was no travel score reported; the bigger issue is that we can't calculate same-state distance aside from setting them all to zero. Also same- state air travel RR is fairly noisy for a lot of the smaller states and many don't actually have more than one commercial airport.}
-To test for interactions between state distance and travel/movement variables we calculated partial correlation coefficients after controlling for distance and distance stratified correlation coefficients.
-Finally, we constructed generalized additive models to predict the sequence $\log(RR_{seq})$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
+To test for interactions between state distance and travel/movement variables we calculated partial correlation coefficients after controlling for distance, as well as distance stratified correlation coefficients.
+Finally, we built generalized additive models to predict the sequence $\log(RR_{seq})$ with tensor product smooths of the interaction between CBSA distance with movement variables, using the \texttt{mgcv} package in R.\autocite{woodGeneralizedAdditiveModels2017}
 
-\section{Acknowledgements}
+\subsection*{Acknowledgements}
 
 We gratefully acknowledge all data contributors, i.e., the Authors and their Originating laboratories responsible for obtaining the specimens, and their Submitting laboratories for generating the genetic sequence and metadata and sharing via the GISAID Initiative, on which this research is based.
 The EPI\_SET with the full list of the genome accession numbers is accessible at \url{https://doi.org/10.55876/gis8.260827fq}.
+
+\subsection*{Data and code availability}
+\ctkc{Add data and code availability here}
+
+\subsection*{Funding}
+This work is supported by NIH NIGMS R35 GM119774.
+TB was funded as a Howard Hughes Medical Institute Investigator.
+CTK is supported by a Wellcome Trust Early Career Award (321628/Z/24/Z).
+\ctkc{Add other funding sources here.}
+
+\subsection*{Author contributions}
+CTK and TB conceived the study.
+AB and CTK designed the study. 
+AB and CTK developed the methods. 
+AB analyzed the data, performed analyses, validated the methods, visualized the results and wrote the first draft.
+All authors revised the manuscript and approved the final version.
+\ctkc{Add author contributions here (I've made a first pass, but feel free to modify)}
+
+\subsection*{Declaration of AI use}
+\ctkc{Add declaration of AI use here.}
 
 \printbibliography
 
